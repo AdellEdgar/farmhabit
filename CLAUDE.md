@@ -18,7 +18,7 @@ El repositorio es **público** (portfolio). Cualquiera puede instalar la app y u
 | Lenguaje        | TypeScript 6 (strict)                                                                                     |
 | UI              | React 19 + Vite 8 + Tailwind 4 (+ Radix UI desde la Fase 2)                                               |
 | Contenedor      | Tauri 2: Windows, Linux (AppImage/.deb) y Android desde el mismo proyecto. Plan B para Android: Capacitor |
-| Base de datos   | SQLite (`@tauri-apps/plugin-sql` en la app; `better-sqlite3` en tests) + FTS5 para el buscador            |
+| Base de datos   | SQLite (`@tauri-apps/plugin-sql` en la app; `node:sqlite` de Node en tests) + FTS5 para el buscador       |
 | Cripto          | libsodium (`libsodium-wrappers-sumo`): Argon2id + XChaCha20-Poly1305                                      |
 | Validación      | zod                                                                                                       |
 | Editor de notas | TipTap                                                                                                    |
@@ -35,7 +35,8 @@ Rust se usa lo mínimo: arranque de Tauri, plugins y algún comando nativo puntu
 packages/core/        Núcleo SIN UI ni dependencias de plataforma (lo vigila ESLint)
   src/model/          tipos + esquemas zod
   src/db/             SqlDriver (interfaz), migraciones, repositorios
-  src/domain/         orden de tareas, recurrencias, frecuencias, rachas, vista "Hoy"
+  src/domain/         funciones puras: orden de tareas, recurrencias, frecuencias, rachas, avisos
+  src/services/       operaciones sobre la BD (completar tarea, registrar hábito, reordenar…)
   src/game/           motor de la granja + config de reglas (game-rules.ts)
   src/crypto/         envoltorio de libsodium
   src/sync/           formato .agx, migraciones de formato, fusión
@@ -54,22 +55,23 @@ Toda tabla sincronizable tiene: `id` (UUID), `created_at`, `updated_at`, `delete
 - `tags`: nombre y color.
 - `tasks`: título, notas, prioridad (1 alta, 2 media, 3 baja), estado (`pending`/`done`), `due_date`, `due_time`, `rrule`, `reminders` (JSON, p. ej. `[{offsetMin:1440},{offsetMin:60}]`), `tag_ids` (JSON), `completed_at`.
 - `task_completions`: historial de tareas recurrentes. id = UUIDv5(tarea + fecha de ocurrencia). Al completar una recurrente se registra aquí y la fecha avanza a la siguiente ocurrencia.
-- `habits`: nombre, icono, color, `effort` (1–5), `sort_key` (índice fraccional), `start_date`, `schedule` (JSON: `daily`, `weekdays{days}`, `timesPerWeek{times}`, `timesPerMonth{times}`, `everyNDays{interval}`), `target` (`{quantity, unit}` o null), `reminders` (JSON `[{time, days}]`), `archived_at`.
+- `habits`: nombre, descripción, icono, color, `sort_key` (índice fraccional), `start_date`, `reminders` (JSON `[{time, days}]`), `archived_at` y `config_history` (JSON): lista de `{since, effort (1–5), schedule, target}`. `schedule` es `daily`, `weekdays{days}`, `timesPerWeek{times}`, `timesPerMonth{times}` o `everyNDays{interval}`; `target` es `{quantity, unit}` o null. Un cambio de configuración se añade con `since` = mañana (o reemplaza si el hábito empieza hoy), para no reescribir el pasado.
 - `habit_logs`: id = UUIDv5(hábito + fecha), `date`, `status` (`done`/`skipped`), `value` (cantidad o null). Desmarcar = tombstone.
 - `note_folders`: nombre, `parent_id`, `sort_key`.
 - `notes`: `folder_id`, título, contenido (JSON de TipTap), texto plano para buscar, `tag_ids`, `pinned`, `is_private`, `private_blob`.
-- `animals`: nombre (lo elige el usuario), especie, nacimiento, muerte, origen (comprado/nacido).
-- `settings`: clave, valor, si se sincroniza (el tema elegido es por dispositivo; los temas personalizados se sincronizan).
-- Locales (no se sincronizan): `meta` (deviceId, versión de esquema, último reloj), índice FTS5, caché de eventos de calendario.
+- `animals`: nombre (lo elige el usuario), especie, `acquired_on`, origen (`starter`/`bought`/`born`) y precio. La muerte **no** se guarda: la calcula el motor. Las crías tienen id = UUIDv5(padre + fecha); si el usuario les pone nombre se guarda una fila con ese id.
+- `vacations`: `start_date`, `end_date`. Solo protegen los días posteriores al día en que se crearon.
+- `settings`: clave y valor (sincronizados). Lo que es solo del dispositivo (p. ej. el tema elegido) va en `meta`.
+- Locales (no se sincronizan): `meta` (deviceId, versión de esquema, `lastClock`, `lastSync:<deviceId>`), índice FTS5 (Fase 2), caché de eventos de calendario.
 
-`updated_at` es monotónico por dispositivo: `max(ahora, último + 1)`. Los tombstones no se purgan.
+`updated_at` es monotónico por dispositivo: `max(ahora, último + 1)`, persistido en `meta.lastClock` en la misma transacción que cada escritura; tras importar, el reloj avanza hasta la marca más alta importada. Los tombstones no se purgan, y al borrar tareas y notas se vacía su contenido. Las migraciones del esquema son SQL congelado (`db/migrations.ts`): nunca se editan, se añade una nueva.
 
 ## Sincronización y fusión
 
 - **Exportar/importar** un archivo cifrado `.agx` con la contraseña maestra.
 - **Sincronización por carpeta** (Syncthing): un archivo por dispositivo, `farmhabit-<deviceId>.agx`. Cada uno escribe solo el suyo y lee los demás, así no hay conflictos de archivo.
-- **Fusión por elemento:** gana el `updated_at` mayor; si hay empate, gana el tombstone; si sigue el empate, decide un hash del contenido (determinista). Una copia antigua nunca resucita algo borrado; una edición posterior a un borrado sí lo resucita.
-- **Notas:** si ambas versiones cambiaron desde la última sincronización con ese dispositivo, se conservan las dos ("Nota (conflicto)").
+- **Fusión por elemento:** gana el `updated_at` mayor; si hay empate, gana el tombstone; si sigue el empate, gana el JSON canónico mayor (determinista). Una copia antigua nunca resucita algo borrado; una edición posterior a un borrado sí lo resucita.
+- **Notas:** si ambas versiones cambiaron desde la última sincronización con ese dispositivo (`meta.lastSync:<deviceId>`), la perdedora se conserva como "Título (conflicto)" con id = UUIDv5(nota + updatedAt perdedora), así los dos dispositivos crean la misma copia.
 - **Limitación aceptada:** las cantidades de hábitos editadas en dos dispositivos antes de sincronizar se quedan con el último valor.
 - Propiedades exigidas a `merge`: conmutativa, idempotente, asociativa (tests con fast-check). Se avisa si llegan marcas de tiempo más de 5 min en el futuro.
 
@@ -88,7 +90,8 @@ Cabecera: `format: "farmhabit-export"`, `formatVersion`, `createdAt`, `deviceId`
 - Salt (16 B) y nonce (24 B) nuevos en cada exportación.
 - Contenido descifrado (validado con zod): `{formatVersion, schemaVersion, exportedAt, sourceDeviceId, collections: {...}, privateVault}`. Las colecciones van por nombre, así que añadir colecciones no rompe el formato.
 - Migraciones de formato encadenadas: `migrations[v](payload_v) → payload_v+1`. Un archivo con una versión más nueva que la app se rechaza.
-- Errores: `InvalidFileError`, `UnsupportedVersionError`, `DecryptionError` ("Contraseña incorrecta o archivo dañado": el cifrado autenticado no permite distinguir los dos casos) y `PayloadValidationError`.
+- Errores: `InvalidFileError`, `UnsupportedVersionError`, `DecryptionError` ("Contraseña incorrecta o archivo dañado": el cifrado autenticado no permite distinguir los dos casos), `PayloadValidationError` y `PasswordTooShortError` (mínimo 8 caracteres al exportar).
+- Al leer, se rechazan cabeceras de más de 64 KB y parámetros de Argon2id fuera de rango (1–20 pasadas, 8 KB–1 GB), para que un archivo malicioso no agote la memoria.
 
 ## Reglas de seguridad
 
@@ -104,15 +107,20 @@ Cabecera: `format: "farmhabit-export"`, `formatVersion`, `createdAt`, `deviceId`
 
 El estado de la granja **no se guarda: se calcula** a partir de los registros de hábitos (más las compras y los nombres de los animales, que sí son datos). Todos los números viven en `packages/core/src/game/game-rules.ts` para poder ajustarlos sin tocar la lógica.
 
-- **Puntos:** si haces el hábito, `+10 × effort`; si no lo haces, `−10 × (6 − effort)` (fallar lo fácil penaliza más). "Saltado" y los días no programados son neutros. Las cantidades dan puntos parciales. Bonus de racha de +5 % por semana, hasta +50 %.
-- **XP:** solo sube. Hace subir de nivel la granja y desbloquea especies, edificios y decoración. **Grano:** moneda para comprar.
-- **Bienestar (0–100 %):** depende del **cumplimiento del día** = puntos conseguidos / puntos posibles de los hábitos programados.
+El motor (`game/engine.ts`, `computeFarm`) recorre los días desde el primer hábito o animal hasta hoy. **Los días anteriores a hoy están cerrados**; hoy es provisional: suma los puntos de lo hecho, pero no penaliza ni cambia bienestar, salud o animales. El resultado no depende del orden de los datos.
+
+- **Puntos:** si haces el hábito, `+10 × effort`; si no lo haces, `−10 × (6 − effort)` (fallar lo fácil penaliza más). "Saltado" y los días no programados son neutros. Las cantidades dan puntos y penalización proporcionales. Bonus de racha de +5 % por semana, hasta +50 %.
+- **Frecuencias flexibles** (N veces por semana o mes): hacerlo suma ese día; lo que falte del objetivo se penaliza al cerrar el periodo (domingo o fin de mes). Un día saltado cuenta para el objetivo.
+- **XP:** suma solo lo ganado y nunca baja. Nivel n a partir de `100·n·(n−1)` XP. **Grano:** lo ganado menos penalizaciones y compras, nunca por debajo de 0.
+- **Bienestar (0–100, empieza en 80):** depende del **cumplimiento del día** = puntos conseguidos / puntos posibles (sin bonus) de los hábitos que tocan y no se saltaron.
   - Menos del 40 %: −15. Entre 40 y 69 %: −5. Entre 70 y 89 %: +8. 90 % o más: +12.
-  - Un día solo cuenta como "bueno" si se hicieron al menos 3 hábitos (o todos, si ese día tocaban menos de 3).
-- **Enfermedad y muerte:** con el bienestar por debajo del 30 % los animales enferman. Si pasan 3 días seguidos por debajo del 30 %, un animal **muere para siempre** y va al cementerio (nombre y fechas). Antes de morir hay un aviso con su nombre.
-- **Curación:** 2 días seguidos con al menos un 70 % de cumplimiento y el bienestar por encima del 30 %.
-- **Contra las trampas:** los hábitos creados hace menos de 7 días no cuentan para recuperar bienestar. Borrar o archivar un hábito no borra las penalizaciones pasadas. Cambiar el esfuerzo solo afecta a los días siguientes. Solo se puede registrar hasta el día anterior: los días cerrados no se editan.
-- **Modo vacaciones:** se activa por adelantado y pausa las penalizaciones.
+  - Si no se hicieron al menos 3 hábitos (o todos, si tocaban menos), un día con un 70 % o más cuenta como −5 y no es "bueno".
+  - Un día sin hábitos que cuenten no cambia el bienestar.
+- **Enfermedad y muerte:** por debajo del 30 % los animales enferman. Al tercer día seguido por debajo del 30 % muere un animal (elegido de forma determinista) **para siempre** y el contador vuelve a 0. `deathWarning` da el animal y los días que le quedan.
+- **Curación:** 2 días buenos seguidos y el bienestar en el 30 % o más.
+- **Crías:** 7 días seguidos con bienestar de 70 o más y sin enfermedad hacen nacer una cría de la especie de un padre, si cabe (capacidad `4 + 2·nivel`).
+- **Contra las trampas:** los hábitos con menos de 7 días no cuentan para el cumplimiento (sí dan puntos). Borrar o archivar un hábito no borra las penalizaciones pasadas. Cambiar el esfuerzo solo afecta a partir del cambio. Solo se puede registrar hoy y ayer (`setHabitLog` → `ClosedDayError`).
+- **Modo vacaciones:** solo protege los días posteriores al día en que se creó. Esos días no hay penalizaciones ni cambios de bienestar o salud.
 - Gráficos: solo recursos con licencia libre (CC0, p. ej. Kenney.nl), con la atribución en `CREDITS.md`.
 
 ## Repositorio público
@@ -124,7 +132,7 @@ El estado de la granja **no se guarda: se calcula** a partir de los registros de
 ## Fases
 
 0. Estructura del monorepo, esqueleto de Tauri y este documento. ✅
-1. Núcleo: modelo, SQLite, migraciones, repositorios, recurrencias, frecuencias y rachas, motor del juego, cripto, formato `.agx`, fusión y tests.
+1. Núcleo: modelo, SQLite, migraciones, repositorios, recurrencias, frecuencias y rachas, motor del juego, cripto, formato `.agx`, fusión y tests. ✅
 2. Interfaz base: Hoy, Tareas, Hábitos (con puntos), Notas, tema oscuro. **Primera entrega usable** (instalador de Windows).
 3. Avisos: notificaciones, bandeja del sistema, arranque automático.
 4. Exportar/importar cifrado y sincronización por carpeta.

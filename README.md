@@ -11,7 +11,7 @@ App de productividad personal **local-first** para Windows, Linux y Android:
 
 ## Desarrollo
 
-Requisitos: Node 22.12 o superior, pnpm 10, Rust (rustup) y, en Windows, las Build Tools de C++ de Visual Studio.
+Requisitos: Node 22.13 o superior, pnpm 10, Rust (rustup) y, en Windows, las Build Tools de C++ de Visual Studio.
 
 ```bash
 pnpm install

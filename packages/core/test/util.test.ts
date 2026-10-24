@@ -1,0 +1,109 @@
+import fc from 'fast-check';
+import { describe, expect, it } from 'vitest';
+import { ManualClock, MonotonicClock } from '../src/util/clock';
+import {
+  addDays,
+  diffDays,
+  endOfMonth,
+  isLocalDate,
+  isoWeekday,
+  localDateOf,
+  localDateTimeToEpoch,
+  startOfWeek,
+} from '../src/util/dates';
+import { compareSortKey, keyBetween } from '../src/util/fractional-index';
+import { deterministicId, newId } from '../src/util/ids';
+
+describe('fechas locales', () => {
+  it('valida fechas reales', () => {
+    expect(isLocalDate('2028-02-29')).toBe(true);
+    expect(isLocalDate('2026-02-29')).toBe(false);
+    expect(isLocalDate('2026-13-01')).toBe(false);
+    expect(isLocalDate('26-01-01')).toBe(false);
+  });
+
+  it('suma días cruzando meses, años y cambios de hora', () => {
+    expect(addDays('2026-12-31', 1)).toBe('2027-01-01');
+    expect(addDays('2026-03-28', 2)).toBe('2026-03-30'); // DST en Madrid el 29
+    expect(addDays('2026-03-01', -1)).toBe('2026-02-28');
+    expect(diffDays('2026-03-28', '2026-03-30')).toBe(2);
+  });
+
+  it('calcula día de la semana, lunes y fin de mes', () => {
+    expect(isoWeekday('2026-10-24')).toBe(6); // sábado
+    expect(isoWeekday('2026-10-25')).toBe(7); // domingo
+    expect(startOfWeek('2026-10-25')).toBe('2026-10-19');
+    expect(endOfMonth('2028-02-10')).toBe('2028-02-29');
+  });
+
+  it('convierte entre instante y fecha local alrededor de medianoche', () => {
+    const lateNight = localDateTimeToEpoch('2026-10-24', '23:59');
+    expect(localDateOf(lateNight)).toBe('2026-10-24');
+    expect(localDateOf(lateNight + 60_000)).toBe('2026-10-25');
+  });
+});
+
+describe('reloj monotónico', () => {
+  it('nunca retrocede aunque el reloj del sistema lo haga', () => {
+    const source = new ManualClock(1_000);
+    const clock = new MonotonicClock(source);
+    const a = clock.next();
+    source.set(500);
+    const b = clock.next();
+    const c = clock.next();
+    expect(b).toBeGreaterThan(a);
+    expect(c).toBeGreaterThan(b);
+  });
+
+  it('continúa por delante de lo importado', () => {
+    const clock = new MonotonicClock(new ManualClock(1_000));
+    clock.observe(5_000);
+    expect(clock.next()).toBe(5_001);
+  });
+});
+
+describe('ids', () => {
+  it('genera UUID distintos', () => {
+    expect(newId()).not.toBe(newId());
+  });
+
+  it('el id determinista es estable y depende de los datos', () => {
+    expect(deterministicId('habitLog', 'h1', '2026-10-24')).toBe(
+      deterministicId('habitLog', 'h1', '2026-10-24'),
+    );
+    expect(deterministicId('habitLog', 'h1', '2026-10-24')).not.toBe(
+      deterministicId('habitLog', 'h1', '2026-10-25'),
+    );
+  });
+});
+
+describe('índices fraccionales', () => {
+  it('inserta antes, entre y después', () => {
+    const a = keyBetween(null, null);
+    const b = keyBetween(a, null);
+    const mid = keyBetween(a, b);
+    const first = keyBetween(null, a);
+    expect([b, mid, first, a].sort()).toEqual([first, a, mid, b]);
+  });
+
+  it('siempre encuentra una clave estrictamente entre dos', () => {
+    fc.assert(
+      fc.property(fc.array(fc.boolean(), { minLength: 1, maxLength: 60 }), (choices) => {
+        let lo = keyBetween(null, null);
+        let hi = keyBetween(lo, null);
+        for (const left of choices) {
+          const k = keyBetween(lo, hi);
+          expect(k > lo && k < hi).toBe(true);
+          if (left) hi = k;
+          else lo = k;
+        }
+      }),
+    );
+  });
+
+  it('a igualdad de clave ordena por id', () => {
+    const x = { sortKey: 'V', id: 'a' };
+    const y = { sortKey: 'V', id: 'b' };
+    expect([y, x].sort(compareSortKey)).toEqual([x, y]);
+  });
+});
