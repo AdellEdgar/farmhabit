@@ -7,6 +7,7 @@ El repositorio es **público** (portfolio). Cualquiera puede instalar la app y u
 ## Reglas de trabajo
 
 - Se trabaja por fases, **un commit por fase** (ver "Fases"). No adelantar trabajo de fases futuras sin acordarlo.
+- **Los commits y los push los hace el usuario.** Al terminar una fase, Claude deja los cambios sin commitear y le da los comandos y el mensaje de commit.
 - Antes de cerrar una fase: `pnpm check` (typecheck + lint + formato + tests) tiene que pasar.
 - Idioma: **interfaz y documentación en español**. Identificadores de código en inglés. Comentarios en español, solo cuando aportan.
 - Mantener este archivo al día cuando cambie una decisión de arquitectura, el formato del archivo, las reglas del juego o las de seguridad.
