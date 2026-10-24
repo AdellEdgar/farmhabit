@@ -1,0 +1,6 @@
+pnpm-lock.yaml
+dist/
+coverage/
+target/
+apps/app/src-tauri/gen/
+apps/app/src-tauri/icons/

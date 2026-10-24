@@ -1,0 +1,58 @@
+@import 'tailwindcss';
+
+/*
+ * Temas: los colores son variables CSS (--fh-*) para poder cambiarlos en
+ * tiempo de ejecución (temas predefinidos y editor de temas en la Fase 6).
+ * Tailwind los usa a través de @theme inline: bg-fondo, text-texto, etc.
+ */
+@theme inline {
+  --color-fondo: var(--fh-fondo);
+  --color-superficie: var(--fh-superficie);
+  --color-borde: var(--fh-borde);
+  --color-texto: var(--fh-texto);
+  --color-texto-suave: var(--fh-texto-suave);
+  --color-acento: var(--fh-acento);
+  --color-acento-texto: var(--fh-acento-texto);
+}
+
+:root,
+:root[data-theme='oscuro'] {
+  color-scheme: dark;
+  --fh-fondo: #12151a;
+  --fh-superficie: #1b2027;
+  --fh-borde: #2a313b;
+  --fh-texto: #e8ecf1;
+  --fh-texto-suave: #9aa5b4;
+  --fh-acento: #7cc46b;
+  --fh-acento-texto: #0f1a0c;
+}
+
+:root[data-theme='claro'] {
+  color-scheme: light;
+  --fh-fondo: #f6f4ee;
+  --fh-superficie: #ffffff;
+  --fh-borde: #e0dcd0;
+  --fh-texto: #1f2328;
+  --fh-texto-suave: #5f6670;
+  --fh-acento: #3f8f34;
+  --fh-acento-texto: #ffffff;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--fh-fondo);
+  color: var(--fh-texto);
+  font-family:
+    system-ui,
+    -apple-system,
+    'Segoe UI',
+    Roboto,
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+}

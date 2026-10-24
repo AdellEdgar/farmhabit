@@ -1,0 +1,34 @@
+# Dependencias y builds
+node_modules/
+dist/
+build/
+coverage/
+*.tsbuildinfo
+target/
+apps/app/src-tauri/gen/schemas/
+
+# Entorno y secretos
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.keystore
+*.jks
+
+# DATOS PERSONALES: nunca al repositorio (es público)
+*.db
+*.db-*
+*.sqlite
+*.sqlite3
+*.agx
+exports/
+backup*/
+
+# Editor y sistema
+.vscode/*
+!.vscode/extensions.json
+.idea/
+.DS_Store
+Thumbs.db
+*.log

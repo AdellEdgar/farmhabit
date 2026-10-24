@@ -1,0 +1,33 @@
+{
+  "name": "farmhabit",
+  "version": "0.1.0",
+  "private": true,
+  "description": "FarmHabit: tareas, hábitos con granja de animales y notas. Local-first.",
+  "license": "MIT",
+  "type": "module",
+  "packageManager": "pnpm@10.34.8",
+  "engines": {
+    "node": ">=22.12"
+  },
+  "scripts": {
+    "dev": "pnpm --filter @farmhabit/app tauri dev",
+    "dev:web": "pnpm --filter @farmhabit/app dev",
+    "build": "pnpm --filter @farmhabit/app tauri build",
+    "test": "pnpm -r test",
+    "typecheck": "pnpm -r typecheck",
+    "lint": "eslint .",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "check": "pnpm typecheck && pnpm lint && pnpm format:check && pnpm test"
+  },
+  "devDependencies": {
+    "@eslint/js": "10.0.1",
+    "eslint": "10.13.0",
+    "eslint-plugin-react-hooks": "7.1.1",
+    "eslint-plugin-react-refresh": "0.5.7",
+    "globals": "17.13.0",
+    "prettier": "3.9.10",
+    "typescript": "6.0.3",
+    "typescript-eslint": "8.72.0"
+  }
+}
