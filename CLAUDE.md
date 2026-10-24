@@ -14,19 +14,19 @@ El repositorio es **público** (portfolio). Cualquiera puede instalar la app y u
 
 ## Stack
 
-| Pieza           | Elección                                                                                                  |
-| --------------- | --------------------------------------------------------------------------------------------------------- |
-| Lenguaje        | TypeScript 6 (strict)                                                                                     |
-| UI              | React 19 + Vite 8 + Tailwind 4 (+ Radix UI desde la Fase 2)                                               |
-| Contenedor      | Tauri 2: Windows, Linux (AppImage/.deb) y Android desde el mismo proyecto. Plan B para Android: Capacitor |
-| Base de datos   | SQLite (`@tauri-apps/plugin-sql` en la app; `node:sqlite` de Node en tests) + FTS5 para el buscador       |
-| Cripto          | libsodium (`libsodium-wrappers-sumo`): Argon2id + XChaCha20-Poly1305                                      |
-| Validación      | zod                                                                                                       |
-| Editor de notas | TipTap                                                                                                    |
-| Recurrencias    | RRULE (RFC 5545), librería `rrule`                                                                        |
-| Gráficas        | Recharts                                                                                                  |
-| Tests           | Vitest + fast-check                                                                                       |
-| Monorepo        | pnpm workspaces                                                                                           |
+| Pieza           | Elección                                                                                                        |
+| --------------- | --------------------------------------------------------------------------------------------------------------- |
+| Lenguaje        | TypeScript 6 (strict)                                                                                           |
+| UI              | React 19 + Vite 8 + Tailwind 4 (+ Radix UI desde la Fase 2)                                                     |
+| Contenedor      | Tauri 2: Windows, Linux (AppImage/.deb) y Android desde el mismo proyecto. Plan B para Android: Capacitor       |
+| Base de datos   | SQLite: `rusqlite` (bundled) con comandos propios en la app, `sql.js` en `pnpm dev:web`, `node:sqlite` en tests |
+| Cripto          | libsodium (`libsodium-wrappers-sumo`): Argon2id + XChaCha20-Poly1305                                            |
+| Validación      | zod                                                                                                             |
+| Editor de notas | TipTap                                                                                                          |
+| Recurrencias    | RRULE (RFC 5545), librería `rrule`                                                                              |
+| Gráficas        | Recharts                                                                                                        |
+| Tests           | Vitest + fast-check                                                                                             |
+| Monorepo        | pnpm workspaces                                                                                                 |
 
 Rust se usa lo mínimo: arranque de Tauri, plugins y algún comando nativo puntual.
 
@@ -43,11 +43,19 @@ packages/core/        Núcleo SIN UI ni dependencias de plataforma (lo vigila ES
   src/sync/           formato .agx, migraciones de formato, fusión
   src/util/           reloj monotónico, UUID, fechas locales
 apps/app/             React + src-tauri (Windows, Linux, Android)
+  src/lib/            drivers SQLite, contexto de datos (AppProvider/useApp), formato de fechas, tema, atajos
+  src/components/     componentes base (ui.tsx)
+  src/features/       una carpeta por sección: today, tasks, habits, notes, farm, settings
+  src-tauri/src/db.rs comandos db_select, db_execute y db_transaction
 ```
+
+**Datos en la UI:** `AppProvider` abre la BD, carga todas las colecciones en memoria y calcula la granja con `computeFarm`. Toda escritura pasa por `mutate(fn)`, que ejecuta el cambio, recarga los datos y muestra los errores en un aviso. Con volúmenes personales (miles de elementos) recargar todo es instantáneo.
 
 **Regla de oro:** el núcleo no importa React, Tauri ni nada del DOM. La plataforma se le inyecta mediante interfaces (`SqlDriver`, almacén de claves, notificador). Así se prueba en Node y se reutiliza tal cual en Android.
 
-**Riesgo conocido:** `plugin-sql` usa un pool de conexiones, por lo que `BEGIN…COMMIT` en llamadas separadas no es seguro. `SqlDriver.transaction(statements[])` debe ser atómico; si el plugin no lo garantiza, se añade un comando Rust pequeño.
+**SQLite nativo:** no se usa `plugin-sql`, porque su pool de conexiones no garantiza transacciones atómicas. `src-tauri/src/db.rs` mantiene una única conexión `rusqlite` tras un `Mutex` y `db_transaction` ejecuta todas las sentencias en una transacción real. La BD vive en el directorio de datos de la app (`%APPDATA%\io.github.adelledgar.farmhabit\farmhabit.db` en Windows), en modo WAL.
+
+**Modo navegador (`pnpm dev:web`):** sin Tauri se usa SQLite en WebAssembly (`sql.js`), con los datos en `localStorage` de ese navegador. Solo sirve para desarrollar y probar la interfaz.
 
 ## Modelo de datos
 
@@ -63,7 +71,7 @@ Toda tabla sincronizable tiene: `id` (UUID), `created_at`, `updated_at`, `delete
 - `animals`: nombre (lo elige el usuario), especie, `acquired_on`, origen (`starter`/`bought`/`born`) y precio. La muerte **no** se guarda: la calcula el motor. Las crías tienen id = UUIDv5(padre + fecha); si el usuario les pone nombre se guarda una fila con ese id.
 - `vacations`: `start_date`, `end_date`. Solo protegen los días posteriores al día en que se crearon.
 - `settings`: clave y valor (sincronizados). Lo que es solo del dispositivo (p. ej. el tema elegido) va en `meta`.
-- Locales (no se sincronizan): `meta` (deviceId, versión de esquema, `lastClock`, `lastSync:<deviceId>`), índice FTS5 (Fase 2), caché de eventos de calendario.
+- Locales (no se sincronizan): `meta` (deviceId, versión de esquema, `lastClock`, `lastSync:<deviceId>`, `theme`) y caché de eventos de calendario. El buscador de notas filtra en memoria sin distinguir acentos ni mayúsculas; si hiciera falta se añadirá un índice FTS5.
 
 `updated_at` es monotónico por dispositivo: `max(ahora, último + 1)`, persistido en `meta.lastClock` en la misma transacción que cada escritura; tras importar, el reloj avanza hasta la marca más alta importada. Los tombstones no se purgan, y al borrar tareas y notas se vacía su contenido. Las migraciones del esquema son SQL congelado (`db/migrations.ts`): nunca se editan, se añade una nueva.
 
@@ -134,7 +142,7 @@ El motor (`game/engine.ts`, `computeFarm`) recorre los días desde el primer há
 
 0. Estructura del monorepo, esqueleto de Tauri y este documento. ✅
 1. Núcleo: modelo, SQLite, migraciones, repositorios, recurrencias, frecuencias y rachas, motor del juego, cripto, formato `.agx`, fusión y tests. ✅
-2. Interfaz base: Hoy, Tareas, Hábitos (con puntos), Notas, tema oscuro. **Primera entrega usable** (instalador de Windows).
+2. Interfaz base: Hoy, Tareas, Hábitos (con puntos), Notas, granja básica (adoptar, nombres, cementerio), Ajustes (tema oscuro/claro/sistema), atajos N y /. **Primera entrega usable** (instalador de Windows). ✅ Los avisos se configuran pero aún no suenan (Fase 3).
 3. Avisos: notificaciones, bandeja del sistema, arranque automático.
 4. Exportar/importar cifrado y sincronización por carpeta.
 5. Android (y Linux).

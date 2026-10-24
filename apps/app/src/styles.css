@@ -8,34 +8,52 @@
 @theme inline {
   --color-fondo: var(--fh-fondo);
   --color-superficie: var(--fh-superficie);
+  --color-elevado: var(--fh-elevado);
   --color-borde: var(--fh-borde);
   --color-texto: var(--fh-texto);
   --color-texto-suave: var(--fh-texto-suave);
   --color-acento: var(--fh-acento);
+  --color-acento-suave: var(--fh-acento-suave);
   --color-acento-texto: var(--fh-acento-texto);
+  --color-peligro: var(--fh-peligro);
+  --color-aviso: var(--fh-aviso);
+  --color-info: var(--fh-info);
+  --color-grano: var(--fh-grano);
 }
 
 :root,
 :root[data-theme='oscuro'] {
   color-scheme: dark;
-  --fh-fondo: #12151a;
-  --fh-superficie: #1b2027;
+  --fh-fondo: #101318;
+  --fh-superficie: #171b22;
+  --fh-elevado: #1f252e;
   --fh-borde: #2a313b;
   --fh-texto: #e8ecf1;
-  --fh-texto-suave: #9aa5b4;
+  --fh-texto-suave: #8f9aa9;
   --fh-acento: #7cc46b;
+  --fh-acento-suave: #7cc46b26;
   --fh-acento-texto: #0f1a0c;
+  --fh-peligro: #e5534b;
+  --fh-aviso: #e3a33b;
+  --fh-info: #5b9cf0;
+  --fh-grano: #e8c15a;
 }
 
 :root[data-theme='claro'] {
   color-scheme: light;
-  --fh-fondo: #f6f4ee;
+  --fh-fondo: #f5f3ec;
   --fh-superficie: #ffffff;
-  --fh-borde: #e0dcd0;
+  --fh-elevado: #fbfaf6;
+  --fh-borde: #e2ded2;
   --fh-texto: #1f2328;
-  --fh-texto-suave: #5f6670;
+  --fh-texto-suave: #626a74;
   --fh-acento: #3f8f34;
+  --fh-acento-suave: #3f8f341f;
   --fh-acento-texto: #ffffff;
+  --fh-peligro: #c93c37;
+  --fh-aviso: #b97a12;
+  --fh-info: #2f6fc4;
+  --fh-grano: #b88a14;
 }
 
 html,
@@ -55,4 +73,104 @@ body {
     Roboto,
     sans-serif;
   -webkit-font-smoothing: antialiased;
+  -webkit-tap-highlight-color: transparent;
+}
+
+:focus-visible {
+  outline: 2px solid var(--fh-acento);
+  outline-offset: 2px;
+}
+
+input,
+textarea,
+select {
+  color: inherit;
+}
+
+/* Barras de scroll discretas */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--fh-borde) transparent;
+}
+
+/* ---------- Editor de notas (TipTap) ---------- */
+.note-editor .tiptap {
+  outline: none;
+  min-height: 50vh;
+  line-height: 1.65;
+}
+.note-editor .tiptap > * + * {
+  margin-top: 0.6em;
+}
+.note-editor .tiptap h1 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin-top: 1.2em;
+}
+.note-editor .tiptap h2 {
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin-top: 1.1em;
+}
+.note-editor .tiptap h3 {
+  font-size: 1.05rem;
+  font-weight: 650;
+  margin-top: 1em;
+}
+.note-editor .tiptap ul:not([data-type='taskList']) {
+  list-style: disc;
+  padding-left: 1.4em;
+}
+.note-editor .tiptap ol {
+  list-style: decimal;
+  padding-left: 1.4em;
+}
+.note-editor .tiptap ul[data-type='taskList'] {
+  padding-left: 0.1em;
+}
+.note-editor .tiptap ul[data-type='taskList'] li {
+  display: flex;
+  gap: 0.6em;
+  align-items: flex-start;
+}
+.note-editor .tiptap ul[data-type='taskList'] li > label {
+  margin-top: 0.3em;
+}
+.note-editor .tiptap ul[data-type='taskList'] li > label input {
+  accent-color: var(--fh-acento);
+  width: 1.05em;
+  height: 1.05em;
+}
+.note-editor .tiptap ul[data-type='taskList'] li[data-checked='true'] > div {
+  color: var(--fh-texto-suave);
+  text-decoration: line-through;
+}
+.note-editor .tiptap blockquote {
+  border-left: 3px solid var(--fh-borde);
+  padding-left: 1em;
+  color: var(--fh-texto-suave);
+}
+.note-editor .tiptap code {
+  background: var(--fh-elevado);
+  border-radius: 4px;
+  padding: 0.1em 0.35em;
+  font-size: 0.9em;
+}
+.note-editor .tiptap pre {
+  background: var(--fh-elevado);
+  border-radius: 8px;
+  padding: 0.8em 1em;
+  overflow-x: auto;
+}
+.note-editor .tiptap hr {
+  border: none;
+  border-top: 1px solid var(--fh-borde);
+  margin: 1.2em 0;
+}
+.note-editor .tiptap p.is-editor-empty:first-child::before {
+  content: attr(data-placeholder);
+  color: var(--fh-texto-suave);
+  float: left;
+  height: 0;
+  pointer-events: none;
 }
