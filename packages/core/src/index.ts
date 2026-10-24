@@ -26,6 +26,7 @@ export type { NewEntity, EntityPatch } from './db/database';
 export * from './domain/tasks';
 export * from './domain/recurrence';
 export * from './domain/habits';
+export * from './domain/reminders';
 
 // Servicios
 export * from './services/tasks';

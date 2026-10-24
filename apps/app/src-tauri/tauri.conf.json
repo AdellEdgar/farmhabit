@@ -14,6 +14,7 @@
       {
         "label": "main",
         "title": "FarmHabit",
+        "visible": false,
         "width": 1100,
         "height": 760,
         "minWidth": 360,

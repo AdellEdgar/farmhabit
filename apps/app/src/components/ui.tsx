@@ -266,6 +266,51 @@ export function Dialog({
   );
 }
 
+/** Interruptor con etiqueta y descripción. */
+export function Toggle({
+  checked,
+  onChange,
+  label,
+  description,
+  disabled,
+}: {
+  checked: boolean;
+  onChange: (v: boolean) => void;
+  label: string;
+  description?: ReactNode;
+  disabled?: boolean;
+}) {
+  return (
+    <label className={cx('flex items-start justify-between gap-4', disabled && 'opacity-50')}>
+      <span>
+        <span className="block text-sm font-medium">{label}</span>
+        {description && (
+          <span className="mt-0.5 block text-xs text-texto-suave">{description}</span>
+        )}
+      </span>
+      <button
+        type="button"
+        role="switch"
+        aria-checked={checked}
+        aria-label={label}
+        disabled={disabled}
+        onClick={() => onChange(!checked)}
+        className={cx(
+          'relative mt-0.5 h-6 w-11 shrink-0 rounded-full transition',
+          checked ? 'bg-acento' : 'bg-borde',
+        )}
+      >
+        <span
+          className={cx(
+            'absolute top-0.5 left-0.5 size-5 rounded-full bg-white shadow transition-transform',
+            checked && 'translate-x-5',
+          )}
+        />
+      </button>
+    </label>
+  );
+}
+
 /** Casilla redonda para completar. */
 export function CheckCircle({
   checked,

@@ -367,7 +367,9 @@ export function HabitEditor({ habit, onClose }: { habit: Habit | null; onClose: 
           >
             <Plus size={16} /> Añadir recordatorio
           </Button>
-          <p className="text-xs text-texto-suave">Los avisos se activarán en la Fase 3.</p>
+          <p className="text-xs text-texto-suave">
+            Solo avisa si ese día aún no lo has hecho ni saltado.
+          </p>
         </div>
       </Field>
 

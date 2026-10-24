@@ -55,6 +55,10 @@ apps/app/             React + src-tauri (Windows, Linux, Android)
 
 **SQLite nativo:** no se usa `plugin-sql`, porque su pool de conexiones no garantiza transacciones atómicas. `src-tauri/src/db.rs` mantiene una única conexión `rusqlite` tras un `Mutex` y `db_transaction` ejecuta todas las sentencias en una transacción real. La BD vive en el directorio de datos de la app (`%APPDATA%\io.github.adelledgar.farmhabit\farmhabit.db` en Windows), en modo WAL.
 
+**Avisos (Fase 3):** `remindersBetween` (núcleo, `domain/reminders.ts`) devuelve los avisos de tareas y hábitos con instante en `(from, to]`. No avisa de tareas completadas ni de hábitos ya hechos, saltados o con el objetivo del periodo cumplido. `ReminderScheduler` (app) comprueba cada 20 s desde `meta.reminders:lastCheck`, así nada se repite al reiniciar. Recupera como mucho 12 h de avisos perdidos y agrupa en uno solo si hay más de 3. A las 20:00 avisa si hay `deathWarning`. Preferencias del dispositivo en `meta`: `reminders:enabled`, `closeToTray`.
+
+**Bandeja y arranque (escritorio):** la ventana se crea oculta (`visible: false`) y Rust la muestra salvo con `--minimized`, que es el argumento del autoarranque (`tauri-plugin-autostart`). Cerrar la ventana la esconde en la bandeja (comando `set_close_to_tray`); para salir, "Salir" en el menú del icono. `tauri-plugin-single-instance` hace que abrir la app otra vez muestre la ventana existente. En Android (Fase 5) habrá que programar las notificaciones con antelación, porque la app no sigue viva en segundo plano.
+
 **Modo navegador (`pnpm dev:web`):** sin Tauri se usa SQLite en WebAssembly (`sql.js`), con los datos en `localStorage` de ese navegador. Solo sirve para desarrollar y probar la interfaz.
 
 ## Modelo de datos
@@ -142,8 +146,8 @@ El motor (`game/engine.ts`, `computeFarm`) recorre los días desde el primer há
 
 0. Estructura del monorepo, esqueleto de Tauri y este documento. ✅
 1. Núcleo: modelo, SQLite, migraciones, repositorios, recurrencias, frecuencias y rachas, motor del juego, cripto, formato `.agx`, fusión y tests. ✅
-2. Interfaz base: Hoy, Tareas, Hábitos (con puntos), Notas, granja básica (adoptar, nombres, cementerio), Ajustes (tema oscuro/claro/sistema), atajos N y /. **Primera entrega usable** (instalador de Windows). ✅ Los avisos se configuran pero aún no suenan (Fase 3).
-3. Avisos: notificaciones, bandeja del sistema, arranque automático.
+2. Interfaz base: Hoy, Tareas, Hábitos (con puntos), Notas, granja básica (adoptar, nombres, cementerio), Ajustes (tema oscuro/claro/sistema), atajos N y /. **Primera entrega usable** (instalador de Windows). ✅
+3. Avisos: notificaciones, bandeja del sistema, arranque automático. ✅
 4. Exportar/importar cifrado y sincronización por carpeta.
 5. Android (y Linux).
 6. Granja visual (animales con nombre, tienda, cementerio, logros), notas privadas, estadísticas, temas editables.

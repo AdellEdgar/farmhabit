@@ -5,6 +5,8 @@ import { AppProvider } from './lib/app-context';
 import { useApp } from './lib/use-app';
 import { NavigationContext, type Section } from './lib/navigation';
 import { applyTheme, loadTheme } from './lib/theme';
+import { applyCloseToTray, getFlag, PREF_KEYS } from './lib/platform';
+import { ReminderScheduler } from './lib/ReminderScheduler';
 import { cx } from './lib/cx';
 import { TodayView } from './features/today/TodayView';
 import { TasksView } from './features/tasks/TasksView';
@@ -36,12 +38,14 @@ function Shell() {
 
   useEffect(() => {
     void loadTheme(db).then(applyTheme);
+    void getFlag(db, PREF_KEYS.closeToTray, true).then(applyCloseToTray);
   }, [db]);
 
   const alerts = farm.deathWarning || farm.sick;
 
   return (
     <NavigationContext.Provider value={{ section, go: setSection }}>
+      <ReminderScheduler />
       {/* Móvil: barra de navegación abajo. Escritorio (md+): barra lateral. */}
       <div className="flex h-full flex-col md:flex-row">
         <nav

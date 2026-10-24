@@ -4,6 +4,7 @@ import { useApp } from '../../lib/use-app';
 import { isDesktopApp } from '../../lib/drivers';
 import { loadTheme, saveTheme, watchSystemTheme, type ThemeChoice } from '../../lib/theme';
 import { Card, PageHeader, Segmented } from '../../components/ui';
+import { NotificationSettings } from './NotificationSettings';
 
 const SHORTCUTS = [
   ['N', 'Nueva tarea (en Hoy y Tareas) o nueva nota (en Notas)'],
@@ -46,6 +47,8 @@ export function SettingsView() {
             ]}
           />
         </Card>
+
+        <NotificationSettings />
 
         <Card className="p-5">
           <h2 className="mb-3 font-semibold">Atajos de teclado</h2>
