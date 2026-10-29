@@ -22,14 +22,15 @@ import {
 } from '../../components/ui';
 import { HabitEditor } from './HabitEditor';
 import { HabitRow } from './HabitRow';
+import { HabitStats } from './HabitStats';
 import { dayProgress, describeSchedule } from './habit-meta';
 
 export function HabitsView() {
   const { data, farm, today, mutate } = useApp();
-  const [which, setWhich] = useState<'hoy' | 'ayer'>('hoy');
+  const [which, setWhich] = useState<'hoy' | 'ayer' | 'stats'>('hoy');
   const [organize, setOrganize] = useState(false);
   const [editing, setEditing] = useState<Habit | 'new' | null>(null);
-  const date = which === 'hoy' ? today : addDays(today, -1);
+  const date = which === 'ayer' ? addDays(today, -1) : today;
 
   const active = useMemo(
     () => data.habits.filter((h) => h.archivedAt === null).sort(compareSortKey),
@@ -41,7 +42,7 @@ export function HabitsView() {
 
   const progress = dayProgress(due, data.habitLogs, date);
   const earned =
-    (which === 'hoy' ? farm.todayProgress : farm.days.find((d) => d.date === date))?.earned ?? 0;
+    (which !== 'ayer' ? farm.todayProgress : farm.days.find((d) => d.date === date))?.earned ?? 0;
 
   const move = (index: number, dir: -1 | 1) => {
     const h = active[index]!;
@@ -137,9 +138,10 @@ export function HabitsView() {
               options={[
                 { value: 'hoy', label: 'Hoy' },
                 { value: 'ayer', label: 'Ayer' },
+                { value: 'stats', label: '📊 Estadísticas' },
               ]}
             />
-            {progress.total > 0 && (
+            {which !== 'stats' && progress.total > 0 && (
               <div className="flex min-w-48 flex-1 items-center gap-3 text-sm sm:max-w-xs">
                 <ProgressBar value={(progress.done / progress.total) * 100} className="flex-1" />
                 <span className="text-texto-suave">
@@ -155,33 +157,39 @@ export function HabitsView() {
             </p>
           )}
 
-          <Card className="p-2">
-            {active.length === 0 ? (
-              <EmptyState icon="🌱" title="Aún no tienes hábitos">
-                Crea tu primer hábito: cada uno que cumplas hará crecer tu granja.
-                <div className="mt-4">
-                  <Button variant="primary" onClick={() => setEditing('new')}>
-                    <Plus size={16} /> Crear hábito
-                  </Button>
-                </div>
-              </EmptyState>
-            ) : due.length === 0 ? (
-              <EmptyState
-                icon="😌"
-                title={
-                  which === 'hoy' ? 'Hoy no te toca ningún hábito' : 'Ayer no tocaba ningún hábito'
-                }
-              />
-            ) : (
-              <ul>
-                {due.map((h) => (
-                  <HabitRow key={`${h.id}-${date}`} habit={h} date={date} onOpen={setEditing} />
-                ))}
-              </ul>
-            )}
-          </Card>
+          {which === 'stats' && <HabitStats />}
 
-          {notDue.length > 0 && (
+          {which !== 'stats' && (
+            <Card className="p-2">
+              {active.length === 0 ? (
+                <EmptyState icon="🌱" title="Aún no tienes hábitos">
+                  Crea tu primer hábito: cada uno que cumplas hará crecer tu granja.
+                  <div className="mt-4">
+                    <Button variant="primary" onClick={() => setEditing('new')}>
+                      <Plus size={16} /> Crear hábito
+                    </Button>
+                  </div>
+                </EmptyState>
+              ) : due.length === 0 ? (
+                <EmptyState
+                  icon="😌"
+                  title={
+                    which === 'hoy'
+                      ? 'Hoy no te toca ningún hábito'
+                      : 'Ayer no tocaba ningún hábito'
+                  }
+                />
+              ) : (
+                <ul>
+                  {due.map((h) => (
+                    <HabitRow key={`${h.id}-${date}`} habit={h} date={date} onOpen={setEditing} />
+                  ))}
+                </ul>
+              )}
+            </Card>
+          )}
+
+          {which !== 'stats' && notDue.length > 0 && (
             <div className="mt-6">
               <h3 className="mb-2 px-1 text-xs font-semibold tracking-wide text-texto-suave uppercase">
                 No {which === 'hoy' ? 'tocan hoy' : 'tocaban ayer'}

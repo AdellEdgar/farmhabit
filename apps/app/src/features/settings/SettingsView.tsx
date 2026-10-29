@@ -1,11 +1,11 @@
-import { useEffect, useState } from 'react';
 import { APP_NAME, SCHEMA_VERSION } from '@farmhabit/core';
 import { useApp } from '../../lib/use-app';
 import { isDesktopApp } from '../../lib/drivers';
-import { loadTheme, saveTheme, watchSystemTheme, type ThemeChoice } from '../../lib/theme';
-import { Card, PageHeader, Segmented } from '../../components/ui';
+import { Card, PageHeader } from '../../components/ui';
+import { AppearanceSettings } from './AppearanceSettings';
 import { BackupSettings } from './BackupSettings';
 import { NotificationSettings } from './NotificationSettings';
+import { PrivateNotesSettings } from './PrivateNotesSettings';
 import { SyncSettings } from './SyncSettings';
 
 const SHORTCUTS = [
@@ -16,39 +16,13 @@ const SHORTCUTS = [
 
 export function SettingsView() {
   const { db } = useApp();
-  const [theme, setTheme] = useState<ThemeChoice>('oscuro');
-
-  useEffect(() => {
-    void loadTheme(db).then(setTheme);
-  }, [db]);
-
-  useEffect(() => watchSystemTheme(() => theme), [theme]);
-
-  const choose = (t: ThemeChoice) => {
-    setTheme(t);
-    void saveTheme(db, t);
-  };
 
   return (
     <>
       <PageHeader title="Ajustes" />
 
       <div className="space-y-5">
-        <Card className="p-5">
-          <h2 className="mb-1 font-semibold">Apariencia</h2>
-          <p className="mb-3 text-sm text-texto-suave">
-            Los temas personalizados llegarán en la Fase 6.
-          </p>
-          <Segmented
-            value={theme}
-            onChange={choose}
-            options={[
-              { value: 'oscuro', label: '🌙 Oscuro' },
-              { value: 'claro', label: '☀️ Claro' },
-              { value: 'sistema', label: '💻 Sistema' },
-            ]}
-          />
-        </Card>
+        <AppearanceSettings />
 
         <NotificationSettings />
 
@@ -68,6 +42,7 @@ export function SettingsView() {
           </dl>
         </Card>
 
+        <PrivateNotesSettings />
         <SyncSettings />
         <BackupSettings />
         {!isDesktopApp && (

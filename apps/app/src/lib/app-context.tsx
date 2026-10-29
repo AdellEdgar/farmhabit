@@ -6,19 +6,33 @@ import { errorMessage } from './errors';
 import { AppContext, type AppData } from './use-app';
 
 async function loadData(db: Database): Promise<AppData> {
-  const [tasks, tags, allHabits, habitLogs, notes, noteFolders, animals, vacations] =
-    await Promise.all([
-      db.repo('tasks').list(),
-      db.repo('tags').list(),
-      db.repo('habits').list({ includeDeleted: true }),
-      db.repo('habitLogs').list(),
-      db.repo('notes').list(),
-      db.repo('noteFolders').list(),
-      db.repo('animals').list(),
-      db.repo('vacations').list(),
-    ]);
+  const [
+    tasks,
+    taskCompletions,
+    tags,
+    allHabits,
+    habitLogs,
+    notes,
+    noteFolders,
+    animals,
+    vacations,
+    settings,
+  ] = await Promise.all([
+    db.repo('tasks').list(),
+    db.repo('taskCompletions').list(),
+    db.repo('tags').list(),
+    db.repo('habits').list({ includeDeleted: true }),
+    db.repo('habitLogs').list(),
+    db.repo('notes').list(),
+    db.repo('noteFolders').list(),
+    db.repo('animals').list(),
+    db.repo('vacations').list(),
+    db.repo('settings').list(),
+  ]);
   return {
     tasks,
+    taskCompletions,
+    settings,
     tags,
     allHabits,
     habits: allHabits.filter((h) => h.deletedAt === null),

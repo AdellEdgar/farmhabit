@@ -4,7 +4,7 @@ import { APP_NAME } from '@farmhabit/core';
 import { AppProvider } from './lib/app-context';
 import { useApp } from './lib/use-app';
 import { NavigationContext, type Section } from './lib/navigation';
-import { applyTheme, loadTheme } from './lib/theme';
+import { allThemes, applyTheme, loadTheme, watchSystemTheme } from './lib/theme';
 import {
   applyCloseToTray,
   DEFAULT_CLOSE_TO_TRAY,
@@ -43,13 +43,27 @@ export function App() {
 }
 
 function Shell() {
-  const { db, farm } = useApp();
+  const { db, data, farm } = useApp();
   const [section, setSection] = useState<Section>('hoy');
 
   useEffect(() => {
-    void loadTheme(db).then(applyTheme);
     void getFlag(db, PREF_KEYS.closeToTray, DEFAULT_CLOSE_TO_TRAY).then(applyCloseToTray);
   }, [db]);
+
+  // Tema: se vuelve a aplicar si llegan temas personalizados de otro dispositivo
+  // y si el tema es "sistema" y el sistema cambia de claro a oscuro.
+  useEffect(() => {
+    const themes = allThemes(data.settings);
+    let choice = 'oscuro';
+    void loadTheme(db).then((c) => {
+      choice = c;
+      applyTheme(c, themes);
+    });
+    return watchSystemTheme(
+      () => choice,
+      () => themes,
+    );
+  }, [db, data.settings]);
 
   const alerts = farm.deathWarning || farm.sick;
 

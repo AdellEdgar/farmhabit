@@ -93,6 +93,96 @@ select {
   scrollbar-color: var(--fh-borde) transparent;
 }
 
+/* ---------- Granja ---------- */
+.farm-animal {
+  animation: farm-wander linear infinite;
+  filter: drop-shadow(0 2px 1px rgb(0 0 0 / 0.25));
+  cursor: pointer;
+}
+.farm-animal__body {
+  animation: farm-bob 0.6s ease-in-out infinite alternate;
+}
+.farm-animal--sick {
+  filter: grayscale(0.85) drop-shadow(0 2px 1px rgb(0 0 0 / 0.25));
+}
+.farm-animal--sick .farm-animal__body {
+  animation-duration: 1.4s;
+}
+@keyframes farm-wander {
+  0% {
+    transform: translateX(0) scaleX(1);
+  }
+  45% {
+    transform: translateX(var(--dx)) scaleX(1);
+  }
+  50% {
+    transform: translateX(var(--dx)) scaleX(-1);
+  }
+  95% {
+    transform: translateX(0) scaleX(-1);
+  }
+  100% {
+    transform: translateX(0) scaleX(1);
+  }
+}
+@keyframes farm-bob {
+  from {
+    transform: translateY(0);
+  }
+  to {
+    transform: translateY(-3px);
+  }
+}
+.farm-heart {
+  animation: farm-float 2.4s ease-in infinite;
+}
+@keyframes farm-float {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, 4px);
+  }
+  30% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -14px);
+  }
+}
+.farm-sun {
+  animation: farm-pulse 4s ease-in-out infinite alternate;
+  transform-origin: 340px 42px;
+}
+@keyframes farm-pulse {
+  to {
+    transform: scale(1.06);
+  }
+}
+.farm-rain {
+  background-image: repeating-linear-gradient(
+    105deg,
+    transparent 0 14px,
+    rgb(255 255 255 / 0.35) 14px 15px,
+    transparent 15px 28px
+  );
+  background-size: 60px 60px;
+  animation: farm-rain 0.5s linear infinite;
+}
+@keyframes farm-rain {
+  to {
+    background-position: -12px 60px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .farm-animal,
+  .farm-animal__body,
+  .farm-heart,
+  .farm-sun,
+  .farm-rain {
+    animation: none;
+  }
+}
+
 /* ---------- Editor de notas (TipTap) ---------- */
 .note-editor .tiptap {
   outline: none;

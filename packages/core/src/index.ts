@@ -27,17 +27,22 @@ export * from './domain/tasks';
 export * from './domain/recurrence';
 export * from './domain/habits';
 export * from './domain/reminders';
+export * from './domain/stats';
 
 // Servicios
 export * from './services/tasks';
 export * from './services/habits';
+export * from './services/farm';
+export * from './services/private-notes';
 
 // Granja
 export * from './game/game-rules';
 export * from './game/engine';
+export * from './game/achievements';
 
 // Cifrado, formato y sincronización
 export { DecryptionError, PRODUCTION_KDF } from './crypto/sodium';
+export * from './crypto/private-notes';
 export type { KdfParams } from './crypto/sodium';
 export {
   InvalidFileError,

@@ -6,7 +6,7 @@ FarmHabit es una app de productividad personal _local-first_ para **Windows, Lin
 
 Tus datos se guardan en tu dispositivo, sin cuentas propias ni servidores. Si quieres usarla en varios dispositivos, se sincronizan cifrados a través de tu Google Drive.
 
-> 🚧 **En desarrollo.** Funcionan las tareas, los hábitos, las notas, los avisos y la sincronización. La granja visual, las notas privadas y las estadísticas llegan en la siguiente fase. La interfaz está en español.
+> 🚧 **En desarrollo.** Ya funciona todo lo que se describe abajo; faltan el calendario y la publicación con Releases. La interfaz está en español.
 
 ## Qué puedes hacer
 
@@ -23,6 +23,7 @@ Tus datos se guardan en tu dispositivo, sin cuentas propias ni servidores. Si qu
 - Hábitos con **cantidad** (2 L de agua, 8000 pasos) y puntos parciales.
 - Marcar como **saltado** (no rompe la racha), rachas y recordatorios configurables.
 - Orden manual por importancia.
+- **Estadísticas:** gráfica de cumplimiento de los últimos 30 días y, por hábito, un calendario coloreado al estilo de GitHub con su racha actual, su mejor racha y su porcentaje.
 
 ### 🐔 La granja
 
@@ -30,11 +31,18 @@ Tus datos se guardan en tu dispositivo, sin cuentas propias ni servidores. Si qu
 - La **XP** solo sube y hace crecer la granja de nivel. El **bienestar** sube o baja cada día según cuánto cumples.
 - Con el bienestar bajo, los animales **enferman** y, tras 3 días malos, **mueren** (te avisa antes, con su nombre). Curarlos exige 2 días buenos seguidos.
 - Reglas contra trampas: solo se puede apuntar hoy y ayer, los hábitos recién creados no cuentan para recuperar y borrar un hábito no borra sus penalizaciones.
-- **Modo vacaciones**, activado por adelantado (el motor ya lo aplica; el botón llega con la granja visual).
+- **Modo vacaciones**, activado por adelantado.
+- Una **escena animada** de tu granja: el tiempo cambia con el bienestar (sol, nubes o lluvia) y los animales pasean, o se ven enfermos.
+- **Tienda** para comprar animales con el grano ganado (gallinas, conejos, ovejas… hasta caballos en el nivel 10), **crías** que nacen solas, **logros** y un **cementerio** con los que no sobrevivieron.
 
 ### 📝 Notas
 
 - Editor visual (títulos, listas, casillas, citas, código), carpetas, etiquetas, notas fijadas y buscador que ignora acentos.
+- **Notas privadas** 🔒 con su propia contraseña y una capa extra de cifrado. Se bloquean solas a los 5 minutos sin usarlas.
+
+### 🎨 Temas
+
+- 7 temas (Noche, Día, Bosque, Océano, Atardecer, Lavanda, Granja), seguir el modo claro/oscuro del sistema o **crear el tuyo** eligiendo 4 colores, con vista previa en directo.
 
 ### 🔔 Avisos
 
@@ -86,7 +94,7 @@ La sincronización necesita credenciales de Google propias: sigue [docs/google-d
 
 ```
 packages/core/   Núcleo en TypeScript, sin interfaz: modelo, SQLite, motor de la granja,
-                 cifrado, formato .agx, fusión y sincronización. ~150 tests (Vitest + fast-check).
+                 cifrado, formato .agx, fusión y sincronización. ~165 tests (Vitest + fast-check).
 apps/app/        Interfaz en React 19 + Tailwind 4, empaquetada con Tauri 2.
   src-tauri/     Rust mínimo: SQLite nativo con transacciones atómicas, llavero del sistema,
                  inicio de sesión con Google y bandeja del sistema.
@@ -104,7 +112,7 @@ Las decisiones de diseño, el formato del archivo y todas las reglas del juego e
 - [x] Avisos, bandeja del sistema y arranque automático
 - [x] Sincronización con Google Drive y copias de seguridad
 - [x] Linux y Android (compilación en GitHub Actions)
-- [ ] Granja visual con tienda y logros, notas privadas, estadísticas y temas editables
+- [x] Granja visual con tienda y logros, notas privadas, estadísticas y temas editables
 - [ ] Calendario y suscripción a calendarios `.ics`
 - [ ] Publicación con Releases
 

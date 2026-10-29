@@ -18,6 +18,9 @@ impl Db {
         let conn = Connection::open(path)?;
         conn.pragma_update(None, "journal_mode", "WAL")?;
         conn.pragma_update(None, "synchronous", "NORMAL")?;
+        // Sobrescribir con ceros lo borrado: el texto de una nota que se hace
+        // privada no puede quedar en páginas libres del archivo.
+        conn.pragma_update(None, "secure_delete", "ON")?;
         Ok(Db(Mutex::new(conn)))
     }
 }

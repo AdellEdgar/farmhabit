@@ -8,13 +8,18 @@ import type {
   LocalDate,
   Note,
   NoteFolder,
+  Setting,
   Tag,
   Task,
+  TaskCompletion,
   Vacation,
 } from '@farmhabit/core';
 
 export interface AppData {
   tasks: Task[];
+  taskCompletions: TaskCompletion[];
+  /** Ajustes sincronizados (caja de notas privadas, temas personalizados…). */
+  settings: Setting[];
   tags: Tag[];
   /** Incluye borrados: el motor de la granja los necesita para el pasado. */
   allHabits: Habit[];

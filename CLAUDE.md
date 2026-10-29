@@ -121,7 +121,12 @@ Cabecera: `format: "farmhabit-export"`, `formatVersion`, `createdAt`, `deviceId`
 - Las contraseñas (maestra y de notas privadas) **nunca** se guardan en disco, `localStorage` ni logs, y no aparecen en mensajes de error.
 - Para la sincronización automática se guarda la **clave derivada** del baúl (nunca la frase secreta) y el refresh token de Google en el llavero del sistema, con el crate `keyring` (`src-tauri/src/secrets.rs`): Credential Manager en Windows, Secret Service en Linux. En Android, de momento, en un archivo del directorio privado de la app (pendiente: Keystore).
 - Los archivos de copia se leen y escriben con `tauri-plugin-fs` (también abre las rutas `content://` de Android), solo en la ruta que el usuario elige en el diálogo, que es quien da el permiso. Se rechazan las de más de 100 MB.
-- Notas privadas: una clave aleatoria (DEK) cifra `{título, cuerpo}`. Esa DEK está envuelta con Argon2id(contraseña de notas privadas) y viaja en `privateVault`. En el archivo exportado van doblemente cifradas.
+- **Notas privadas** (`crypto/private-notes.ts`, `services/private-notes.ts`):
+  - Una clave aleatoria (DEK) cifra `{title, content, plainText}` de cada nota, con el id de la nota como AAD; el resultado va en `privateBlob` y los campos en claro se vacían.
+  - La DEK va envuelta con Argon2id(contraseña de notas privadas) en el ajuste sincronizado `privateNotes.vault`, así los demás dispositivos la abren con la misma contraseña. Cambiar la contraseña solo reenvuelve la DEK.
+  - En la app, la DEK vive solo en memoria (`lib/private-session.ts`) y se bloquea sola tras 5 minutos sin uso.
+  - En las copias y en la sincronización van doblemente cifradas. El buscador solo las encuentra mientras están desbloqueadas.
+  - SQLite usa `secure_delete=ON` para no dejar texto borrado en páginas libres.
 - Las claves se manejan como `Uint8Array` y se borran con `sodium.memzero` tras usarlas. Límite asumido: el string de la contraseña en JS no se puede borrar de memoria con garantías.
 - Tests: parámetros bajos de Argon2id inyectados para que vayan rápidos, y un test que verifica que producción usa los parámetros fuertes.
 - La app abre sin contraseña; solo las notas privadas piden desbloqueo. La protección del disco es del sistema (BitLocker o similar).
@@ -143,8 +148,15 @@ El motor (`game/engine.ts`, `computeFarm`) recorre los días desde el primer há
 - **Curación:** 2 días buenos seguidos y el bienestar en el 30 % o más.
 - **Crías:** 7 días seguidos con bienestar de 70 o más y sin enfermedad hacen nacer una cría de la especie de un padre, si cabe (capacidad `4 + 2·nivel`).
 - **Contra las trampas:** los hábitos con menos de 7 días no cuentan para el cumplimiento (sí dan puntos). Borrar o archivar un hábito no borra las penalizaciones pasadas. Cambiar el esfuerzo solo afecta a partir del cambio. Solo se puede registrar hoy y ayer (`setHabitLog` → `ClosedDayError`).
-- **Modo vacaciones:** solo protege los días posteriores al día en que se creó. Esos días no hay penalizaciones ni cambios de bienestar o salud.
-- Gráficos: solo recursos con licencia libre (CC0, p. ej. Kenney.nl), con la atribución en `CREDITS.md`.
+- **Modo vacaciones:** solo protege los días posteriores al día en que se creó. Esos días no hay penalizaciones ni cambios de bienestar o salud. `scheduleVacation` exige empezar como pronto mañana, un máximo de 30 días y que no se solape con otras. `endVacation` borra las futuras y acorta las que están en curso hasta ayer, así cancelar no quita la protección de días ya cerrados.
+- **Tienda** (`services/farm.ts`): comprar exige la especie desbloqueada (`speciesUnlockLevel`), grano suficiente y sitio (`capacity(level)`). El motor descuenta el precio el día de la compra.
+- **Logros** (`game/achievements.ts`): se calculan desde los datos (no se guardan), igual que la granja.
+- **Gráficos:** la escena (`FarmScene.tsx`) es SVG propio con los animales como emojis animados con CSS. No hay recursos de terceros, así que no hace falta atribución. El tiempo refleja el estado: sol si están contentos, nubes si están tristes, lluvia si están enfermos.
+
+## Estadísticas y temas
+
+- `domain/stats.ts`: `habitCalendar` da el estado de cada día (hecho, a medias, saltado, fallado, pendiente, no tocaba), `completionRate` el porcentaje y `dailyCompletion` los datos de la gráfica de 30 días. Las gráficas son SVG propio, sin librerías.
+- **Temas** (`lib/themes.ts`): 7 predefinidos y temas personalizados creados a partir de 4 colores (fondo, tarjetas, texto, acento); el resto se deriva mezclándolos. Los personalizados se sincronizan (ajuste `themes.custom`); el elegido es de cada dispositivo (`meta.theme`). Se aplican como variables `--fh-*` en `<html>`.
 
 ## Repositorio público
 
@@ -160,7 +172,7 @@ El motor (`game/engine.ts`, `computeFarm`) recorre los días desde el primer há
 3. Avisos: notificaciones, bandeja del sistema, arranque automático. ✅
 4. Copia de seguridad cifrada y sincronización automática con Google Drive. ✅
 5. Android y Linux: avisos programados en móvil, copias con plugin-fs, compilación en GitHub Actions y README. ✅ (Android sin probar en un dispositivo real: el autor usa iPhone.)
-6. Granja visual (animales con nombre, tienda, cementerio, logros), notas privadas, estadísticas, temas editables.
+6. Granja visual (escena, tienda, logros, vacaciones, cementerio), notas privadas, estadísticas y temas editables. ✅
 7. Calendario y suscripciones `.ics` (p. ej. el calendario de la universidad).
 8. Publicación: README con capturas, GitHub Actions y Releases.
 

@@ -1,11 +1,19 @@
-import { useMemo, useRef, useState } from 'react';
-import { FolderPlus, Pencil, Pin, Plus, Search } from 'lucide-react';
-import { compareSortKey, keyBetween, type Note, type NoteFolder } from '@farmhabit/core';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { FolderPlus, Lock, Pencil, Pin, Plus, Search } from 'lucide-react';
+import {
+  compareSortKey,
+  keyBetween,
+  readPrivateNote,
+  type Note,
+  type NoteFolder,
+  type PrivateContent,
+} from '@farmhabit/core';
+import { lockPrivateNotes, usePrivateSession } from '../../lib/private-session';
 import { useApp } from '../../lib/use-app';
 import { formatRelativeDate } from '../../lib/format';
 import { useShortcut } from '../../lib/shortcuts';
 import { Button, Card, Chip, Dialog, EmptyState, Input, PageHeader } from '../../components/ui';
-import { NoteEditor } from './NoteEditor';
+import { NoteScreen } from './NoteEditor';
 
 type FolderFilter = 'all' | 'none' | string;
 
@@ -25,6 +33,30 @@ export function NotesView() {
   const [tag, setTag] = useState<string | null>(null);
   const [folderDialog, setFolderDialog] = useState<NoteFolder | 'new' | null>(null);
   const searchRef = useRef<HTMLInputElement>(null);
+  const dek = usePrivateSession();
+  const [decrypted, setDecrypted] = useState<Map<string, PrivateContent>>(new Map());
+
+  // Con las notas privadas desbloqueadas, se descifran para mostrar título y buscar.
+  useEffect(() => {
+    if (!dek) return;
+    let cancelled = false;
+    const privates = data.notes.filter((n) => n.isPrivate);
+    void Promise.all(
+      privates.map(async (n) => [n.id, await readPrivateNote(dek, n).catch(() => null)] as const),
+    ).then((pairs) => {
+      if (cancelled) return;
+      const map = new Map<string, PrivateContent>();
+      for (const [id, content] of pairs) if (content) map.set(id, content);
+      setDecrypted(map);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [dek, data.notes]);
+
+  /** Título y texto visibles de una nota (null si es privada y está bloqueada). */
+  const visible = (n: Note): PrivateContent | null =>
+    n.isPrivate ? (dek ? (decrypted.get(n.id) ?? null) : null) : n;
 
   const createNote = async () => {
     const note = await mutate((db) =>
@@ -57,19 +89,27 @@ export function NotesView() {
       .filter((n) => !tag || n.tagIds.includes(tag))
       .filter((n) => !q || normalize(`${n.title}\n${n.plainText}`).includes(q))
       .sort((a, b) => Number(b.pinned) - Number(a.pinned) || b.updatedAt - a.updatedAt);
-  }, [data.notes, folder, tag, query]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [data.notes, folder, tag, query, dek, decrypted]);
 
   const open = data.notes.find((n) => n.id === openId);
-  if (open) return <NoteEditor key={open.id} note={open} onBack={() => setOpenId(null)} />;
+  if (open) return <NoteScreen key={open.id} note={open} onBack={() => setOpenId(null)} />;
 
   return (
     <>
       <PageHeader
         title="Notas"
         actions={
-          <Button variant="primary" onClick={createNote}>
-            <Plus size={16} /> Nueva
-          </Button>
+          <>
+            {dek && (
+              <Button variant="ghost" onClick={lockPrivateNotes} title="Bloquear notas privadas">
+                <Lock size={16} /> Bloquear
+              </Button>
+            )}
+            <Button variant="primary" onClick={createNote}>
+              <Plus size={16} /> Nueva
+            </Button>
+          </>
         }
       />
 
@@ -138,6 +178,7 @@ export function NotesView() {
             <NoteCard
               key={n.id}
               note={n}
+              content={visible(n)}
               folder={data.noteFolders.find((f) => f.id === n.folderId)}
               today={today}
               onOpen={() => setOpenId(n.id)}
@@ -163,16 +204,19 @@ export function NotesView() {
 
 function NoteCard({
   note,
+  content,
   folder,
   today,
   onOpen,
 }: {
   note: Note;
+  /** null = nota privada bloqueada. */
+  content: PrivateContent | null;
   folder?: NoteFolder;
   today: string;
   onOpen: () => void;
 }) {
-  const snippet = note.plainText.trim().slice(0, 160);
+  const snippet = content?.plainText.trim().slice(0, 160) ?? '';
   const updated = new Date(note.updatedAt);
   const updatedDate = `${updated.getFullYear()}-${String(updated.getMonth() + 1).padStart(2, '0')}-${String(updated.getDate()).padStart(2, '0')}`;
   return (
@@ -183,7 +227,12 @@ function NoteCard({
     >
       <div className="flex items-start gap-2">
         <p className="flex-1 font-semibold break-words">
-          {note.title || <span className="text-texto-suave italic">Sin título</span>}
+          {note.isPrivate && '🔒 '}
+          {content === null ? (
+            <span className="text-texto-suave italic">Nota privada</span>
+          ) : (
+            content.title || <span className="text-texto-suave italic">Sin título</span>
+          )}
         </p>
         {note.pinned && <Pin size={14} className="mt-1 shrink-0 text-acento" aria-label="Fijada" />}
       </div>
