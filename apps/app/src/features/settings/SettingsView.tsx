@@ -1,6 +1,7 @@
 import { APP_NAME, SCHEMA_VERSION } from '@farmhabit/core';
 import { useApp } from '../../lib/use-app';
 import { isDesktopApp } from '../../lib/drivers';
+import { isDemo } from '../../lib/demo-data';
 import { Card, PageHeader } from '../../components/ui';
 import { AppearanceSettings } from './AppearanceSettings';
 import { BackupSettings } from './BackupSettings';
@@ -47,12 +48,14 @@ export function SettingsView() {
         <BackupSettings />
         {!isDesktopApp && (
           <p className="rounded-xl bg-aviso/10 px-3 py-2 text-sm text-aviso">
-            Estás en el modo navegador de desarrollo: los datos se guardan solo en este navegador.
+            {isDemo
+              ? 'Estás en la demo web: los datos son de ejemplo y se guardan solo en este navegador. Para usarla de verdad, descarga la app.'
+              : 'Estás en el modo navegador de desarrollo: los datos se guardan solo en este navegador.'}
           </p>
         )}
 
         <p className="text-center text-xs text-texto-suave">
-          {APP_NAME} 0.1.0 · esquema {SCHEMA_VERSION} · {db.deviceId.slice(0, 8)}
+          {APP_NAME} {__APP_VERSION__} · esquema {SCHEMA_VERSION} · {db.deviceId.slice(0, 8)}
         </p>
       </div>
     </>

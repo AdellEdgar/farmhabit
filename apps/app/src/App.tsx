@@ -24,6 +24,8 @@ import { ReminderScheduler } from './lib/ReminderScheduler';
 import { MobileReminderScheduler } from './lib/MobileReminderScheduler';
 import { SyncProvider } from './lib/SyncProvider';
 import { CalendarRefresher } from './lib/CalendarRefresher';
+import { isDemo } from './lib/demo-data';
+import { DemoBanner } from './components/DemoBanner';
 import { cx } from './lib/cx';
 import { TodayView } from './features/today/TodayView';
 import { TasksView } from './features/tasks/TasksView';
@@ -44,6 +46,12 @@ const SECTIONS: { id: Section; name: string; short?: string; icon: typeof Sprout
   { id: 'ajustes', name: 'Ajustes', icon: Settings },
 ];
 
+/** Sección inicial: `?section=granja` abre directamente esa sección (útil en la demo web). */
+function initialSection(): Section {
+  const wanted = new URLSearchParams(location.search).get('section');
+  return SECTIONS.find((s) => s.id === wanted)?.id ?? 'hoy';
+}
+
 export function App() {
   return (
     <AppProvider>
@@ -56,7 +64,7 @@ export function App() {
 
 function Shell() {
   const { db, data, farm } = useApp();
-  const [section, setSection] = useState<Section>('hoy');
+  const [section, setSection] = useState<Section>(initialSection);
 
   useEffect(() => {
     void getFlag(db, PREF_KEYS.closeToTray, DEFAULT_CLOSE_TO_TRAY).then(applyCloseToTray);
@@ -126,6 +134,7 @@ function Shell() {
         </nav>
 
         <main className="flex-1 overflow-y-auto">
+          {isDemo && <DemoBanner />}
           <div className="mx-auto w-full max-w-4xl px-4 py-5 md:px-8 md:py-8">
             {section === 'hoy' && <TodayView />}
             {section === 'tareas' && <TasksView />}

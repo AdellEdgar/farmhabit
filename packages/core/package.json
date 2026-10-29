@@ -1,6 +1,6 @@
 {
   "name": "@farmhabit/core",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "private": true,
   "description": "Núcleo de FarmHabit: modelo, persistencia, cifrado, sincronización y motor de la granja. Sin UI.",
   "license": "MIT",

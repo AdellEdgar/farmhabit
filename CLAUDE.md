@@ -185,7 +185,16 @@ El motor (`game/engine.ts`, `computeFarm`) recorre los días desde el primer há
 5. Android y Linux: avisos programados en móvil, copias con plugin-fs, compilación en GitHub Actions y README. ✅ (Android sin probar en un dispositivo real: el autor usa iPhone.)
 6. Granja visual (escena, tienda, logros, vacaciones, cementerio), notas privadas, estadísticas y temas editables. ✅
 7. Calendario y suscripciones `.ics` (p. ej. el calendario de la universidad). ✅
-8. Publicación: README con capturas, GitHub Actions y Releases.
+8. Publicación: versión 1.0.0, README con capturas, CHANGELOG, Release automática y demo web en GitHub Pages. ✅
+
+## Publicación (Fase 8)
+
+- **Versión:** `apps/app/package.json` es la fuente; `tauri.conf.json` la lee de ahí (`"version": "../package.json"`) y la UI la recibe como `__APP_VERSION__` (Vite `define`). Hay que subirla también en el `package.json` raíz, en `packages/core/package.json` y en `Cargo.toml`, y apuntarla en `CHANGELOG.md`.
+- **Release:** al subir una etiqueta `vX.Y.Z`, el trabajo `release` de `build.yml` descarga los artifacts y crea la Release con `gh release create`; el APK se renombra a `FarmHabit_X.Y.Z_android.apk`.
+- **Demo web:** el trabajo `pages` compila con `VITE_DEMO=1` y `VITE_BASE=/<repo>/` y publica en GitHub Pages. Necesita activar Pages en el repositorio (Settings → Pages → Source: GitHub Actions); si no está activado, ese trabajo falla sin marcar en rojo toda la ejecución (`continue-on-error`).
+- **Datos de ejemplo** (`apps/app/src/lib/demo-data.ts`): solo en modo navegador y con la base vacía, con `VITE_DEMO=1` o `?demo` en la URL. Son deterministas (hash + fmix32). `?section=<id>` abre una sección concreta.
+- **Capturas** (`docs/screenshots/`): se generaron con Edge headless contra `pnpm dev:web` y `?demo&section=…`, a 1280×800 en escritorio y 500×1000 a escala 2 en móvil (Edge no baja de unos 500 px de ancho).
+- **Instalador:** NSIS en español (`languages: ["Spanish"]`), MSI `es-ES`, con editor, copyright y web.
 
 Fuera de alcance: gestor de contraseñas (descartado). Google Calendar: posible ampliación futura.
 

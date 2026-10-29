@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import type { ReactNode } from 'react';
 import { computeFarm, Database, localDateOf, systemClock } from '@farmhabit/core';
 import { createDriver } from './drivers';
+import { isDemo, seedDemo } from './demo-data';
 import { errorMessage } from './errors';
 import { AppContext, type AppData } from './use-app';
 
@@ -65,6 +66,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     (async () => {
       try {
         const opened = await Database.open(await createDriver());
+        if (isDemo) await seedDemo(opened);
         const loaded = await loadData(opened);
         if (!cancelled) {
           setDb(opened);

@@ -1,5 +1,7 @@
 # Comprueba el código y genera los instaladores de Windows, Linux y Android.
 # Los instaladores quedan como "artifacts" de cada ejecución (pestaña Actions).
+# Al subir una etiqueta vX.Y.Z se publica además una Release con ellos, y en
+# cada push a main se actualiza la demo web en GitHub Pages.
 #
 # Para que la sincronización con Google Drive funcione en estas compilaciones,
 # añade en Settings → Secrets and variables → Actions los secretos
@@ -121,3 +123,67 @@ jobs:
           name: FarmHabit-Android
           path: apps/app/src-tauri/gen/android/app/build/outputs/apk/**/*.apk
           if-no-files-found: error
+
+  release:
+    name: Publicar la Release
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: [desktop, android]
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/download-artifact@v8
+        with:
+          path: release
+          merge-multiple: true
+      - name: Renombrar el APK
+        run: |
+          apk=$(find release -name '*.apk' | head -n1)
+          mv "$apk" "release/FarmHabit_${GITHUB_REF_NAME#v}_android.apk"
+      - name: Crear la Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mapfile -t files < <(find release -type f)
+          gh release create "$GITHUB_REF_NAME" "${files[@]}" \
+            --title "FarmHabit $GITHUB_REF_NAME" \
+            --notes "Instaladores para Windows (.exe/.msi), Linux (.AppImage/.deb) y Android (.apk). Cambios en [CHANGELOG.md](https://github.com/${{ github.repository }}/blob/main/CHANGELOG.md)." \
+            --generate-notes
+
+  pages:
+    name: Demo web (GitHub Pages)
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: check
+    runs-on: ubuntu-24.04
+    # Si GitHub Pages no está activado en el repositorio, este paso falla sin
+    # marcar como fallida toda la ejecución.
+    continue-on-error: true
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Compilar la demo
+        run: pnpm --filter @farmhabit/app exec vite build
+        env:
+          VITE_DEMO: '1'
+          VITE_BASE: /${{ github.event.repository.name }}/
+          # La demo no sincroniza: sin credenciales de Google.
+          VITE_GOOGLE_CLIENT_ID: ''
+          VITE_GOOGLE_CLIENT_SECRET: ''
+      - uses: actions/configure-pages@v6
+      - uses: actions/upload-pages-artifact@v5
+        with:
+          path: apps/app/dist
+      - id: deploy
+        uses: actions/deploy-pages@v5

@@ -6,7 +6,22 @@ FarmHabit es una app de productividad personal _local-first_ para **Windows, Lin
 
 Tus datos se guardan en tu dispositivo, sin cuentas propias ni servidores. Si quieres usarla en varios dispositivos, se sincronizan cifrados a través de tu Google Drive.
 
-> 🚧 **En desarrollo.** Ya funciona todo lo que se describe abajo; falta la publicación con Releases. La interfaz está en español.
+**[▶ Probar la demo en el navegador](https://adelledgar.github.io/farmhabit/)** · **[⬇ Descargar](https://github.com/AdellEdgar/farmhabit/releases/latest)** · Interfaz en español
+
+<p align="center">
+  <img src="docs/screenshots/hoy.png" alt="Pantalla Hoy: agenda, tareas y hábitos del día junto al estado de la granja" width="820">
+</p>
+
+<p align="center">
+  <img src="docs/screenshots/granja.png" alt="La granja animada con sus animales" width="404">
+  <img src="docs/screenshots/calendario.png" alt="Calendario del mes con clases de la universidad y tareas" width="404">
+</p>
+
+<p align="center">
+  <img src="docs/screenshots/habitos.png" alt="Lista de hábitos con puntos y rachas" width="268">
+  <img src="docs/screenshots/notas.png" alt="Notas con carpetas y etiquetas" width="268">
+  <img src="docs/screenshots/movil-hoy.png" alt="FarmHabit en el móvil" width="140">
+</p>
 
 ## Qué puedes hacer
 
@@ -62,15 +77,17 @@ Tus datos se guardan en tu dispositivo, sin cuentas propias ni servidores. Si qu
 
 ## Descargar
 
-Cada vez que se sube código a `main`, GitHub Actions compila la app. Los instaladores están en la pestaña **[Actions](../../actions)**: entra en la última ejecución correcta y baja el _artifact_ que quieras.
+Los instaladores de cada versión están en **[Releases](https://github.com/AdellEdgar/farmhabit/releases/latest)**:
 
 | Plataforma    | Archivo                         | Notas                                                                                                                       |
 | ------------- | ------------------------------- | --------------------------------------------------------------------------------------------------------------------------- |
 | Windows 10/11 | `FarmHabit_x.y.z_x64-setup.exe` | Sin firma digital: Windows mostrará "SmartScreen: aplicación desconocida" → _Más información_ → _Ejecutar de todas formas_. |
 | Linux         | `.AppImage` o `.deb`            | AppImage: `chmod +x FarmHabit*.AppImage` y ejecutar. El `.deb` instala las dependencias solo.                               |
-| Android       | `.apk`                          | Permite "instalar apps de origen desconocido". Por ahora es una versión de depuración.                                      |
+| Android       | `FarmHabit_x.y.z_android.apk`   | Permite "instalar apps de origen desconocido". Es una compilación de depuración, aún sin probar en dispositivos reales.     |
 
-Las descargas en _Releases_ llegarán en la fase de publicación.
+¿Solo quieres echar un vistazo? La **[demo web](https://adelledgar.github.io/farmhabit/)** es la misma app con datos de ejemplo, que se guardan solo en tu navegador. No tiene avisos ni sincronización.
+
+Lo nuevo de cada versión está en el [CHANGELOG](CHANGELOG.md).
 
 ## Privacidad y seguridad
 
@@ -89,7 +106,7 @@ Las descargas en _Releases_ llegarán en la fase de publicación.
 ```bash
 pnpm install
 pnpm dev          # app de escritorio en modo desarrollo
-pnpm dev:web      # solo la interfaz, en el navegador (http://localhost:1420)
+pnpm dev:web      # solo la interfaz, en el navegador (http://localhost:1420; añade ?demo para datos de ejemplo)
 pnpm check        # tipos + lint + formato + tests
 pnpm build        # instalador de tu sistema
 ```
@@ -109,18 +126,23 @@ apps/app/        Interfaz en React 19 + Tailwind 4, empaquetada con Tauri 2.
 - **Local-first con fusión determinista:** cada elemento tiene UUID, `updatedAt` y marca de borrado. Al sincronizar gana el cambio más reciente; la fusión es conmutativa, asociativa e idempotente, y lo comprueban tests de propiedades.
 - **La granja se calcula, no se guarda:** el estado sale de reproducir el historial de hábitos día a día, así todos los dispositivos ven exactamente la misma granja.
 
-Las decisiones de diseño, el formato del archivo y todas las reglas del juego están en [CLAUDE.md](CLAUDE.md).
+Para publicar una versión nueva: sube la versión en `apps/app/package.json` (y en los demás `package.json` y en `Cargo.toml`), apúntala en el CHANGELOG y crea la etiqueta, por ejemplo `git tag v1.0.1 && git push --tags`. GitHub Actions compila todo y publica la Release.
 
-## Hoja de ruta
+## Cómo se hizo
 
-- [x] Núcleo, base de datos, cifrado y fusión
-- [x] Interfaz: Hoy, Tareas, Hábitos, Notas, Ajustes
-- [x] Avisos, bandeja del sistema y arranque automático
-- [x] Sincronización con Google Drive y copias de seguridad
-- [x] Linux y Android (compilación en GitHub Actions)
-- [x] Granja visual con tienda y logros, notas privadas, estadísticas y temas editables
-- [x] Calendario y suscripción a calendarios `.ics`
-- [ ] Publicación con Releases
+FarmHabit lo he construido por fases con un asistente de IA (Claude) como "desarrollador principal": yo decidía el producto, las reglas y las prioridades, revisaba cada fase y hacía los commits. Las decisiones de diseño, el formato del archivo y todas las reglas del juego están en [CLAUDE.md](CLAUDE.md), que también sirve de guía para seguir desarrollándola.
+
+| Fase | Contenido                                                    |
+| ---- | ------------------------------------------------------------ |
+| 0    | Estructura del monorepo, Tauri y plan                        |
+| 1    | Núcleo: modelo, SQLite, motor de la granja, cifrado y fusión |
+| 2    | Interfaz: Hoy, Tareas, Hábitos, Notas y Ajustes              |
+| 3    | Avisos, bandeja del sistema y arranque automático            |
+| 4    | Sincronización con Google Drive y copias de seguridad        |
+| 5    | Linux, Android y compilación en GitHub Actions               |
+| 6    | Granja visual, notas privadas, estadísticas y temas          |
+| 7    | Calendario y suscripción a calendarios `.ics`                |
+| 8    | Publicación: versión 1.0.0, Releases y demo web              |
 
 ## Licencia
 
