@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { lazy, Suspense, useEffect, useState } from 'react';
 import {
   CalendarCheck,
   CalendarDays,
@@ -29,11 +29,22 @@ import { DemoBanner } from './components/DemoBanner';
 import { cx } from './lib/cx';
 import { TodayView } from './features/today/TodayView';
 import { TasksView } from './features/tasks/TasksView';
-import { CalendarView } from './features/calendar/CalendarView';
 import { HabitsView } from './features/habits/HabitsView';
-import { NotesView } from './features/notes/NotesView';
-import { FarmView } from './features/farm/FarmView';
-import { SettingsView } from './features/settings/SettingsView';
+
+// Secciones pesadas (editor de notas, calendario, granja, ajustes): se
+// descargan la primera vez que se abren, así la app arranca antes.
+const CalendarView = lazy(() =>
+  import('./features/calendar/CalendarView').then((m) => ({ default: m.CalendarView })),
+);
+const NotesView = lazy(() =>
+  import('./features/notes/NotesView').then((m) => ({ default: m.NotesView })),
+);
+const FarmView = lazy(() =>
+  import('./features/farm/FarmView').then((m) => ({ default: m.FarmView })),
+);
+const SettingsView = lazy(() =>
+  import('./features/settings/SettingsView').then((m) => ({ default: m.SettingsView })),
+);
 
 /** short: nombre en la barra inferior del móvil, donde hay menos sitio. */
 const SECTIONS: { id: Section; name: string; short?: string; icon: typeof Sprout }[] = [
@@ -136,13 +147,15 @@ function Shell() {
         <main className="flex-1 overflow-y-auto">
           {isDemo && <DemoBanner />}
           <div className="mx-auto w-full max-w-4xl px-4 py-5 md:px-8 md:py-8">
-            {section === 'hoy' && <TodayView />}
-            {section === 'tareas' && <TasksView />}
-            {section === 'calendario' && <CalendarView />}
-            {section === 'habitos' && <HabitsView />}
-            {section === 'notas' && <NotesView />}
-            {section === 'granja' && <FarmView />}
-            {section === 'ajustes' && <SettingsView />}
+            <Suspense fallback={<p className="py-12 text-center text-texto-suave">Cargando…</p>}>
+              {section === 'hoy' && <TodayView />}
+              {section === 'tareas' && <TasksView />}
+              {section === 'calendario' && <CalendarView />}
+              {section === 'habitos' && <HabitsView />}
+              {section === 'notas' && <NotesView />}
+              {section === 'granja' && <FarmView />}
+              {section === 'ajustes' && <SettingsView />}
+            </Suspense>
           </div>
         </main>
       </div>

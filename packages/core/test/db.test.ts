@@ -133,6 +133,22 @@ describe('base de datos', () => {
     expect(c.updatedAt).toBeGreaterThan(b.updatedAt);
   });
 
+  it('la huella de una colección solo cambia si cambia la colección', async () => {
+    const { db, clock } = await openTestDb();
+    const before = await db.collectionSignatures();
+    const tag = await db.repo('tags').create({ name: 'a', color: '' });
+    const afterCreate = await db.collectionSignatures();
+    expect(afterCreate.tags).not.toBe(before.tags);
+    expect(afterCreate.notes).toBe(before.notes);
+
+    clock.advance(1000);
+    await db.repo('tags').update(tag.id, { name: 'b' });
+    const afterUpdate = await db.collectionSignatures();
+    expect(afterUpdate.tags).not.toBe(afterCreate.tags);
+    await db.repo('tags').remove(tag.id);
+    expect((await db.collectionSignatures()).tags).not.toBe(afterUpdate.tags);
+  });
+
   it('una transacción que falla no escribe nada', async () => {
     const { driver } = await openTestDb();
     await expect(

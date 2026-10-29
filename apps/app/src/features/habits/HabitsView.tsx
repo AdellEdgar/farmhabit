@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { lazy, Suspense, useMemo, useState } from 'react';
 import { ArrowDown, ArrowUp, ListOrdered, Pencil, Plus } from 'lucide-react';
 import {
   addDays,
@@ -22,8 +22,10 @@ import {
 } from '../../components/ui';
 import { HabitEditor } from './HabitEditor';
 import { HabitRow } from './HabitRow';
-import { HabitStats } from './HabitStats';
+
 import { dayProgress, describeSchedule } from './habit-meta';
+
+const HabitStats = lazy(() => import('./HabitStats').then((m) => ({ default: m.HabitStats })));
 
 export function HabitsView() {
   const { data, farm, today, mutate } = useApp();
@@ -157,7 +159,11 @@ export function HabitsView() {
             </p>
           )}
 
-          {which === 'stats' && <HabitStats />}
+          {which === 'stats' && (
+            <Suspense fallback={<p className="py-12 text-center text-texto-suave">Cargando…</p>}>
+              <HabitStats />
+            </Suspense>
+          )}
 
           {which !== 'stats' && (
             <Card className="p-2">

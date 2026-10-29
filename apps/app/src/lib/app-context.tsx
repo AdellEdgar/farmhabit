@@ -1,51 +1,64 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { ReactNode } from 'react';
-import { computeFarm, Database, localDateOf, systemClock } from '@farmhabit/core';
+import {
+  computeFarm,
+  Database,
+  localDateOf,
+  systemClock,
+  type CollectionName,
+} from '@farmhabit/core';
 import { createDriver } from './drivers';
 import { isDemo, seedDemo } from './demo-data';
 import { errorMessage } from './errors';
 import { AppContext, type AppData } from './use-app';
 
-async function loadData(db: Database): Promise<AppData> {
-  const [
-    tasks,
-    taskCompletions,
-    tags,
-    allHabits,
-    habitLogs,
-    notes,
-    noteFolders,
-    animals,
-    vacations,
-    settings,
-    calendarSources,
-  ] = await Promise.all([
-    db.repo('tasks').list(),
-    db.repo('taskCompletions').list(),
-    db.repo('tags').list(),
-    db.repo('habits').list({ includeDeleted: true }),
-    db.repo('habitLogs').list(),
-    db.repo('notes').list(),
-    db.repo('noteFolders').list(),
-    db.repo('animals').list(),
-    db.repo('vacations').list(),
-    db.repo('settings').list(),
-    db.repo('calendarSources').list(),
-  ]);
-  return {
-    tasks,
-    taskCompletions,
-    settings,
-    calendarSources,
-    tags,
-    allHabits,
-    habits: allHabits.filter((h) => h.deletedAt === null),
-    habitLogs,
-    notes,
-    noteFolders,
-    animals,
-    vacations,
-  };
+/** Campo de AppData → colección de la que se lee. */
+const FIELDS = {
+  tasks: 'tasks',
+  taskCompletions: 'taskCompletions',
+  tags: 'tags',
+  allHabits: 'habits',
+  habitLogs: 'habitLogs',
+  notes: 'notes',
+  noteFolders: 'noteFolders',
+  animals: 'animals',
+  vacations: 'vacations',
+  settings: 'settings',
+  calendarSources: 'calendarSources',
+} as const satisfies Partial<Record<keyof AppData, CollectionName>>;
+
+interface Loaded {
+  signatures: Record<CollectionName, string>;
+  data: AppData;
+}
+
+/**
+ * Carga los datos reutilizando las colecciones que no han cambiado (misma
+ * huella). Así, escribir una nota no relee los hábitos ni recalcula la granja.
+ */
+async function loadData(db: Database, prev: Loaded | null): Promise<Loaded> {
+  const signatures = await db.collectionSignatures();
+  const fresh: Record<string, unknown> = {};
+  let changed = prev === null;
+  await Promise.all(
+    (Object.entries(FIELDS) as [keyof typeof FIELDS, CollectionName][]).map(
+      async ([field, name]) => {
+        if (prev && prev.signatures[name] === signatures[name]) {
+          fresh[field] = prev.data[field];
+          return;
+        }
+        changed = true;
+        fresh[field] = await db.repo(name).list({ includeDeleted: name === 'habits' });
+      },
+    ),
+  );
+  if (!changed && prev) return prev;
+  const allHabits = fresh.allHabits as AppData['allHabits'];
+  const habits =
+    prev && allHabits === prev.data.allHabits
+      ? prev.data.habits
+      : allHabits.filter((h) => h.deletedAt === null);
+  return { signatures, data: { ...(fresh as Omit<AppData, 'habits'>), habits } };
 }
 
 interface Toast {
@@ -60,6 +73,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [fatal, setFatal] = useState<string | null>(null);
   const [now, setNow] = useState(() => systemClock.now());
   const [toasts, setToasts] = useState<Toast[]>([]);
+  const loaded = useRef<Loaded | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -67,10 +81,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
       try {
         const opened = await Database.open(await createDriver());
         if (isDemo) await seedDemo(opened);
-        const loaded = await loadData(opened);
+        const first = await loadData(opened, null);
         if (!cancelled) {
+          loaded.current = first;
           setDb(opened);
-          setData(loaded);
+          setData(first.data);
         }
       } catch (e) {
         if (!cancelled) setFatal(errorMessage(e));
@@ -98,7 +113,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
       if (!db) return undefined;
       try {
         const result = await fn(db);
-        setData(await loadData(db));
+        const next = await loadData(db, loaded.current);
+        if (next !== loaded.current) {
+          loaded.current = next;
+          setData(next.data);
+        }
         setNow(systemClock.now());
         return result;
       } catch (e) {
@@ -121,7 +140,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
             today,
           })
         : null,
-    [data, today],
+    // Solo depende de lo que usa el motor: editar notas o tareas no la recalcula.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [data?.allHabits, data?.habitLogs, data?.animals, data?.vacations, today],
   );
 
   if (fatal) {

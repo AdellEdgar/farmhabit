@@ -69,6 +69,23 @@ export class Database {
     );
   }
 
+  /**
+   * Huella de cada colección (filas y suma de `updated_at`). Como toda
+   * escritura cambia `updated_at`, si la huella no cambia la colección
+   * tampoco: la interfaz solo relee lo que ha cambiado.
+   */
+  async collectionSignatures(): Promise<Record<CollectionName, string>> {
+    const sql = COLLECTION_NAMES.map(
+      (name) =>
+        `SELECT '${name}' AS c, COUNT(*) || ':' || CAST(COALESCE(SUM(updated_at), 0) AS TEXT) AS s FROM ${TABLES[name].table}`,
+    ).join(' UNION ALL ');
+    const rows = await this.driver.select<{ c: CollectionName; s: string }>(sql);
+    return Object.fromEntries(rows.map((r) => [r.c, String(r.s)])) as Record<
+      CollectionName,
+      string
+    >;
+  }
+
   /** Todos los datos, tombstones incluidos (para exportar o fusionar). */
   async exportDataset(): Promise<Dataset> {
     const out = emptyDataset();

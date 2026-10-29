@@ -4,6 +4,7 @@ import {
   habitLogId,
   keyBetween,
   localDateOf,
+  stableRandom,
   type Database,
   type HabitConfig,
   type NewEntity,
@@ -18,22 +19,8 @@ export const isDemo =
   !isDesktopApp &&
   (import.meta.env.VITE_DEMO === '1' || new URLSearchParams(location.search).has('demo'));
 
-/** Número pseudoaleatorio estable (0–1): la demo es siempre igual. */
-function rand(seed: string): number {
-  let h = 0x811c9dc5;
-  for (let i = 0; i < seed.length; i++) {
-    h ^= seed.charCodeAt(i);
-    h = Math.imul(h, 0x01000193);
-  }
-  // Mezcla final (fmix32 de MurmurHash3): sin ella, textos casi iguales
-  // (el mismo hábito en días seguidos) dan números muy parecidos.
-  h ^= h >>> 16;
-  h = Math.imul(h, 0x85ebca6b);
-  h ^= h >>> 13;
-  h = Math.imul(h, 0xc2b2ae35);
-  h ^= h >>> 16;
-  return (h >>> 0) / 0xffffffff;
-}
+/** Aleatorio pero estable: la demo es siempre igual. */
+const rand = stableRandom;
 
 const daily = { type: 'daily' } as const;
 

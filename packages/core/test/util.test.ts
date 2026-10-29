@@ -12,6 +12,7 @@ import {
   startOfWeek,
 } from '../src/util/dates';
 import { compareSortKey, keyBetween } from '../src/util/fractional-index';
+import { fnv1a, stableRandom } from '../src/util/hash';
 import { deterministicId, newId } from '../src/util/ids';
 
 describe('fechas locales', () => {
@@ -74,6 +75,23 @@ describe('ids', () => {
     expect(deterministicId('habitLog', 'h1', '2026-10-24')).not.toBe(
       deterministicId('habitLog', 'h1', '2026-10-25'),
     );
+  });
+});
+
+describe('hashes estables', () => {
+  it('FNV-1a no cambia nunca (el motor de la granja depende de él)', () => {
+    // Valores de referencia de FNV-1a de 32 bits.
+    expect(fnv1a('')).toBe(0x811c9dc5);
+    expect(fnv1a('a')).toBe(0xe40c292c);
+    expect(fnv1a('death|2026-09-13|abc')).toBe(fnv1a('death|2026-09-13|abc'));
+  });
+
+  it('stableRandom da valores en [0, 1) bien repartidos aunque los textos se parezcan', () => {
+    const values = Array.from({ length: 2000 }, (_, i) => stableRandom(`hábito|2026-01-${i}`));
+    expect(values.every((v) => v >= 0 && v < 1)).toBe(true);
+    const low = values.filter((v) => v < 0.5).length;
+    expect(low).toBeGreaterThan(900);
+    expect(low).toBeLessThan(1100);
   });
 });
 

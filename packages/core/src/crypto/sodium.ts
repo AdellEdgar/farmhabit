@@ -1,7 +1,14 @@
-import sodium from 'libsodium-wrappers-sumo';
+import type sodiumModule from 'libsodium-wrappers-sumo';
 
 // Envoltorio mínimo sobre libsodium. NO implementar primitivas propias:
 // solo Argon2id (crypto_pwhash) y XChaCha20-Poly1305 (AEAD IETF).
+//
+// libsodium se carga bajo demanda (import dinámico): pesa bastante y solo
+// hace falta al cifrar (copias, sincronización, notas privadas), así la app
+// arranca más rápido.
+
+type Sodium = typeof sodiumModule;
+let loading: Promise<Sodium> | null = null;
 
 export const KEY_BYTES = 32;
 export const SALT_BYTES = 16;
@@ -31,9 +38,13 @@ export class DecryptionError extends Error {
   }
 }
 
-export async function ready(): Promise<typeof sodium> {
-  await sodium.ready;
-  return sodium;
+export function ready(): Promise<Sodium> {
+  loading ??= import('libsodium-wrappers-sumo').then(async (m) => {
+    const s = (m as { default?: Sodium }).default ?? (m as unknown as Sodium);
+    await s.ready;
+    return s;
+  });
+  return loading;
 }
 
 export async function randomBytes(n: number): Promise<Uint8Array> {

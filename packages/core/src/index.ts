@@ -15,6 +15,7 @@ export * from './util/dates';
 export * from './util/clock';
 export * from './util/ids';
 export * from './util/fractional-index';
+export * from './util/hash';
 
 // Persistencia
 export type { SqlDriver, SqlStatement, SqlValue } from './db/driver';

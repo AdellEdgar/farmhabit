@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Flame, SkipForward } from 'lucide-react';
 import {
   configOn,
@@ -31,7 +31,10 @@ export function HabitRow({
   const ratio = logRatio(log, cfg);
   const done = ratio !== null && ratio >= 1;
   const skipped = log?.status === 'skipped';
-  const streak = habitStreak(habit, data.habitLogs, today);
+  const streak = useMemo(
+    () => habitStreak(habit, data.habitLogs, today),
+    [habit, data.habitLogs, today],
+  );
   // Borrador mientras se escribe; si no, se muestra lo guardado.
   const [draftQty, setDraftQty] = useState<string | null>(null);
   const qty = draftQty ?? (log?.value != null ? String(log.value) : '');

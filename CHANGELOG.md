@@ -48,3 +48,8 @@ Primera versión completa.
 - Avisos del sistema, bandeja del sistema y arranque con el ordenador en escritorio.
 - Temas predefinidos y editor de temas propios.
 - Demo web en GitHub Pages.
+
+### Rendimiento
+
+- La app arranca cargando un 65 % menos de código: el cifrado, el editor de notas y las secciones pesadas se descargan al usarlos.
+- Solo se releen de la base de datos las colecciones que cambian, y la granja solo se recalcula si cambian los hábitos.

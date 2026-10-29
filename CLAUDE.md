@@ -49,7 +49,13 @@ apps/app/             React + src-tauri (Windows, Linux, Android)
   src-tauri/src/db.rs comandos db_select, db_execute y db_transaction
 ```
 
-**Datos en la UI:** `AppProvider` abre la BD, carga todas las colecciones en memoria y calcula la granja con `computeFarm`. Toda escritura pasa por `mutate(fn)`, que ejecuta el cambio, recarga los datos y muestra los errores en un aviso. Con volúmenes personales (miles de elementos) recargar todo es instantáneo.
+**Datos en la UI:** `AppProvider` abre la BD, carga todas las colecciones en memoria y calcula la granja con `computeFarm`. Toda escritura pasa por `mutate(fn)`, que ejecuta el cambio, recarga los datos y muestra los errores en un aviso.
+
+**Rendimiento:**
+
+- **Recarga incremental:** antes de releer, `Database.collectionSignatures()` da una huella por colección (filas y suma de `updated_at`). Solo se releen las colecciones cuya huella cambió, y las demás conservan la misma referencia. La granja se memoriza solo sobre `allHabits`, `habitLogs`, `animals`, `vacations` y `today`: escribir una nota no la recalcula. Referencia medida: 3 años, 15 hábitos y 13.000 registros dan 43 ms la granja y 15 ms las rachas.
+- **Carga bajo demanda:** libsodium se importa dinámicamente en `crypto/sodium.ts`. Notas (TipTap), Calendario, Granja, Ajustes y Estadísticas van con `React.lazy`. La carga inicial pasó de 1,5 MB a unos 530 KB (de 505 a unos 170 KB comprimido).
+- **Hashes deterministas** en `util/hash.ts`: `fnv1a` (el motor depende de él: no cambiarlo, o cambiarían las muertes pasadas) y `stableRandom`.
 
 **Regla de oro:** el núcleo no importa React, Tauri ni nada del DOM. La plataforma se le inyecta mediante interfaces (`SqlDriver`, almacén de claves, notificador). Así se prueba en Node y se reutiliza tal cual en Android.
 

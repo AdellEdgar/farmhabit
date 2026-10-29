@@ -1,16 +1,11 @@
 import type { CSSProperties } from 'react';
-import { DEFAULT_RULES, type FarmState } from '@farmhabit/core';
+import { DEFAULT_RULES, stableRandom, type FarmState } from '@farmhabit/core';
 import { cx } from '../../lib/cx';
 import { SPECIES_EMOJI } from './farm-meta';
 
-/** Número pseudoaleatorio estable (0–1) a partir de un texto: cada animal se mueve "a su manera". */
-function seeded(text: string, salt: number): number {
-  let h = 0x811c9dc5 ^ salt;
-  for (let i = 0; i < text.length; i++) {
-    h ^= text.charCodeAt(i);
-    h = Math.imul(h, 0x01000193);
-  }
-  return (h >>> 0) / 0xffffffff;
+/** Número estable (0–1) por animal y propiedad: cada animal se mueve "a su manera". */
+function seeded(id: string, salt: number): number {
+  return stableRandom(`${id}|${salt}`);
 }
 
 type Weather = 'sunny' | 'cloudy' | 'rainy';

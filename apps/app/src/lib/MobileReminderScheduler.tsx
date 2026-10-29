@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { localDateOf, localDateTimeToEpoch, remindersBetween } from '@farmhabit/core';
+import { fnv1a, localDateOf, localDateTimeToEpoch, remindersBetween } from '@farmhabit/core';
 import { FARM_ALERT_TIME, farmAlertText, reminderText } from './reminder-text';
 import {
   getFlag,
@@ -17,14 +17,9 @@ const MAX_SCHEDULED = 60;
 /** Esperar a que se calmen los cambios antes de reprogramar. */
 const DEBOUNCE_MS = 1_500;
 
-/** Id numérico estable para la notificación a partir de la clave del aviso. */
+/** Id numérico estable (entero positivo de 31 bits) a partir de la clave del aviso. */
 function notificationId(key: string): number {
-  let h = 0x811c9dc5;
-  for (let i = 0; i < key.length; i++) {
-    h ^= key.charCodeAt(i);
-    h = Math.imul(h, 0x01000193);
-  }
-  return h >>> 1 || 1;
+  return fnv1a(key) >>> 1 || 1;
 }
 
 /**

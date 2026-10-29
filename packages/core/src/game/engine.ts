@@ -9,6 +9,7 @@ import {
 import type { Animal, Habit, HabitLog, Species, Vacation } from '../model/types';
 import type { LocalDate } from '../util/dates';
 import { addDays, diffDays, localDateOf } from '../util/dates';
+import { fnv1a } from '../util/hash';
 import { deterministicId } from '../util/ids';
 import type { GameRules } from './game-rules';
 import { DEFAULT_ANIMAL_NAMES, DEFAULT_RULES, levelForXp } from './game-rules';
@@ -77,15 +78,8 @@ interface HabitTrack {
   streak: number;
 }
 
-/** Hash FNV-1a de 32 bits: elecciones deterministas (víctima, padre, nombre). */
-function hash(text: string): number {
-  let h = 0x811c9dc5;
-  for (let i = 0; i < text.length; i++) {
-    h ^= text.charCodeAt(i);
-    h = Math.imul(h, 0x01000193);
-  }
-  return h >>> 0;
-}
+/** Elecciones deterministas (víctima, padre, nombre). Ver util/hash.ts. */
+const hash = fnv1a;
 
 function pick<T extends { id: string }>(items: T[], seed: string): T | undefined {
   let best: T | undefined;
