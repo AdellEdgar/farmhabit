@@ -5,7 +5,9 @@
 #
 # Para que la sincronización con Google Drive funcione en estas compilaciones,
 # añade en Settings → Secrets and variables → Actions los secretos
-# GOOGLE_CLIENT_ID y GOOGLE_CLIENT_SECRET (ver docs/google-drive.md).
+# GOOGLE_CLIENT_ID y GOOGLE_CLIENT_SECRET (ver docs/google-drive.md). Para firmar
+# el APK de Android con una clave fija: ANDROID_KEYSTORE y
+# ANDROID_KEYSTORE_PASSWORD (ver docs/android.md).
 name: Build
 
 on:
@@ -115,9 +117,38 @@ jobs:
       - name: Generar el proyecto Android
         working-directory: apps/app
         run: pnpm tauri android init --ci
-      - name: Compilar APK (firmado con la clave de depuración, instalable directamente)
+      # Con el secreto ANDROID_KEYSTORE se compila en modo release y se firma
+      # siempre con la misma clave, para que cada versión se instale encima de
+      # la anterior sin perder datos. Sin él (forks, PR), firma de depuración.
+      - name: Compilar APK
         working-directory: apps/app
-        run: pnpm tauri android build --apk --debug --target aarch64
+        env:
+          ANDROID_KEYSTORE: ${{ secrets.ANDROID_KEYSTORE }}
+        run: |
+          if [ -n "$ANDROID_KEYSTORE" ]; then
+            pnpm tauri android build --apk --target aarch64
+          else
+            pnpm tauri android build --apk --debug --target aarch64
+          fi
+      - name: Firmar el APK con la clave de FarmHabit
+        working-directory: apps/app/src-tauri/gen/android/app/build/outputs/apk
+        env:
+          ANDROID_KEYSTORE: ${{ secrets.ANDROID_KEYSTORE }}
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+        run: |
+          if [ -z "$ANDROID_KEYSTORE" ]; then
+            echo "Sin ANDROID_KEYSTORE: se queda la firma de depuración."
+            exit 0
+          fi
+          tools=$(ls -d "$ANDROID_HOME"/build-tools/* | sort -V | tail -n1)
+          keystore="$RUNNER_TEMP/farmhabit.jks"
+          echo "$ANDROID_KEYSTORE" | base64 -d > "$keystore"
+          unsigned=$(find . -name '*-unsigned.apk' | head -n1)
+          "$tools/zipalign" -p -f 4 "$unsigned" aligned.apk
+          "$tools/apksigner" sign --ks "$keystore" --ks-pass env:ANDROID_KEYSTORE_PASSWORD \
+            --out FarmHabit.apk aligned.apk
+          rm -f "$keystore" "$unsigned" aligned.apk ./*.idsig
+          "$tools/apksigner" verify FarmHabit.apk
       - uses: actions/upload-artifact@v7
         with:
           name: FarmHabit-Android
@@ -144,9 +175,12 @@ jobs:
       - name: Crear la Release
         env:
           GH_TOKEN: ${{ github.token }}
+        # Las etiquetas con guion (v1.0.0-rc.1) se publican como versión de prueba.
         run: |
           mapfile -t files < <(find release -type f)
-          gh release create "$GITHUB_REF_NAME" "${files[@]}" \
+          prerelease=()
+          [[ "$GITHUB_REF_NAME" == *-* ]] && prerelease=(--prerelease)
+          gh release create "$GITHUB_REF_NAME" "${files[@]}" "${prerelease[@]}" \
             --title "FarmHabit $GITHUB_REF_NAME" \
             --notes "Instaladores para Windows (.exe/.msi), Linux (.AppImage/.deb) y Android (.apk). Cambios en [CHANGELOG.md](https://github.com/${{ github.repository }}/blob/main/CHANGELOG.md)." \
             --generate-notes

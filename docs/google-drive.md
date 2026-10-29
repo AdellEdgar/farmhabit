@@ -18,14 +18,14 @@ Para que la app pueda iniciar sesión con Google hace falta crear unas credencia
 
 1. Ve a **APIs y servicios → Pantalla de consentimiento de OAuth** (o **Google Auth Platform**).
 2. Tipo de usuario: **Externo**. Nombre de la app: `FarmHabit`. Pon tu correo como correo de asistencia y de contacto.
-3. En **Permisos (scopes)**, añade `https://www.googleapis.com/auth/drive.appdata`.
-4. En **Usuarios de prueba**, añade tu cuenta de Google (y la de cualquiera que vaya a usar tu compilación).
+3. En **Acceso a los datos** (en la consola antigua, **Permisos** o _scopes_), pulsa **Agregar o quitar permisos** y añade `https://www.googleapis.com/auth/drive.appdata`. Si no sale en la lista, pégalo en **Agregar permisos manualmente**.
+4. En **Público** (en la consola antigua, **Usuarios de prueba**), baja hasta **Usuarios de prueba**, pulsa **Add users** y añade tu cuenta de Google y la de cualquiera que vaya a usar tu compilación.
 
 Mientras la app esté "en pruebas", Google mostrará un aviso de "app no verificada" al iniciar sesión. Es normal: pulsa **Continuar**.
 
 ## 3. Crear el cliente OAuth
 
-1. Ve a **APIs y servicios → Credenciales → Crear credenciales → ID de cliente de OAuth**.
+1. Ve a **Google Auth Platform → Clientes → Crear cliente** (en la consola antigua, **APIs y servicios → Credenciales → Crear credenciales → ID de cliente de OAuth**).
 2. Tipo de aplicación: **App de escritorio**. Nombre: `FarmHabit escritorio`.
 3. Copia el **ID de cliente** y el **Secreto del cliente**.
 

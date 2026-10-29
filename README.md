@@ -83,7 +83,7 @@ Los instaladores de cada versión están en **[Releases](https://github.com/Adel
 | ------------- | ------------------------------- | --------------------------------------------------------------------------------------------------------------------------- |
 | Windows 10/11 | `FarmHabit_x.y.z_x64-setup.exe` | Sin firma digital: Windows mostrará "SmartScreen: aplicación desconocida" → _Más información_ → _Ejecutar de todas formas_. |
 | Linux         | `.AppImage` o `.deb`            | AppImage: `chmod +x FarmHabit*.AppImage` y ejecutar. El `.deb` instala las dependencias solo.                               |
-| Android       | `FarmHabit_x.y.z_android.apk`   | Permite "instalar apps de origen desconocido". Es una compilación de depuración, aún sin probar en dispositivos reales.     |
+| Android       | `FarmHabit_x.y.z_android.apk`   | Permite "instalar apps de origen desconocido". Ver [docs/android.md](docs/android.md).                                      |
 
 ¿Solo quieres echar un vistazo? La **[demo web](https://adelledgar.github.io/farmhabit/)** es la misma app con datos de ejemplo, que se guardan solo en tu navegador. No tiene avisos ni sincronización.
 
