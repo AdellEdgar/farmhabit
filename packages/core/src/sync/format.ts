@@ -56,17 +56,33 @@ export class PasswordTooShortError extends Error {
   }
 }
 
+export const argon2KdfSchema = z.object({
+  alg: z.literal('argon2id13'),
+  opsLimit: z.number().int().min(KDF_LIMITS.minOps).max(KDF_LIMITS.maxOps),
+  memLimitBytes: z.number().int().min(KDF_LIMITS.minMem).max(KDF_LIMITS.maxMem),
+  salt: z.string(),
+});
+
+/** Clave de un baúl de sincronización (ver vault.ts). */
+export interface VaultKey {
+  vaultId: string;
+  key: Uint8Array;
+}
+
+/** Con qué se cifra o descifra un archivo: contraseña o clave del baúl. */
+export type FileSecret = string | VaultKey;
+
 const headerSchema = z.object({
   format: z.literal('farmhabit-export'),
   formatVersion: z.number().int().positive(),
   createdAt: z.string(),
   deviceId: z.string().max(100),
-  kdf: z.object({
-    alg: z.literal('argon2id13'),
-    opsLimit: z.number().int().min(KDF_LIMITS.minOps).max(KDF_LIMITS.maxOps),
-    memLimitBytes: z.number().int().min(KDF_LIMITS.minMem).max(KDF_LIMITS.maxMem),
-    salt: z.string(),
-  }),
+  // Copia de seguridad: clave derivada de la contraseña con Argon2id.
+  // Sincronización: clave del baúl (derivada una vez de la frase secreta).
+  kdf: z.discriminatedUnion('alg', [
+    argon2KdfSchema,
+    z.object({ alg: z.literal('vault'), vaultId: z.string().min(1).max(100) }),
+  ]),
   aead: z.object({ alg: z.literal('xchacha20poly1305-ietf'), nonce: z.string() }),
   compression: z.literal('none'),
 });
@@ -117,11 +133,12 @@ const decoder = new TextDecoder('utf-8', { fatal: true });
 
 export async function encodeExport(
   payload: ExportPayload,
-  password: string,
+  secret: FileSecret,
   opts: FormatOptions & { deviceId: string; now: number },
 ): Promise<Uint8Array> {
-  if (password.length < MIN_PASSWORD_LENGTH) throw new PasswordTooShortError();
-  const kdf = opts.kdf ?? PRODUCTION_KDF;
+  const usesPassword = typeof secret === 'string';
+  if (usesPassword && secret.length < MIN_PASSWORD_LENGTH) throw new PasswordTooShortError();
+  const kdfParams = opts.kdf ?? PRODUCTION_KDF;
   const formatVersion = opts.formatVersion ?? CURRENT_FORMAT_VERSION;
   const salt = await randomBytes(SALT_BYTES);
   const nonce = await randomBytes(NONCE_BYTES);
@@ -131,7 +148,9 @@ export async function encodeExport(
     formatVersion,
     createdAt: new Date(opts.now).toISOString(),
     deviceId: opts.deviceId,
-    kdf: { alg: 'argon2id13', ...kdf, salt: await toBase64(salt) },
+    kdf: usesPassword
+      ? { alg: 'argon2id13', ...kdfParams, salt: await toBase64(salt) }
+      : { alg: 'vault', vaultId: secret.vaultId },
     aead: { alg: 'xchacha20poly1305-ietf', nonce: await toBase64(nonce) },
     compression: 'none',
   };
@@ -141,7 +160,8 @@ export async function encodeExport(
   new DataView(prefix.buffer).setUint32(4, headerBytes.length, true);
   prefix.set(headerBytes, PREFIX_BYTES);
 
-  const key = await deriveKey(password, salt, kdf);
+  // La clave del baúl es del llamador: solo se borra la que derivamos aquí.
+  const key = usesPassword ? await deriveKey(secret, salt, kdfParams) : secret.key;
   try {
     const plaintext = encoder.encode(JSON.stringify({ ...payload, formatVersion }));
     const { ciphertext } = await encrypt(key, plaintext, prefix, nonce);
@@ -150,7 +170,7 @@ export async function encodeExport(
     out.set(ciphertext, prefix.length);
     return out;
   } finally {
-    await wipe(key);
+    if (usesPassword) await wipe(key);
   }
 }
 
@@ -183,32 +203,48 @@ export function readHeader(bytes: Uint8Array): { header: ExportHeader; aad: Uint
 
 export async function decodeExport(
   bytes: Uint8Array,
-  password: string,
+  secret: FileSecret,
   opts: Pick<FormatOptions, 'migrations'> & { currentVersion?: number } = {},
 ): Promise<{ header: ExportHeader; payload: ExportPayload }> {
   const current = opts.currentVersion ?? CURRENT_FORMAT_VERSION;
   const { header, aad } = readHeader(bytes);
   if (header.formatVersion > current) throw new UnsupportedVersionError(header.formatVersion);
 
-  let salt: Uint8Array;
   let nonce: Uint8Array;
   try {
-    salt = await fromBase64(header.kdf.salt);
     nonce = await fromBase64(header.aead.nonce);
   } catch {
     throw new InvalidFileError('cabecera no válida');
   }
-  if (salt.length !== SALT_BYTES || nonce.length !== NONCE_BYTES) {
-    throw new InvalidFileError('cabecera no válida');
-  }
+  if (nonce.length !== NONCE_BYTES) throw new InvalidFileError('cabecera no válida');
   const ciphertext = bytes.subarray(aad.length);
 
-  const key = await deriveKey(password, salt, header.kdf);
+  let key: Uint8Array;
+  const kdf = header.kdf;
+  if (kdf.alg === 'argon2id13') {
+    if (typeof secret !== 'string') {
+      throw new InvalidFileError('es una copia de seguridad: ábrela con su contraseña');
+    }
+    let salt: Uint8Array;
+    try {
+      salt = await fromBase64(kdf.salt);
+    } catch {
+      throw new InvalidFileError('cabecera no válida');
+    }
+    if (salt.length !== SALT_BYTES) throw new InvalidFileError('cabecera no válida');
+    key = await deriveKey(secret, salt, kdf);
+  } else {
+    if (typeof secret === 'string' || secret.vaultId !== kdf.vaultId) {
+      throw new InvalidFileError('pertenece a otra sincronización');
+    }
+    key = secret.key;
+  }
+
   let plaintext: Uint8Array;
   try {
     plaintext = await decrypt(key, ciphertext, aad, nonce);
   } finally {
-    await wipe(key);
+    if (kdf.alg === 'argon2id13') await wipe(key);
   }
 
   let raw: Record<string, unknown>;

@@ -7,6 +7,7 @@ import { NavigationContext, type Section } from './lib/navigation';
 import { applyTheme, loadTheme } from './lib/theme';
 import { applyCloseToTray, getFlag, PREF_KEYS } from './lib/platform';
 import { ReminderScheduler } from './lib/ReminderScheduler';
+import { SyncProvider } from './lib/SyncProvider';
 import { cx } from './lib/cx';
 import { TodayView } from './features/today/TodayView';
 import { TasksView } from './features/tasks/TasksView';
@@ -27,7 +28,9 @@ const SECTIONS: { id: Section; name: string; icon: typeof Sprout }[] = [
 export function App() {
   return (
     <AppProvider>
-      <Shell />
+      <SyncProvider>
+        <Shell />
+      </SyncProvider>
     </AppProvider>
   );
 }

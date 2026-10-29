@@ -4,7 +4,9 @@ import { useApp } from '../../lib/use-app';
 import { isDesktopApp } from '../../lib/drivers';
 import { loadTheme, saveTheme, watchSystemTheme, type ThemeChoice } from '../../lib/theme';
 import { Card, PageHeader, Segmented } from '../../components/ui';
+import { BackupSettings } from './BackupSettings';
 import { NotificationSettings } from './NotificationSettings';
+import { SyncSettings } from './SyncSettings';
 
 const SHORTCUTS = [
   ['N', 'Nueva tarea (en Hoy y Tareas) o nueva nota (en Notas)'],
@@ -13,7 +15,7 @@ const SHORTCUTS = [
 ];
 
 export function SettingsView() {
-  const { db, data } = useApp();
+  const { db } = useApp();
   const [theme, setTheme] = useState<ThemeChoice>('oscuro');
 
   useEffect(() => {
@@ -66,21 +68,13 @@ export function SettingsView() {
           </dl>
         </Card>
 
-        <Card className="p-5">
-          <h2 className="mb-3 font-semibold">Tus datos</h2>
-          <p className="text-sm text-texto-suave">
-            Todo se guarda solo en este dispositivo, sin cuentas ni servidores. Ahora mismo tienes{' '}
-            {data.tasks.length} tareas, {data.habits.length} hábitos y {data.notes.length} notas.
+        <SyncSettings />
+        <BackupSettings />
+        {!isDesktopApp && (
+          <p className="rounded-xl bg-aviso/10 px-3 py-2 text-sm text-aviso">
+            Estás en el modo navegador de desarrollo: los datos se guardan solo en este navegador.
           </p>
-          <p className="mt-2 text-sm text-texto-suave">
-            La copia cifrada y la sincronización entre dispositivos llegan en la Fase 4.
-          </p>
-          {!isDesktopApp && (
-            <p className="mt-3 rounded-xl bg-aviso/10 px-3 py-2 text-sm text-aviso">
-              Estás en el modo navegador de desarrollo: los datos se guardan solo en este navegador.
-            </p>
-          )}
-        </Card>
+        )}
 
         <p className="text-center text-xs text-texto-suave">
           {APP_NAME} 0.1.0 · esquema {SCHEMA_VERSION} · {db.deviceId.slice(0, 8)}

@@ -71,6 +71,7 @@ describe('cifrado y descifrado', () => {
     const b = await encodeExport(payload, PASSWORD, OPTS);
     const ha = readHeader(a).header;
     const hb = readHeader(b).header;
+    if (ha.kdf.alg !== 'argon2id13' || hb.kdf.alg !== 'argon2id13') throw new Error('kdf');
     expect(ha.kdf.salt).not.toBe(hb.kdf.salt);
     expect(ha.aead.nonce).not.toBe(hb.aead.nonce);
     expect(Buffer.from(a).equals(Buffer.from(b))).toBe(false);

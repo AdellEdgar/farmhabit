@@ -47,6 +47,7 @@ export {
   MIN_PASSWORD_LENGTH,
   readHeader,
 } from './sync/format';
-export type { ExportHeader, ExportPayload } from './sync/format';
+export type { ExportHeader, ExportPayload, FileSecret, VaultKey } from './sync/format';
 export * from './sync/merge';
 export * from './sync/service';
+export * from './sync/vault';

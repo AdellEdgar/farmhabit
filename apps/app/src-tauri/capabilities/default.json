@@ -3,5 +3,17 @@
   "identifier": "default",
   "description": "Permisos de la ventana principal. Añadir solo lo imprescindible.",
   "windows": ["main"],
-  "permissions": ["core:default", "notification:default"]
+  "permissions": [
+    "core:default",
+    "notification:default",
+    "dialog:default",
+    "opener:default",
+    {
+      "identifier": "http:default",
+      "allow": [
+        { "url": "https://oauth2.googleapis.com/*" },
+        { "url": "https://www.googleapis.com/*" }
+      ]
+    }
+  ]
 }

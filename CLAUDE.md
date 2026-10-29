@@ -81,8 +81,13 @@ Toda tabla sincronizable tiene: `id` (UUID), `created_at`, `updated_at`, `delete
 
 ## Sincronización y fusión
 
-- **Exportar/importar** un archivo cifrado `.agx` con la contraseña maestra.
-- **Sincronización por carpeta** (Syncthing): un archivo por dispositivo, `farmhabit-<deviceId>.agx`. Cada uno escribe solo el suyo y lee los demás, así no hay conflictos de archivo.
+- **Copia de seguridad:** exportar o importar un archivo `.agx` cifrado con una contraseña (Argon2id por archivo). Al importar se fusiona.
+- **Sincronización automática con Google Drive** (`appDataFolder`, scope `drive.appdata`: carpeta oculta, solo para la app). Se descartó Syncthing porque el usuario tiene iPhone y Syncthing no tiene app oficial en iOS.
+  - **Baúl:** `farmhabit-vault.json` guarda la sal de Argon2id, los parámetros y una comprobación cifrada (`sync/vault.ts`). El primer dispositivo lo crea con una **frase secreta**; los demás se unen con la misma frase. La clave derivada se guarda en el llavero del sistema, y los archivos de sincronización usan `kdf: {alg: "vault", vaultId}` en la cabecera.
+  - **Un archivo por dispositivo:** `farmhabit-<deviceId>.agx`. Cada uno escribe solo el suyo y lee los demás, así no hay conflictos de archivo (`syncWithRemote` en `sync/service.ts`). No se vuelven a leer los archivos cuyo `modifiedAt` no ha cambiado (`meta.sync:seen:<archivo>`) y no se sube nada si el reloj local no ha avanzado (`meta.sync:lastUploadClock`).
+  - **Almacenamiento intercambiable:** `RemoteStore` (list/read/write) se implementa con `DriveStore` (`apps/app/src/lib/google-drive.ts`); en los tests, con `MemoryStore`. Añadir otro proveedor (carpeta local, WebDAV…) es implementar esa interfaz.
+  - **Cuándo:** al abrir la app, cada 5 minutos y 15 s después de un cambio local (`SyncProvider`).
+  - **Inicio de sesión:** OAuth para apps instaladas con PKCE y redirección a `127.0.0.1:<puerto>` (`src-tauri/src/oauth.rs`). Credenciales en `apps/app/.env` (no se sube; guía en `docs/google-drive.md`). Las llamadas HTTP a Google pasan por `tauri-plugin-http`, limitado a `oauth2.googleapis.com` y `www.googleapis.com`.
 - **Fusión por elemento:** gana el `updated_at` mayor; si hay empate, gana el tombstone; si sigue el empate, gana el JSON canónico mayor (determinista). Una copia antigua nunca resucita algo borrado; una edición posterior a un borrado sí lo resucita.
 - **Notas:** si ambas versiones cambiaron desde la última sincronización con ese dispositivo (`meta.lastSync:<deviceId>`), la perdedora se conserva como "Título (conflicto)" con id = UUIDv5(nota + updatedAt perdedora), así los dos dispositivos crean la misma copia.
 - **Limitación aceptada:** las cantidades de hábitos editadas en dos dispositivos antes de sincronizar se quedan con el último valor.
@@ -110,7 +115,8 @@ Cabecera: `format: "farmhabit-export"`, `formatVersion`, `createdAt`, `deviceId`
 
 - **No inventar criptografía.** Solo primitivas de libsodium.
 - Las contraseñas (maestra y de notas privadas) **nunca** se guardan en disco, `localStorage` ni logs, y no aparecen en mensajes de error.
-- Para la sincronización automática se guarda la **clave derivada** (nunca la contraseña) en el almacén seguro del sistema: Credential Manager, Secret Service o Android Keystore.
+- Para la sincronización automática se guarda la **clave derivada** del baúl (nunca la frase secreta) y el refresh token de Google en el llavero del sistema, con el crate `keyring` (`src-tauri/src/secrets.rs`): Credential Manager en Windows, Secret Service en Linux. En Android, de momento, en un archivo del directorio privado de la app (pendiente: Keystore).
+- Los archivos de copia solo se leen y escriben con extensión `.agx` y hasta 100 MB (`src-tauri/src/files.rs`), en la ruta que el usuario elige en el diálogo.
 - Notas privadas: una clave aleatoria (DEK) cifra `{título, cuerpo}`. Esa DEK está envuelta con Argon2id(contraseña de notas privadas) y viaja en `privateVault`. En el archivo exportado van doblemente cifradas.
 - Las claves se manejan como `Uint8Array` y se borran con `sodium.memzero` tras usarlas. Límite asumido: el string de la contraseña en JS no se puede borrar de memoria con garantías.
 - Tests: parámetros bajos de Argon2id inyectados para que vayan rápidos, y un test que verifica que producción usa los parámetros fuertes.
@@ -148,7 +154,7 @@ El motor (`game/engine.ts`, `computeFarm`) recorre los días desde el primer há
 1. Núcleo: modelo, SQLite, migraciones, repositorios, recurrencias, frecuencias y rachas, motor del juego, cripto, formato `.agx`, fusión y tests. ✅
 2. Interfaz base: Hoy, Tareas, Hábitos (con puntos), Notas, granja básica (adoptar, nombres, cementerio), Ajustes (tema oscuro/claro/sistema), atajos N y /. **Primera entrega usable** (instalador de Windows). ✅
 3. Avisos: notificaciones, bandeja del sistema, arranque automático. ✅
-4. Exportar/importar cifrado y sincronización por carpeta.
+4. Copia de seguridad cifrada y sincronización automática con Google Drive. ✅
 5. Android (y Linux).
 6. Granja visual (animales con nombre, tienda, cementerio, logros), notas privadas, estadísticas, temas editables.
 7. Calendario y suscripciones `.ics` (p. ej. el calendario de la universidad).
@@ -164,5 +170,6 @@ pnpm dev              # app de escritorio (Tauri) en desarrollo
 pnpm dev:web          # solo la interfaz en el navegador (http://localhost:1420)
 pnpm test             # tests
 pnpm check            # typecheck + lint + formato + tests
+pnpm test:rust        # tests de Rust (llavero, receptor OAuth)
 pnpm build            # instalador de escritorio
 ```

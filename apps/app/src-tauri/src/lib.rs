@@ -4,6 +4,9 @@
 // gestiona la bandeja del sistema para que los avisos lleguen con la ventana cerrada.
 
 mod db;
+mod files;
+mod oauth;
+mod secrets;
 
 use std::sync::atomic::{AtomicBool, Ordering};
 use tauri::{Manager, State};
@@ -83,11 +86,17 @@ pub fn run() {
 
     builder
         .plugin(tauri_plugin_notification::init())
+        .plugin(tauri_plugin_http::init())
+        .plugin(tauri_plugin_opener::init())
+        .plugin(tauri_plugin_dialog::init())
         .manage(CloseToTray(AtomicBool::new(true)))
+        .manage(oauth::OAuthListener::default())
         .setup(|app| {
             let dir = app.path().app_data_dir()?;
             std::fs::create_dir_all(&dir)?;
             app.manage(db::Db::open(&dir.join("farmhabit.db"))?);
+            #[cfg(mobile)]
+            secrets::init(dir.clone());
 
             #[cfg(desktop)]
             {
@@ -118,6 +127,13 @@ pub fn run() {
             db::db_select,
             db::db_execute,
             db::db_transaction,
+            files::backup_read,
+            files::backup_write,
+            oauth::oauth_listen,
+            oauth::oauth_wait,
+            secrets::secret_get,
+            secrets::secret_set,
+            secrets::secret_delete,
             set_close_to_tray
         ])
         .run(tauri::generate_context!())
