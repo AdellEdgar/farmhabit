@@ -1,12 +1,15 @@
 import { useEffect, useState } from 'react';
 import { BellRing } from 'lucide-react';
 import { useApp } from '../../lib/use-app';
+import { isDesktopApp } from '../../lib/drivers';
 import { FARM_ALERT_TIME } from '../../lib/reminder-text';
 import {
   applyCloseToTray,
+  DEFAULT_CLOSE_TO_TRAY,
   getAutostart,
   getFlag,
   isDesktopShell,
+  isMobileApp,
   notificationPermission,
   PREF_KEYS,
   requestNotificationPermission,
@@ -29,7 +32,7 @@ export function NotificationSettings() {
     void (async () => {
       setPermission(await notificationPermission());
       setEnabled(await getFlag(db, PREF_KEYS.remindersEnabled, true));
-      setCloseToTray(await getFlag(db, PREF_KEYS.closeToTray, true));
+      setCloseToTray(await getFlag(db, PREF_KEYS.closeToTray, DEFAULT_CLOSE_TO_TRAY));
       setAutostartState(await getAutostart());
     })();
   }, [db]);
@@ -118,7 +121,13 @@ export function NotificationSettings() {
           />
         </>
       )}
-      {!isDesktopShell && (
+      {isMobileApp && (
+        <p className="text-xs text-texto-suave">
+          Los avisos de los próximos 7 días se programan en el móvil y llegan aunque la app esté
+          cerrada. Abre la app de vez en cuando para que se renueven.
+        </p>
+      )}
+      {!isDesktopApp && (
         <p className="text-xs text-texto-suave">
           En el modo navegador los avisos solo llegan con la pestaña abierta.
         </p>

@@ -1,0 +1,122 @@
+# Comprueba el código y genera los instaladores de Windows, Linux y Android.
+# Los instaladores quedan como "artifacts" de cada ejecución (pestaña Actions).
+#
+# Para que la sincronización con Google Drive funcione en estas compilaciones,
+# añade en Settings → Secrets and variables → Actions los secretos
+# GOOGLE_CLIENT_ID y GOOGLE_CLIENT_SECRET (ver docs/google-drive.md).
+name: Build
+
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: build-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  VITE_GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
+  VITE_GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
+
+jobs:
+  check:
+    name: Tests y lint
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm check
+
+  desktop:
+    name: Escritorio (${{ matrix.name }})
+    needs: check
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: Windows
+            os: windows-latest
+            bundles: |
+              apps/app/src-tauri/target/release/bundle/nsis/*.exe
+              apps/app/src-tauri/target/release/bundle/msi/*.msi
+          - name: Linux
+            os: ubuntu-22.04
+            bundles: |
+              apps/app/src-tauri/target/release/bundle/deb/*.deb
+              apps/app/src-tauri/target/release/bundle/appimage/*.AppImage
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Dependencias de sistema (Linux)
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libwebkit2gtk-4.1-dev libayatana-appindicator3-dev librsvg2-dev patchelf libssl-dev
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: apps/app/src-tauri
+      - run: pnpm install --frozen-lockfile
+      - name: Tests de Rust
+        run: pnpm test:rust
+        env:
+          CI: 'true'
+      - name: Compilar instaladores
+        run: pnpm build
+      - uses: actions/upload-artifact@v4
+        with:
+          name: FarmHabit-${{ matrix.name }}
+          path: ${{ matrix.bundles }}
+          if-no-files-found: error
+
+  android:
+    name: Android (APK)
+    needs: check
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+      - uses: android-actions/setup-android@v3
+      - name: Android NDK
+        run: |
+          sdkmanager --install "ndk;27.2.12479018"
+          echo "NDK_HOME=$ANDROID_SDK_ROOT/ndk/27.2.12479018" >> "$GITHUB_ENV"
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-linux-android,armv7-linux-androideabi,i686-linux-android,x86_64-linux-android
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: apps/app/src-tauri
+      - run: pnpm install --frozen-lockfile
+      - name: Generar el proyecto Android
+        working-directory: apps/app
+        run: pnpm tauri android init --ci
+      - name: Compilar APK (firmado con la clave de depuración, instalable directamente)
+        working-directory: apps/app
+        run: pnpm tauri android build --apk --debug --target aarch64
+      - uses: actions/upload-artifact@v4
+        with:
+          name: FarmHabit-Android
+          path: apps/app/src-tauri/gen/android/app/build/outputs/apk/**/*.apk
+          if-no-files-found: error

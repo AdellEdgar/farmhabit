@@ -4,7 +4,6 @@
 // gestiona la bandeja del sistema para que los avisos lleguen con la ventana cerrada.
 
 mod db;
-mod files;
 mod oauth;
 mod secrets;
 
@@ -89,7 +88,8 @@ pub fn run() {
         .plugin(tauri_plugin_http::init())
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_dialog::init())
-        .manage(CloseToTray(AtomicBool::new(true)))
+        .plugin(tauri_plugin_fs::init())
+        .manage(CloseToTray(AtomicBool::new(!cfg!(target_os = "linux"))))
         .manage(oauth::OAuthListener::default())
         .setup(|app| {
             let dir = app.path().app_data_dir()?;
@@ -127,8 +127,6 @@ pub fn run() {
             db::db_select,
             db::db_execute,
             db::db_transaction,
-            files::backup_read,
-            files::backup_write,
             oauth::oauth_listen,
             oauth::oauth_wait,
             secrets::secret_get,

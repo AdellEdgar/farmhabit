@@ -14,6 +14,40 @@ const isMobile = /Android|iPhone|iPad/i.test(navigator.userAgent);
 /** Escritorio con bandeja del sistema y arranque automático. */
 export const isDesktopShell = isDesktopApp && !isMobile;
 
+/**
+ * Valor inicial de "seguir en la bandeja al cerrar". En Linux empieza
+ * desactivado: algunos escritorios (GNOME sin extensión) no muestran la
+ * bandeja y la ventana escondida quedaría inaccesible.
+ */
+export const DEFAULT_CLOSE_TO_TRAY = !/Linux/i.test(navigator.userAgent);
+
+/**
+ * App móvil: el sistema la congela en segundo plano, así que los avisos no
+ * se pueden comprobar "en vivo"; hay que programarlos por adelantado.
+ */
+export const isMobileApp = isDesktopApp && isMobile;
+
+export interface ScheduledNotification {
+  id: number;
+  at: number;
+  title: string;
+  body: string;
+}
+
+/** Sustituye todos los avisos programados en el sistema por estos (solo móvil). */
+export async function replaceScheduledNotifications(list: ScheduledNotification[]): Promise<void> {
+  if (!isMobileApp) return;
+  await notification.cancelAll();
+  for (const n of list) {
+    notification.sendNotification({
+      id: n.id,
+      title: n.title,
+      body: n.body,
+      schedule: notification.Schedule.at(new Date(n.at), false, true),
+    });
+  }
+}
+
 export async function notificationPermission(): Promise<PermissionState> {
   if (isDesktopApp) return (await notification.isPermissionGranted()) ? 'granted' : 'default';
   if (typeof Notification === 'undefined') return 'unsupported';

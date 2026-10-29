@@ -57,7 +57,11 @@ apps/app/             React + src-tauri (Windows, Linux, Android)
 
 **Avisos (Fase 3):** `remindersBetween` (núcleo, `domain/reminders.ts`) devuelve los avisos de tareas y hábitos con instante en `(from, to]`. No avisa de tareas completadas ni de hábitos ya hechos, saltados o con el objetivo del periodo cumplido. `ReminderScheduler` (app) comprueba cada 20 s desde `meta.reminders:lastCheck`, así nada se repite al reiniciar. Recupera como mucho 12 h de avisos perdidos y agrupa en uno solo si hay más de 3. A las 20:00 avisa si hay `deathWarning`. Preferencias del dispositivo en `meta`: `reminders:enabled`, `closeToTray`.
 
-**Bandeja y arranque (escritorio):** la ventana se crea oculta (`visible: false`) y Rust la muestra salvo con `--minimized`, que es el argumento del autoarranque (`tauri-plugin-autostart`). Cerrar la ventana la esconde en la bandeja (comando `set_close_to_tray`); para salir, "Salir" en el menú del icono. `tauri-plugin-single-instance` hace que abrir la app otra vez muestre la ventana existente. En Android (Fase 5) habrá que programar las notificaciones con antelación, porque la app no sigue viva en segundo plano.
+**Bandeja y arranque (escritorio):** la ventana se crea oculta (`visible: false`) y Rust la muestra salvo con `--minimized`, que es el argumento del autoarranque (`tauri-plugin-autostart`). Cerrar la ventana la esconde en la bandeja (comando `set_close_to_tray`); para salir, "Salir" en el menú del icono. `tauri-plugin-single-instance` hace que abrir la app otra vez muestre la ventana existente. En **Linux** "seguir en la bandeja" empieza desactivado (`DEFAULT_CLOSE_TO_TRAY`), porque GNOME sin extensión no muestra la bandeja y la ventana quedaría inaccesible.
+
+**Android (Fase 5):** la app no sigue viva en segundo plano, así que `MobileReminderScheduler` reprograma en el sistema (`Schedule.at`, `allowWhileIdle`) los avisos de los próximos 7 días, como mucho 60, cada vez que cambian los datos. Marcar un hábito como hecho quita su aviso al recalcular la lista. Sin bandeja, autoarranque ni instancia única (dependencias solo de escritorio en `Cargo.toml`). Los secretos, de momento, van en un archivo del directorio privado de la app (pendiente: Keystore). El inicio de sesión con Google usa el mismo flujo de redirección local; **no está probado en un dispositivo real**. El proyecto Android (`gen/android`) no se versiona: lo genera `tauri android init --ci` en GitHub Actions.
+
+**CI (`.github/workflows/build.yml`):** tests y lint; instaladores de Windows (NSIS/MSI) y Linux (`.deb`, AppImage) con tests de Rust; APK de Android de depuración (aarch64). Los instaladores se descargan como artifacts de cada ejecución. Las credenciales de Google salen de los secretos del repositorio `GOOGLE_CLIENT_ID` y `GOOGLE_CLIENT_SECRET`.
 
 **Modo navegador (`pnpm dev:web`):** sin Tauri se usa SQLite en WebAssembly (`sql.js`), con los datos en `localStorage` de ese navegador. Solo sirve para desarrollar y probar la interfaz.
 
@@ -116,7 +120,7 @@ Cabecera: `format: "farmhabit-export"`, `formatVersion`, `createdAt`, `deviceId`
 - **No inventar criptografía.** Solo primitivas de libsodium.
 - Las contraseñas (maestra y de notas privadas) **nunca** se guardan en disco, `localStorage` ni logs, y no aparecen en mensajes de error.
 - Para la sincronización automática se guarda la **clave derivada** del baúl (nunca la frase secreta) y el refresh token de Google en el llavero del sistema, con el crate `keyring` (`src-tauri/src/secrets.rs`): Credential Manager en Windows, Secret Service en Linux. En Android, de momento, en un archivo del directorio privado de la app (pendiente: Keystore).
-- Los archivos de copia solo se leen y escriben con extensión `.agx` y hasta 100 MB (`src-tauri/src/files.rs`), en la ruta que el usuario elige en el diálogo.
+- Los archivos de copia se leen y escriben con `tauri-plugin-fs` (también abre las rutas `content://` de Android), solo en la ruta que el usuario elige en el diálogo, que es quien da el permiso. Se rechazan las de más de 100 MB.
 - Notas privadas: una clave aleatoria (DEK) cifra `{título, cuerpo}`. Esa DEK está envuelta con Argon2id(contraseña de notas privadas) y viaja en `privateVault`. En el archivo exportado van doblemente cifradas.
 - Las claves se manejan como `Uint8Array` y se borran con `sodium.memzero` tras usarlas. Límite asumido: el string de la contraseña en JS no se puede borrar de memoria con garantías.
 - Tests: parámetros bajos de Argon2id inyectados para que vayan rápidos, y un test que verifica que producción usa los parámetros fuertes.
@@ -155,7 +159,7 @@ El motor (`game/engine.ts`, `computeFarm`) recorre los días desde el primer há
 2. Interfaz base: Hoy, Tareas, Hábitos (con puntos), Notas, granja básica (adoptar, nombres, cementerio), Ajustes (tema oscuro/claro/sistema), atajos N y /. **Primera entrega usable** (instalador de Windows). ✅
 3. Avisos: notificaciones, bandeja del sistema, arranque automático. ✅
 4. Copia de seguridad cifrada y sincronización automática con Google Drive. ✅
-5. Android (y Linux).
+5. Android y Linux: avisos programados en móvil, copias con plugin-fs, compilación en GitHub Actions y README. ✅ (Android sin probar en un dispositivo real: el autor usa iPhone.)
 6. Granja visual (animales con nombre, tienda, cementerio, logros), notas privadas, estadísticas, temas editables.
 7. Calendario y suscripciones `.ics` (p. ej. el calendario de la universidad).
 8. Publicación: README con capturas, GitHub Actions y Releases.

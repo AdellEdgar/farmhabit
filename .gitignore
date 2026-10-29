@@ -6,6 +6,8 @@ coverage/
 *.tsbuildinfo
 target/
 apps/app/src-tauri/gen/schemas/
+# El proyecto Android lo genera `tauri android init` (en CI se crea en cada compilación).
+apps/app/src-tauri/gen/android/
 
 # Entorno y secretos
 .env

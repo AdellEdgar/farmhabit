@@ -108,6 +108,10 @@ mod tests {
 
     #[test]
     fn guarda_lee_y_borra_en_el_llavero() {
+        // En CI de Linux no hay sesión con Secret Service (gnome-keyring/KWallet).
+        if cfg!(target_os = "linux") && std::env::var_os("CI").is_some() {
+            return;
+        }
         let name = "test:farmhabit-cargo-test";
         store::delete(name).unwrap();
         assert_eq!(store::get(name).unwrap(), None);
