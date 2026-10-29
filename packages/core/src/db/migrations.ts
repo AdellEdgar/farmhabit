@@ -83,6 +83,24 @@ export const MIGRATIONS: Migration[] = [
         value TEXT NOT NULL)`,
     ],
   },
+  {
+    version: 2,
+    name: 'calendarios externos',
+    statements: [
+      `CREATE TABLE calendar_sources (${SYNC_COLUMNS},
+        name TEXT NOT NULL,
+        kind TEXT NOT NULL CHECK (kind IN ('url', 'file')),
+        url TEXT,
+        ics TEXT,
+        color TEXT NOT NULL DEFAULT '',
+        visible INTEGER NOT NULL DEFAULT 1)`,
+      // Local: lo descargado de cada URL (no se sincroniza; cada dispositivo descarga).
+      `CREATE TABLE calendar_cache (
+        source_id TEXT PRIMARY KEY NOT NULL,
+        fetched_at INTEGER NOT NULL,
+        ics TEXT NOT NULL)`,
+    ],
+  },
 ];
 
 export const LATEST_SCHEMA_VERSION = MIGRATIONS[MIGRATIONS.length - 1]!.version;

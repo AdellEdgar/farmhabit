@@ -168,6 +168,24 @@ export const vacationSchema = z.object({
   endDate: localDate,
 });
 
+// ---------- Calendarios externos ----------
+
+/**
+ * Calendario externo de solo lectura: una suscripción por URL (.ics/webcal)
+ * o un archivo .ics importado. Lo descargado de una URL se guarda en una caché
+ * local (no se sincroniza); el contenido de un archivo importado sí, para que
+ * los demás dispositivos también lo vean.
+ */
+export const calendarSourceSchema = z.object({
+  ...syncFields,
+  name: z.string().min(1).max(100),
+  kind: z.enum(['url', 'file']),
+  url: z.string().max(2000).nullable(),
+  ics: z.string().max(5_000_000).nullable(),
+  color: z.string().max(20),
+  visible: z.boolean(),
+});
+
 // ---------- Ajustes ----------
 
 export const settingSchema = z.object({

@@ -1,6 +1,7 @@
 import type { z } from 'zod';
 import type {
   animalSchema,
+  calendarSourceSchema,
   habitConfigSchema,
   habitLogSchema,
   habitReminderSchema,
@@ -36,6 +37,7 @@ export type Species = z.infer<typeof speciesSchema>;
 export type Animal = z.infer<typeof animalSchema>;
 export type Vacation = z.infer<typeof vacationSchema>;
 export type Setting = z.infer<typeof settingSchema>;
+export type CalendarSource = z.infer<typeof calendarSourceSchema>;
 
 /** Lo mínimo que necesita la fusión de cualquier elemento. */
 export interface SyncEntity {

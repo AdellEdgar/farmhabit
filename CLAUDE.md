@@ -79,7 +79,8 @@ Toda tabla sincronizable tiene: `id` (UUID), `created_at`, `updated_at`, `delete
 - `animals`: nombre (lo elige el usuario), especie, `acquired_on`, origen (`starter`/`bought`/`born`) y precio. La muerte **no** se guarda: la calcula el motor. Las crías tienen id = UUIDv5(padre + fecha); si el usuario les pone nombre se guarda una fila con ese id.
 - `vacations`: `start_date`, `end_date`. Solo protegen los días posteriores al día en que se crearon.
 - `settings`: clave y valor (sincronizados). Lo que es solo del dispositivo (p. ej. el tema elegido) va en `meta`.
-- Locales (no se sincronizan): `meta` (deviceId, versión de esquema, `lastClock`, `lastSync:<deviceId>`, `theme`) y caché de eventos de calendario. El buscador de notas filtra en memoria sin distinguir acentos ni mayúsculas; si hiciera falta se añadirá un índice FTS5.
+- `calendar_sources` (migración 2): calendarios externos de solo lectura. Tienen nombre, tipo (`url` o `file`), `url`, `ics` (solo para los importados, se sincroniza), color y si están visibles.
+- Locales (no se sincronizan): `meta` (deviceId, versión de esquema, `lastClock`, `lastSync:<deviceId>`, `theme`) y `calendar_cache` (lo descargado de cada URL; no está en `COLLECTIONS`, así que no viaja en copias ni en la sincronización). El buscador de notas filtra en memoria sin distinguir acentos ni mayúsculas; si hiciera falta se añadirá un índice FTS5.
 
 `updated_at` es monotónico por dispositivo: `max(ahora, último + 1)`, persistido en `meta.lastClock` en la misma transacción que cada escritura; tras importar, el reloj avanza hasta la marca más alta importada. Los tombstones no se purgan, y al borrar tareas y notas se vacía su contenido. Las migraciones del esquema son SQL congelado (`db/migrations.ts`): nunca se editan, se añade una nueva.
 
@@ -153,6 +154,16 @@ El motor (`game/engine.ts`, `computeFarm`) recorre los días desde el primer há
 - **Logros** (`game/achievements.ts`): se calculan desde los datos (no se guardan), igual que la granja.
 - **Gráficos:** la escena (`FarmScene.tsx`) es SVG propio con los animales como emojis animados con CSS. No hay recursos de terceros, así que no hace falta atribución. El tiempo refleja el estado: sol si están contentos, nubes si están tristes, lluvia si están enfermos.
 
+## Calendario (Fase 7)
+
+- **Lector `.ics` propio** (`domain/ics.ts`): líneas partidas, escapes, `VALUE=DATE` (día completo), `TZID` (IANA y nombres de Windows de Outlook, convertidos con `Intl`), `Z`, `DURATION`, `RRULE`, `EXDATE`, `RECURRENCE-ID` (ocurrencias movidas o canceladas), `STATUS:CANCELLED`. Ignora lo que hay dentro de `VALARM`.
+  - Las repeticiones se expanden en hora de pared de la zona del evento, así una clase semanal sigue a las 9:00 tras el cambio de hora.
+  - Como mucho 2000 ocurrencias por evento.
+- `domain/calendar.ts`: cuadrícula del mes (42 días de lunes a domingo) y `tasksInRange`, que incluye las repeticiones futuras de las tareas recurrentes (`upcoming`).
+- `services/calendar.ts`: alta de fuentes; `normalizeCalendarUrl` (solo `https://`, y `webcal://` se convierte a `https://`); caché local que solo guarda texto que es un `.ics` válido.
+- **App:** `CalendarRefresher` vuelve a descargar las suscripciones de más de 6 h (al abrir y cada 30 min), y `useCalendarEvents` lee y expande las fuentes visibles con caché por fuente. Las descargas pasan por `tauri-plugin-http`, con el scope `https://*/*` porque las URL las pone el usuario.
+- Pantalla **Calendario**, con la vista de mes y el detalle del día (eventos y tareas), y la agenda del día en **Hoy**. Guía para conseguir enlaces iCal en `docs/calendarios.md`.
+
 ## Estadísticas y temas
 
 - `domain/stats.ts`: `habitCalendar` da el estado de cada día (hecho, a medias, saltado, fallado, pendiente, no tocaba), `completionRate` el porcentaje y `dailyCompletion` los datos de la gráfica de 30 días. Las gráficas son SVG propio, sin librerías.
@@ -173,7 +184,7 @@ El motor (`game/engine.ts`, `computeFarm`) recorre los días desde el primer há
 4. Copia de seguridad cifrada y sincronización automática con Google Drive. ✅
 5. Android y Linux: avisos programados en móvil, copias con plugin-fs, compilación en GitHub Actions y README. ✅ (Android sin probar en un dispositivo real: el autor usa iPhone.)
 6. Granja visual (escena, tienda, logros, vacaciones, cementerio), notas privadas, estadísticas y temas editables. ✅
-7. Calendario y suscripciones `.ics` (p. ej. el calendario de la universidad).
+7. Calendario y suscripciones `.ics` (p. ej. el calendario de la universidad). ✅
 8. Publicación: README con capturas, GitHub Actions y Releases.
 
 Fuera de alcance: gestor de contraseñas (descartado). Google Calendar: posible ampliación futura.

@@ -12,6 +12,7 @@ import { dayProgress } from '../habits/habit-meta';
 import { QuickAdd } from '../tasks/QuickAdd';
 import { TaskEditor } from '../tasks/TaskEditor';
 import { TaskItem } from '../tasks/TaskItem';
+import { TodayAgenda } from '../calendar/TodayAgenda';
 
 export function TodayView() {
   const { data, farm, today, now } = useApp();
@@ -35,6 +36,8 @@ export function TodayView() {
 
       <div className="grid gap-5 lg:grid-cols-[1fr_300px]">
         <div className="space-y-5">
+          <TodayAgenda onMore={() => go('calendario')} />
+
           <section>
             <SectionTitle title="Tareas de hoy" count={tasks.length} onMore={() => go('tareas')} />
             <Card className="p-2">

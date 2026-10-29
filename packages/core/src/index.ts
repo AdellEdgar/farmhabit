@@ -28,12 +28,15 @@ export * from './domain/recurrence';
 export * from './domain/habits';
 export * from './domain/reminders';
 export * from './domain/stats';
+export * from './domain/ics';
+export * from './domain/calendar';
 
 // Servicios
 export * from './services/tasks';
 export * from './services/habits';
 export * from './services/farm';
 export * from './services/private-notes';
+export * from './services/calendar';
 
 // Granja
 export * from './game/game-rules';

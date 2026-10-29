@@ -1,6 +1,7 @@
 import { createContext, useContext } from 'react';
 import type {
   Animal,
+  CalendarSource,
   Database,
   FarmState,
   Habit,
@@ -28,6 +29,7 @@ export interface AppData {
   notes: Note[];
   noteFolders: NoteFolder[];
   animals: Animal[];
+  calendarSources: CalendarSource[];
   vacations: Vacation[];
 }
 

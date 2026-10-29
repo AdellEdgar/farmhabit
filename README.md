@@ -6,7 +6,7 @@ FarmHabit es una app de productividad personal _local-first_ para **Windows, Lin
 
 Tus datos se guardan en tu dispositivo, sin cuentas propias ni servidores. Si quieres usarla en varios dispositivos, se sincronizan cifrados a través de tu Google Drive.
 
-> 🚧 **En desarrollo.** Ya funciona todo lo que se describe abajo; faltan el calendario y la publicación con Releases. La interfaz está en español.
+> 🚧 **En desarrollo.** Ya funciona todo lo que se describe abajo; falta la publicación con Releases. La interfaz está en español.
 
 ## Qué puedes hacer
 
@@ -39,6 +39,12 @@ Tus datos se guardan en tu dispositivo, sin cuentas propias ni servidores. Si qu
 
 - Editor visual (títulos, listas, casillas, citas, código), carpetas, etiquetas, notas fijadas y buscador que ignora acentos.
 - **Notas privadas** 🔒 con su propia contraseña y una capa extra de cifrado. Se bloquean solas a los 5 minutos sin usarlas.
+
+### 🗓️ Calendario
+
+- Vista de **mes** con tus tareas (también las repeticiones futuras) y el detalle de cada día.
+- Muestra junto a tus tareas el calendario de la **universidad**, **Google**, **Outlook** o **iCloud**: puedes suscribirte con su enlace iCal (se actualiza solo) o importar un archivo `.ics`. Solo se leen, nunca se modifican. Cómo conseguir el enlace: [docs/calendarios.md](docs/calendarios.md).
+- La pantalla **Hoy** muestra la agenda del día.
 
 ### 🎨 Temas
 
@@ -94,7 +100,7 @@ La sincronización necesita credenciales de Google propias: sigue [docs/google-d
 
 ```
 packages/core/   Núcleo en TypeScript, sin interfaz: modelo, SQLite, motor de la granja,
-                 cifrado, formato .agx, fusión y sincronización. ~165 tests (Vitest + fast-check).
+                 cifrado, formato .agx, fusión y sincronización. ~185 tests (Vitest + fast-check).
 apps/app/        Interfaz en React 19 + Tailwind 4, empaquetada con Tauri 2.
   src-tauri/     Rust mínimo: SQLite nativo con transacciones atómicas, llavero del sistema,
                  inicio de sesión con Google y bandeja del sistema.
@@ -113,7 +119,7 @@ Las decisiones de diseño, el formato del archivo y todas las reglas del juego e
 - [x] Sincronización con Google Drive y copias de seguridad
 - [x] Linux y Android (compilación en GitHub Actions)
 - [x] Granja visual con tienda y logros, notas privadas, estadísticas y temas editables
-- [ ] Calendario y suscripción a calendarios `.ics`
+- [x] Calendario y suscripción a calendarios `.ics`
 - [ ] Publicación con Releases
 
 ## Licencia

@@ -17,6 +17,7 @@ async function loadData(db: Database): Promise<AppData> {
     animals,
     vacations,
     settings,
+    calendarSources,
   ] = await Promise.all([
     db.repo('tasks').list(),
     db.repo('taskCompletions').list(),
@@ -28,11 +29,13 @@ async function loadData(db: Database): Promise<AppData> {
     db.repo('animals').list(),
     db.repo('vacations').list(),
     db.repo('settings').list(),
+    db.repo('calendarSources').list(),
   ]);
   return {
     tasks,
     taskCompletions,
     settings,
+    calendarSources,
     tags,
     allHabits,
     habits: allHabits.filter((h) => h.deletedAt === null),

@@ -92,6 +92,19 @@ export const TABLES: Record<CollectionName, TableSpec> = {
     columns: { ...sync, startDate: 'text', endDate: 'text' },
   },
   settings: { table: 'settings', columns: { ...sync, key: 'text', value: 'text' } },
+  calendarSources: {
+    table: 'calendar_sources',
+    columns: {
+      ...sync,
+      name: 'text',
+      kind: 'text',
+      url: 'text',
+      ics: 'text',
+      color: 'text',
+      visible: 'bool',
+    },
+    purgeOnDelete: { url: null, ics: null },
+  },
 };
 
 export function toSnake(field: string): string {

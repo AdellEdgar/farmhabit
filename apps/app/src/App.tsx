@@ -1,5 +1,13 @@
 import { useEffect, useState } from 'react';
-import { CalendarCheck, CheckSquare, NotebookPen, Repeat, Settings, Sprout } from 'lucide-react';
+import {
+  CalendarCheck,
+  CalendarDays,
+  CheckSquare,
+  NotebookPen,
+  Repeat,
+  Settings,
+  Sprout,
+} from 'lucide-react';
 import { APP_NAME } from '@farmhabit/core';
 import { AppProvider } from './lib/app-context';
 import { useApp } from './lib/use-app';
@@ -15,17 +23,21 @@ import {
 import { ReminderScheduler } from './lib/ReminderScheduler';
 import { MobileReminderScheduler } from './lib/MobileReminderScheduler';
 import { SyncProvider } from './lib/SyncProvider';
+import { CalendarRefresher } from './lib/CalendarRefresher';
 import { cx } from './lib/cx';
 import { TodayView } from './features/today/TodayView';
 import { TasksView } from './features/tasks/TasksView';
+import { CalendarView } from './features/calendar/CalendarView';
 import { HabitsView } from './features/habits/HabitsView';
 import { NotesView } from './features/notes/NotesView';
 import { FarmView } from './features/farm/FarmView';
 import { SettingsView } from './features/settings/SettingsView';
 
-const SECTIONS: { id: Section; name: string; icon: typeof Sprout }[] = [
+/** short: nombre en la barra inferior del móvil, donde hay menos sitio. */
+const SECTIONS: { id: Section; name: string; short?: string; icon: typeof Sprout }[] = [
   { id: 'hoy', name: 'Hoy', icon: CalendarCheck },
   { id: 'tareas', name: 'Tareas', icon: CheckSquare },
+  { id: 'calendario', name: 'Calendario', short: 'Agenda', icon: CalendarDays },
   { id: 'habitos', name: 'Hábitos', icon: Repeat },
   { id: 'notas', name: 'Notas', icon: NotebookPen },
   { id: 'granja', name: 'Granja', icon: Sprout },
@@ -70,6 +82,7 @@ function Shell() {
   return (
     <NavigationContext.Provider value={{ section, go: setSection }}>
       {isMobileApp ? <MobileReminderScheduler /> : <ReminderScheduler />}
+      <CalendarRefresher />
       {/* Móvil: barra de navegación abajo. Escritorio (md+): barra lateral. */}
       <div className="flex h-full flex-col md:flex-row">
         <nav
@@ -99,7 +112,8 @@ function Shell() {
                 )}
               >
                 <Icon size={20} strokeWidth={active ? 2.4 : 1.9} aria-hidden="true" />
-                {s.name}
+                <span className="md:hidden">{s.short ?? s.name}</span>
+                <span className="hidden md:inline">{s.name}</span>
                 {s.id === 'granja' && alerts && (
                   <span
                     className="absolute top-1.5 right-[calc(50%-16px)] size-2 rounded-full bg-peligro md:static md:ml-auto"
@@ -115,6 +129,7 @@ function Shell() {
           <div className="mx-auto w-full max-w-4xl px-4 py-5 md:px-8 md:py-8">
             {section === 'hoy' && <TodayView />}
             {section === 'tareas' && <TasksView />}
+            {section === 'calendario' && <CalendarView />}
             {section === 'habitos' && <HabitsView />}
             {section === 'notas' && <NotesView />}
             {section === 'granja' && <FarmView />}

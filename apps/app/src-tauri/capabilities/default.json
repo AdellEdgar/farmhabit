@@ -10,12 +10,14 @@
     "fs:allow-read-file",
     "fs:allow-write-file",
     "fs:allow-stat",
+    "fs:allow-read-text-file",
     "opener:default",
     {
       "identifier": "http:default",
       "allow": [
         { "url": "https://oauth2.googleapis.com/*" },
-        { "url": "https://www.googleapis.com/*" }
+        { "url": "https://www.googleapis.com/*" },
+        { "url": "https://*/*" }
       ]
     }
   ]
