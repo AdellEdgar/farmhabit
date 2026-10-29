@@ -1,8 +1,8 @@
 {
   "$schema": "../gen/schemas/desktop-schema.json",
   "identifier": "desktop",
-  "description": "Permisos solo de escritorio: arrancar con el sistema.",
+  "description": "Permisos solo de escritorio: arrancar con el sistema y actualizarse.",
   "platforms": ["windows", "linux", "macOS"],
   "windows": ["main"],
-  "permissions": ["autostart:default"]
+  "permissions": ["autostart:default", "updater:default", "process:allow-restart"]
 }

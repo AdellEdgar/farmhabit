@@ -45,6 +45,7 @@ Primera versión completa.
 ### Plataformas
 
 - Windows, Linux (AppImage/.deb) y Android (APK).
+- Actualizaciones automáticas firmadas en Windows y Linux; aviso de versión nueva en Android.
 - Avisos del sistema, bandeja del sistema y arranque con el ordenador en escritorio.
 - Temas predefinidos y editor de temas propios.
 - Demo web en GitHub Pages.

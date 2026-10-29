@@ -31,6 +31,9 @@ tauri-plugin-autostart = "2"
 tauri-plugin-single-instance = "2"
 # Llavero del sistema (Credential Manager en Windows, Secret Service en Linux).
 keyring = "4"
+# Actualizaciones automáticas (instalador de Windows y AppImage) y reinicio.
+tauri-plugin-updater = "2"
+tauri-plugin-process = "2"
 
 [profile.release]
 codegen-units = 1

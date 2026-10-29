@@ -13,6 +13,7 @@ import {
 } from '../src/util/dates';
 import { compareSortKey, keyBetween } from '../src/util/fractional-index';
 import { fnv1a, stableRandom } from '../src/util/hash';
+import { compareSemver, isSemver } from '../src/util/version';
 import { deterministicId, newId } from '../src/util/ids';
 
 describe('fechas locales', () => {
@@ -123,5 +124,43 @@ describe('índices fraccionales', () => {
     const x = { sortKey: 'V', id: 'a' };
     const y = { sortKey: 'V', id: 'b' };
     expect([y, x].sort(compareSortKey)).toEqual([x, y]);
+  });
+});
+
+describe('versiones', () => {
+  it('sigue el orden de semver.org', () => {
+    // Ejemplo de la especificación, de menor a mayor.
+    const ordered = [
+      '1.0.0-alpha',
+      '1.0.0-alpha.1',
+      '1.0.0-alpha.beta',
+      '1.0.0-beta',
+      '1.0.0-beta.2',
+      '1.0.0-beta.11',
+      '1.0.0-rc.1',
+      '1.0.0',
+      '1.0.1',
+      '1.1.0',
+      '2.0.0',
+    ];
+    for (let i = 0; i < ordered.length - 1; i++) {
+      expect(compareSemver(ordered[i]!, ordered[i + 1]!)).toBe(-1);
+      expect(compareSemver(ordered[i + 1]!, ordered[i]!)).toBe(1);
+    }
+  });
+
+  it('compara los números como números, no como texto', () => {
+    expect(compareSemver('1.0.0-rc.10', '1.0.0-rc.9')).toBe(1);
+    expect(compareSemver('1.10.0', '1.9.0')).toBe(1);
+  });
+
+  it('acepta la v de las etiquetas e ignora los metadatos de compilación', () => {
+    expect(compareSemver('v1.2.3', '1.2.3')).toBe(0);
+    expect(compareSemver('1.2.3+abc', '1.2.3')).toBe(0);
+  });
+
+  it('rechaza lo que no es una versión', () => {
+    expect(isSemver('1.0')).toBe(false);
+    expect(() => compareSemver('1.0.0', 'latest')).toThrow('latest');
   });
 });

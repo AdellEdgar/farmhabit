@@ -26,6 +26,7 @@ import { SyncProvider } from './lib/SyncProvider';
 import { CalendarRefresher } from './lib/CalendarRefresher';
 import { isDemo } from './lib/demo-data';
 import { DemoBanner } from './components/DemoBanner';
+import { UpdateBanner } from './components/UpdateBanner';
 import { cx } from './lib/cx';
 import { TodayView } from './features/today/TodayView';
 import { TasksView } from './features/tasks/TasksView';
@@ -146,6 +147,7 @@ function Shell() {
 
         <main className="flex-1 overflow-y-auto">
           {isDemo && <DemoBanner />}
+          <UpdateBanner />
           <div className="mx-auto w-full max-w-4xl px-4 py-5 md:px-8 md:py-8">
             <Suspense fallback={<p className="py-12 text-center text-texto-suave">Cargando…</p>}>
               {section === 'hoy' && <TodayView />}

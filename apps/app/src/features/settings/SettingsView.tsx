@@ -8,6 +8,7 @@ import { BackupSettings } from './BackupSettings';
 import { NotificationSettings } from './NotificationSettings';
 import { PrivateNotesSettings } from './PrivateNotesSettings';
 import { SyncSettings } from './SyncSettings';
+import { UpdateSettings } from './UpdateSettings';
 
 const SHORTCUTS = [
   ['N', 'Nueva tarea (en Hoy y Tareas) o nueva nota (en Notas)'],
@@ -46,6 +47,7 @@ export function SettingsView() {
         <PrivateNotesSettings />
         <SyncSettings />
         <BackupSettings />
+        <UpdateSettings />
         {!isDesktopApp && (
           <p className="rounded-xl bg-aviso/10 px-3 py-2 text-sm text-aviso">
             {isDemo

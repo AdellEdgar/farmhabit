@@ -80,7 +80,10 @@ pub fn run() {
             .plugin(tauri_plugin_autostart::init(
                 tauri_plugin_autostart::MacosLauncher::LaunchAgent,
                 Some(vec![MINIMIZED_FLAG]),
-            ));
+            ))
+            // En Android no hay autoactualización: la app solo avisa (ver src/lib/updates.ts).
+            .plugin(tauri_plugin_updater::Builder::new().build())
+            .plugin(tauri_plugin_process::init());
     }
 
     builder

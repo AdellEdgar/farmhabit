@@ -67,7 +67,7 @@ apps/app/             React + src-tauri (Windows, Linux, Android)
 
 **Android (Fase 5):** la app no sigue viva en segundo plano, así que `MobileReminderScheduler` reprograma en el sistema (`Schedule.at`, `allowWhileIdle`) los avisos de los próximos 7 días, como mucho 60, cada vez que cambian los datos. Marcar un hábito como hecho quita su aviso al recalcular la lista. Sin bandeja, autoarranque ni instancia única (dependencias solo de escritorio en `Cargo.toml`). Los secretos, de momento, van en un archivo del directorio privado de la app (pendiente: Keystore). El inicio de sesión con Google usa el mismo flujo de redirección local; **no está probado en un dispositivo real**. El proyecto Android (`gen/android`) no se versiona: lo genera `tauri android init --ci` en GitHub Actions.
 
-**CI (`.github/workflows/build.yml`):** tests y lint; instaladores de Windows (NSIS/MSI) y Linux (`.deb`, AppImage) con tests de Rust; APK de Android de depuración (aarch64). Los instaladores se descargan como artifacts de cada ejecución. Las credenciales de Google salen de los secretos del repositorio `GOOGLE_CLIENT_ID` y `GOOGLE_CLIENT_SECRET`.
+**CI (`.github/workflows/build.yml`):** tests y lint; instaladores de Windows (NSIS) y Linux (`.deb`, AppImage) con tests de Rust; APK de Android (aarch64). Los instaladores se descargan como artifacts de cada ejecución. Las credenciales de Google salen de los secretos del repositorio `GOOGLE_CLIENT_ID` y `GOOGLE_CLIENT_SECRET`.
 
 **Modo navegador (`pnpm dev:web`):** sin Tauri se usa SQLite en WebAssembly (`sql.js`), con los datos en `localStorage` de ese navegador. Solo sirve para desarrollar y probar la interfaz.
 
@@ -200,7 +200,10 @@ El motor (`game/engine.ts`, `computeFarm`) recorre los días desde el primer há
 - **Demo web:** el trabajo `pages` compila con `VITE_DEMO=1` y `VITE_BASE=/<repo>/` y publica en GitHub Pages. Necesita activar Pages en el repositorio (Settings → Pages → Source: GitHub Actions); si no está activado, ese trabajo falla sin marcar en rojo toda la ejecución (`continue-on-error`).
 - **Datos de ejemplo** (`apps/app/src/lib/demo-data.ts`): solo en modo navegador y con la base vacía, con `VITE_DEMO=1` o `?demo` en la URL. Son deterministas (hash + fmix32). `?section=<id>` abre una sección concreta.
 - **Capturas** (`docs/screenshots/`): se generaron con Edge headless contra `pnpm dev:web` y `?demo&section=…`, a 1280×800 en escritorio y 500×1000 a escala 2 en móvil (Edge no baja de unos 500 px de ancho).
-- **Instalador:** NSIS en español (`languages: ["Spanish"]`), MSI `es-ES`, con editor, copyright y web.
+- **Instalador:** NSIS en español (`languages: ["Spanish"]`), con editor, copyright y web. El MSI no se publica: no admite versiones con prerelease (`1.0.0-rc.2`).
+- **Versión en CI:** en las etiquetas, `npm pkg set version` pone en `apps/app/package.json` la versión de la etiqueta antes de compilar.
+- **Actualizaciones** (`src/lib/updates.ts`, `docs/actualizaciones.md`): en escritorio, `tauri-plugin-updater` (NSIS, AppImage y `.deb`) con clave pública en `plugins.updater.pubkey`; CI firma los instaladores con `tauri signer sign` (secretos `TAURI_SIGNING_PRIVATE_KEY` y `_PASSWORD`) y el trabajo `release` genera `latest.json` con `jq`. En Android solo se avisa: se lee `latest.json` con plugin-http (la CSP no deja `fetch` a GitHub) y se compara con `compareSemver` del core; `downloads.android` lleva el enlace al APK. Endpoint: `releases/latest/download/latest.json`, que ignora las prerelease, así que todas las Releases (también `-rc`) son normales.
+- **APK:** release firmado con `apksigner` y la clave fija de los secretos `ANDROID_KEYSTORE` (base64) y `ANDROID_KEYSTORE_PASSWORD` (`docs/android.md`); sin ellos, firma de depuración.
 
 Fuera de alcance: gestor de contraseñas (descartado). Google Calendar: posible ampliación futura.
 

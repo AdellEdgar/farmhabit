@@ -87,7 +87,7 @@ Los instaladores de cada versión están en **[Releases](https://github.com/Adel
 
 ¿Solo quieres echar un vistazo? La **[demo web](https://adelledgar.github.io/farmhabit/)** es la misma app con datos de ejemplo, que se guardan solo en tu navegador. No tiene avisos ni sincronización.
 
-Lo nuevo de cada versión está en el [CHANGELOG](CHANGELOG.md).
+La app se **actualiza sola**: en Windows y Linux instala la versión nueva y se reinicia; en Android avisa y abre la descarga. Más detalles en [docs/actualizaciones.md](docs/actualizaciones.md). Lo nuevo de cada versión está en el [CHANGELOG](CHANGELOG.md).
 
 ## Privacidad y seguridad
 
@@ -126,7 +126,7 @@ apps/app/        Interfaz en React 19 + Tailwind 4, empaquetada con Tauri 2.
 - **Local-first con fusión determinista:** cada elemento tiene UUID, `updatedAt` y marca de borrado. Al sincronizar gana el cambio más reciente; la fusión es conmutativa, asociativa e idempotente, y lo comprueban tests de propiedades.
 - **La granja se calcula, no se guarda:** el estado sale de reproducir el historial de hábitos día a día, así todos los dispositivos ven exactamente la misma granja.
 
-Para publicar una versión nueva: sube la versión en `apps/app/package.json` (y en los demás `package.json` y en `Cargo.toml`), apúntala en el CHANGELOG y crea la etiqueta, por ejemplo `git tag v1.0.1 && git push --tags`. GitHub Actions compila todo y publica la Release.
+Para publicar una versión nueva: sube la versión en `apps/app/package.json` (y en los demás `package.json` y en `Cargo.toml`), apúntala en el CHANGELOG y crea la etiqueta, por ejemplo `git tag v1.0.1 && git push --tags`. GitHub Actions compila todo, firma las actualizaciones y publica la Release con su `latest.json`: las apps instaladas la detectan solas.
 
 ## Cómo se hizo
 

@@ -76,6 +76,7 @@ export const PREF_KEYS = {
   remindersEnabled: 'reminders:enabled',
   lastCheck: 'reminders:lastCheck',
   closeToTray: 'closeToTray',
+  autoUpdateCheck: 'updates:autoCheck',
 } as const;
 
 export async function getFlag(db: Database, key: string, fallback: boolean): Promise<boolean> {

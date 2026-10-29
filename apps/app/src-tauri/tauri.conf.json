@@ -25,6 +25,15 @@
       "csp": "default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: asset: http://asset.localhost; connect-src 'self' ipc: http://ipc.localhost"
     }
   },
+  "plugins": {
+    "updater": {
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IEJDNTZCNzYyMjY1MkEwMUIKUldRYm9GSW1ZcmRXdkJWL3JRTFI5bzV2dDg5b1NtQ1djc0FzV1JKS0Q0bEhzaVR1K3YzYXdKVFkK",
+      "endpoints": ["https://github.com/AdellEdgar/farmhabit/releases/latest/download/latest.json"],
+      "windows": {
+        "installMode": "passive"
+      }
+    }
+  },
   "bundle": {
     "active": true,
     "targets": "all",

@@ -1,7 +1,6 @@
 import { Download, RotateCcw } from 'lucide-react';
 import { resetDemo } from '../lib/demo-data';
-
-const RELEASES_URL = 'https://github.com/AdellEdgar/farmhabit/releases/latest';
+import { RELEASES_URL } from '../lib/updates';
 
 /** Aviso de la demo web: los datos son de ejemplo y solo viven en este navegador. */
 export function DemoBanner() {
