@@ -241,7 +241,7 @@ export function Dialog({
         <RadixDialog.Content
           aria-describedby={undefined}
           className={cx(
-            'fixed inset-x-0 bottom-0 z-50 flex max-h-[92vh] flex-col rounded-t-3xl border border-borde bg-superficie shadow-2xl',
+            'fixed inset-x-0 bottom-0 z-50 flex max-h-[calc(92vh-var(--fh-inset-top))] flex-col rounded-t-3xl border border-borde bg-superficie pb-[var(--fh-inset-bottom)] shadow-2xl md:pb-0',
             'md:inset-x-auto md:top-1/2 md:bottom-auto md:left-1/2 md:max-h-[85vh] md:w-full md:-translate-x-1/2 md:-translate-y-1/2 md:rounded-2xl',
             wide ? 'md:max-w-2xl' : 'md:max-w-lg',
           )}
@@ -256,7 +256,7 @@ export function Dialog({
           </div>
           <div className="flex-1 space-y-4 overflow-y-auto px-5 py-4">{children}</div>
           {footer && (
-            <div className="flex flex-wrap items-center justify-end gap-2 border-t border-borde px-5 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
+            <div className="flex flex-wrap items-center justify-end gap-2 border-t border-borde px-5 py-3">
               {footer}
             </div>
           )}

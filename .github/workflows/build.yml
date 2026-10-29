@@ -151,7 +151,11 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - name: Generar el proyecto Android
         working-directory: apps/app
-        run: pnpm tauri android init --ci
+        run: |
+          pnpm tauri android init --ci
+          # Actividad propia: pasa a la web el tamaño de las barras del sistema.
+          cp src-tauri/android/MainActivity.kt \
+            src-tauri/gen/android/app/src/main/java/io/github/adelledgar/farmhabit/MainActivity.kt
       # Con el secreto ANDROID_KEYSTORE se compila en modo release y se firma
       # siempre con la misma clave, para que cada versión se instale encima de
       # la anterior sin perder datos. Sin él (forks, PR), firma de depuración.

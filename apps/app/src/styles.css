@@ -56,10 +56,45 @@
   --fh-grano: #b88a14;
 }
 
+/*
+ * Fuente Inter (licencia OFL) incluida en la app: así se ve igual en todos
+ * los sistemas, en vez de depender de la fuente de cada móvil. Solo el
+ * alfabeto latino (incluye tildes y ñ), versión variable de 100 a 900.
+ */
+@font-face {
+  font-family: 'Inter Variable';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 100 900;
+  src: url('@fontsource-variable/inter/files/inter-latin-wght-normal.woff2')
+    format('woff2-variations');
+}
+@font-face {
+  font-family: 'Inter Variable';
+  font-style: italic;
+  font-display: swap;
+  font-weight: 100 900;
+  src: url('@fontsource-variable/inter/files/inter-latin-wght-italic.woff2')
+    format('woff2-variations');
+}
+
+/* Huecos de las barras del sistema (móvil). En Android los pone src/lib/insets.ts. */
+:root {
+  --fh-inset-top: env(safe-area-inset-top, 0px);
+  --fh-inset-right: env(safe-area-inset-right, 0px);
+  --fh-inset-bottom: env(safe-area-inset-bottom, 0px);
+  --fh-inset-left: env(safe-area-inset-left, 0px);
+}
+
 html,
 body,
 #root {
   height: 100%;
+}
+
+/* La barra de estado queda sobre el fondo de la app; la de navegación, bajo la barra de secciones. */
+#root {
+  padding: var(--fh-inset-top) var(--fh-inset-right) 0 var(--fh-inset-left);
 }
 
 body {
@@ -67,6 +102,7 @@ body {
   background: var(--fh-fondo);
   color: var(--fh-texto);
   font-family:
+    'Inter Variable',
     system-ui,
     -apple-system,
     'Segoe UI',

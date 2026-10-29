@@ -107,7 +107,7 @@ function Shell() {
       <div className="flex h-full flex-col md:flex-row">
         <nav
           aria-label="Secciones"
-          className="order-last flex border-t border-borde bg-superficie pb-[env(safe-area-inset-bottom)] md:order-first md:w-60 md:flex-col md:gap-1 md:border-t-0 md:border-r md:p-3"
+          className="order-last flex border-t border-borde bg-superficie pb-[var(--fh-inset-bottom)] md:order-first md:w-60 md:flex-col md:gap-1 md:border-t-0 md:border-r md:p-3"
         >
           <div className="hidden items-center gap-2 px-3 pt-2 pb-5 md:flex">
             <span className="grid size-8 place-items-center rounded-lg bg-acento-suave text-lg">

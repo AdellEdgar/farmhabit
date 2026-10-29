@@ -48,6 +48,8 @@ Primera versión completa.
 - Actualizaciones automáticas firmadas en Windows y Linux; aviso de versión nueva en Android.
 - Avisos del sistema, bandeja del sistema y arranque con el ordenador en escritorio.
 - Temas predefinidos y editor de temas propios.
+- Fuente Inter incluida en la app, para que se vea igual en todos los sistemas.
+- En Android, la app respeta la barra de estado, los botones de navegación y el teclado.
 - Demo web en GitHub Pages.
 
 ### Rendimiento
