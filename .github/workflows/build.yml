@@ -153,7 +153,8 @@ jobs:
 
   pages:
     name: Demo web (GitHub Pages)
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    # En cada push a main y al lanzarlo a mano (Actions → Build → Run workflow).
+    if: (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/main'
     needs: check
     runs-on: ubuntu-24.04
     # Si GitHub Pages no está activado en el repositorio, este paso falla sin
