@@ -27,6 +27,8 @@ import { SyncContext, type SyncState } from './use-sync';
 const INTERVAL_MS = 5 * 60_000;
 /** Espera tras un cambio local antes de subirlo (agrupa varios cambios seguidos). */
 const DEBOUNCE_MS = 15_000;
+/** Al volver a la app, sincronizar si hace más de esto de la última vez. */
+const VISIBLE_SYNC_GAP_MS = 30_000;
 const LAST_SYNC_META = 'sync:lastSyncAt';
 
 export function SyncProvider({ children }: { children: ReactNode }) {
@@ -99,6 +101,24 @@ export function SyncProvider({ children }: { children: ReactNode }) {
     const id = setInterval(() => void runSync(), INTERVAL_MS);
     return () => clearInterval(id);
   }, [available, runSync]);
+
+  // Android congela la app en segundo plano: al salir, subir lo pendiente ya
+  // (si no, esperaría a la próxima vez que se abra) y, al volver, traer lo
+  // nuevo sin esperar a la ronda de 5 minutos.
+  useEffect(() => {
+    if (!available) return;
+    let lastVisibleSync = Date.now();
+    const onVisibility = () => {
+      if (document.visibilityState === 'hidden') {
+        if (db.clock.lastIssued > syncedClock.current) void runSync();
+      } else if (Date.now() - lastVisibleSync > VISIBLE_SYNC_GAP_MS) {
+        lastVisibleSync = Date.now();
+        void runSync();
+      }
+    };
+    document.addEventListener('visibilitychange', onVisibility);
+    return () => document.removeEventListener('visibilitychange', onVisibility);
+  }, [available, db, runSync]);
 
   // Tras un cambio local, subirlo al poco rato.
   useEffect(() => {

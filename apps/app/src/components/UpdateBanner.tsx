@@ -5,9 +5,15 @@ import { getFlag, PREF_KEYS } from '../lib/platform';
 import { canUpdate, checkForUpdate, installUpdate, useUpdateState } from '../lib/updates';
 import { ProgressBar } from './ui';
 
-/** Primera comprobación poco después de abrir (para no frenar el arranque) y luego dos veces al día. */
+/**
+ * Primera comprobación poco después de abrir (para no frenar el arranque),
+ * luego dos veces al día y al volver a la app. Android no cierra la app al
+ * salir de ella, solo la congela: sin lo último no se enteraría hasta 12 h
+ * después. Al volver se comprueba como mucho una vez por hora.
+ */
 const FIRST_CHECK_MS = 8_000;
 const CHECK_EVERY_MS = 12 * 3_600_000;
+const MIN_GAP_MS = 3_600_000;
 
 /** Aviso arriba de la app cuando hay una versión nueva. */
 export function UpdateBanner() {
@@ -18,14 +24,23 @@ export function UpdateBanner() {
 
   useEffect(() => {
     if (!canUpdate) return;
+    let last = 0;
     const tick = async () => {
-      if (await getFlag(db, PREF_KEYS.autoUpdateCheck, true)) await checkForUpdate({ quiet: true });
+      if (Date.now() - last < MIN_GAP_MS) return;
+      if (!(await getFlag(db, PREF_KEYS.autoUpdateCheck, true))) return;
+      last = Date.now();
+      await checkForUpdate({ quiet: true });
+    };
+    const onVisible = () => {
+      if (document.visibilityState === 'visible') void tick();
     };
     const first = setTimeout(() => void tick(), FIRST_CHECK_MS);
     const interval = setInterval(() => void tick(), CHECK_EVERY_MS);
+    document.addEventListener('visibilitychange', onVisible);
     return () => {
       clearTimeout(first);
       clearInterval(interval);
+      document.removeEventListener('visibilitychange', onVisible);
     };
   }, [db]);
 
