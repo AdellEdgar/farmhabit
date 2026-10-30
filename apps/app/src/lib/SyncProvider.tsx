@@ -27,7 +27,7 @@ import { SyncContext, type SyncState } from './use-sync';
 const INTERVAL_MS = 5 * 60_000;
 /** Espera tras un cambio local antes de subirlo (agrupa varios cambios seguidos). */
 const DEBOUNCE_MS = 15_000;
-/** Al volver a la app, sincronizar si hace más de esto de la última vez. */
+/** Al volver a la app o a su ventana, sincronizar si hace más de esto de la última vez. */
 const VISIBLE_SYNC_GAP_MS = 30_000;
 const LAST_SYNC_META = 'sync:lastSyncAt';
 
@@ -104,20 +104,26 @@ export function SyncProvider({ children }: { children: ReactNode }) {
 
   // Android congela la app en segundo plano: al salir, subir lo pendiente ya
   // (si no, esperaría a la próxima vez que se abra) y, al volver, traer lo
-  // nuevo sin esperar a la ronda de 5 minutos.
+  // nuevo sin esperar a la ronda de 5 minutos. En escritorio, lo mismo al
+  // hacer clic en la ventana (focus), aunque no estuviera minimizada.
   useEffect(() => {
     if (!available) return;
-    let lastVisibleSync = Date.now();
+    let lastReturnSync = Date.now();
+    const onReturn = () => {
+      if (Date.now() - lastReturnSync <= VISIBLE_SYNC_GAP_MS) return;
+      lastReturnSync = Date.now();
+      void runSync();
+    };
     const onVisibility = () => {
-      if (document.visibilityState === 'hidden') {
-        if (db.clock.lastIssued > syncedClock.current) void runSync();
-      } else if (Date.now() - lastVisibleSync > VISIBLE_SYNC_GAP_MS) {
-        lastVisibleSync = Date.now();
-        void runSync();
-      }
+      if (document.visibilityState === 'visible') onReturn();
+      else if (db.clock.lastIssued > syncedClock.current) void runSync();
     };
     document.addEventListener('visibilitychange', onVisibility);
-    return () => document.removeEventListener('visibilitychange', onVisibility);
+    window.addEventListener('focus', onReturn);
+    return () => {
+      document.removeEventListener('visibilitychange', onVisibility);
+      window.removeEventListener('focus', onReturn);
+    };
   }, [available, db, runSync]);
 
   // Tras un cambio local, subirlo al poco rato.

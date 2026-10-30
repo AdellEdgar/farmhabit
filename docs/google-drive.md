@@ -45,8 +45,8 @@ En las apps instaladas, Google no considera secreto el "secreto del cliente" de 
 
 ## 5. Usarla
 
-1. En FarmHabit: **Ajustes → Sincronización con Google Drive → Conectar**. Se abre el navegador para iniciar sesión.
+1. En FarmHabit: **Ajustes → Sincronización con Google Drive → Conectar**. Se abre el navegador para iniciar sesión. Si Google avisa de que la app no está verificada, pulsa **Continuar**. En la pantalla de permisos, **marca la casilla** de acceso a Drive: si no, la app no puede usar su carpeta (error 403).
 2. **En el primer dispositivo** eliges una **frase secreta**. Si la olvidas, nadie puede recuperar los datos sincronizados.
 3. **En los demás dispositivos** conectas la misma cuenta y escribes la misma frase. Solo se pide una vez: después la clave se guarda en el llavero del sistema.
 
-A partir de ahí sincroniza sola: al abrir la app, cada 5 minutos y poco después de cada cambio.
+A partir de ahí sincroniza sola: al abrir la app, al volver a ella, cada 5 minutos y poco después de cada cambio.

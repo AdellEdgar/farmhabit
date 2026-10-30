@@ -8,7 +8,7 @@ Primera versión completa.
 
 ### Tareas
 
-- Prioridad, etiquetas, fecha y hora límite, notas.
+- Prioridad, etiquetas, fecha y hora límite, y descripción visible entera en la lista.
 - Repeticiones (cada día, días de la semana, cada mes, último día del mes, cada año…).
 - Varios avisos por tarea.
 - Vistas Hoy, Próximas, Todas y Completadas; orden por fecha o inteligente.
@@ -39,7 +39,7 @@ Primera versión completa.
 ### Datos y seguridad
 
 - Todo local en SQLite; sin cuentas de FarmHabit.
-- Sincronización automática y cifrada con Google Drive (carpeta oculta de la app).
+- Sincronización automática y cifrada con Google Drive (carpeta oculta de la app): tras cada cambio, cada 5 minutos y al volver a la app.
 - Copias de seguridad `.agx` cifradas (Argon2id + XChaCha20-Poly1305).
 
 ### Plataformas

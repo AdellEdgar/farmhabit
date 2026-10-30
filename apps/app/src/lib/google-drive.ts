@@ -59,6 +59,8 @@ async function tokenRequest(params: Record<string, string>) {
     access_token?: string;
     expires_in?: number;
     refresh_token?: string;
+    /** Permisos concedidos, separados por espacios. */
+    scope?: string;
     error?: string;
   };
   if (!res.ok || !json.access_token) {
@@ -114,6 +116,9 @@ export async function signIn(): Promise<void> {
     grant_type: 'authorization_code',
     redirect_uri: redirectUri,
   });
+  // Google deja desmarcar cada permiso en su pantalla: sin este, Drive responde 403.
+  if (tokens.scope !== undefined && !tokens.scope.split(' ').includes(SCOPE))
+    throw new DriveError(MISSING_PERMISSION);
   if (!tokens.refresh_token)
     throw new DriveError('Google no concedió acceso permanente. Vuelve a intentarlo.');
   await setSecret(SECRET_KEYS.googleRefreshToken, tokens.refresh_token);
@@ -158,8 +163,31 @@ async function driveFetch(url: string, init: RequestInit = {}): Promise<Response
     accessToken = null;
     throw new NotSignedInError();
   }
-  if (!res.ok) throw new DriveError(`Error de Google Drive (${res.status})`);
+  if (!res.ok) throw new DriveError(await describeDriveError(res));
   return res;
+}
+
+const MISSING_PERMISSION =
+  'Google no dio permiso para la carpeta de FarmHabit. Desconecta, vuelve a conectar y, en la pantalla de Google, marca la casilla de acceso a Drive.';
+
+/** Mensaje entendible a partir de la respuesta de error de la API de Drive. */
+async function describeDriveError(res: Response): Promise<string> {
+  let reason = '';
+  try {
+    const body = (await res.json()) as {
+      error?: { errors?: { reason?: string }[]; details?: { reason?: string }[] };
+    };
+    reason = body.error?.details?.[0]?.reason ?? body.error?.errors?.[0]?.reason ?? '';
+  } catch {
+    // Respuesta sin JSON: se queda el código.
+  }
+  if (reason === 'SERVICE_DISABLED' || reason === 'accessNotConfigured')
+    return 'La API de Google Drive no está activada en el proyecto de Google Cloud (docs/google-drive.md, paso 1).';
+  if (reason === 'ACCESS_TOKEN_SCOPE_INSUFFICIENT' || reason === 'insufficientPermissions')
+    return MISSING_PERMISSION;
+  if (res.status === 403 || res.status === 429)
+    return `Google Drive rechazó la petición (${res.status}${reason ? `: ${reason}` : ''}). Prueba de nuevo en unos minutos.`;
+  return `Error de Google Drive (${res.status}${reason ? `: ${reason}` : ''})`;
 }
 
 interface DriveFile {

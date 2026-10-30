@@ -50,11 +50,13 @@ export function TaskItem({
         >
           {task.title || <span className="text-texto-suave italic">Sin título</span>}
         </p>
-        {(task.dueDate ||
-          task.rrule ||
-          task.reminders.length > 0 ||
-          taskTags.length > 0 ||
-          task.notes) && (
+        {/* La descripción entera, con sus saltos de línea: la tarea crece lo que haga falta. */}
+        {task.notes && (
+          <p className="mt-1 text-[13px] leading-snug break-words whitespace-pre-line text-texto-suave">
+            {task.notes}
+          </p>
+        )}
+        {(task.dueDate || task.rrule || task.reminders.length > 0 || taskTags.length > 0) && (
           <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-texto-suave">
             {task.dueDate && (
               <span className={cx(overdue && !done && 'font-medium text-peligro')}>
@@ -63,7 +65,6 @@ export function TaskItem({
             )}
             {task.rrule && <Repeat size={13} aria-label="Se repite" />}
             {task.reminders.length > 0 && <Bell size={13} aria-label="Con aviso" />}
-            {task.notes && <span className="max-w-48 truncate">{task.notes}</span>}
             {taskTags.map((t) => (
               <span key={t.id} className="inline-flex items-center gap-1">
                 <span className="size-2 rounded-full" style={{ background: t.color }} />
