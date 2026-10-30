@@ -33,7 +33,8 @@ Primera versión completa.
 
 ### Calendario
 
-- Vista de mes con tareas, detalle del día y agenda en Hoy.
+- Vistas de mes, semana y día (por horas, con los solapes uno al lado del otro) y agenda de 30 días; en escritorio el mes muestra todo lo de cada día.
+- Agenda del día en Hoy.
 - Suscripción a calendarios iCal por enlace e importación de archivos `.ics`.
 
 ### Datos y seguridad
@@ -48,6 +49,7 @@ Primera versión completa.
 - Actualizaciones automáticas firmadas en Windows y Linux; aviso de versión nueva en Android.
 - Avisos del sistema, bandeja del sistema y arranque con el ordenador en escritorio.
 - Temas predefinidos y editor de temas propios.
+- En escritorio, cada sección aprovecha el ancho de la ventana.
 - Fuente Inter incluida en la app, para que se vea igual en todos los sistemas.
 - En Android, la app respeta la barra de estado, los botones de navegación y el teclado.
 - Demo web en GitHub Pages.

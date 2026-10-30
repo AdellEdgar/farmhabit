@@ -168,7 +168,8 @@ El motor (`game/engine.ts`, `computeFarm`) recorre los días desde el primer há
 - `domain/calendar.ts`: cuadrícula del mes (42 días de lunes a domingo) y `tasksInRange`, que incluye las repeticiones futuras de las tareas recurrentes (`upcoming`).
 - `services/calendar.ts`: alta de fuentes; `normalizeCalendarUrl` (solo `https://`, y `webcal://` se convierte a `https://`); caché local que solo guarda texto que es un `.ics` válido.
 - **App:** `CalendarRefresher` vuelve a descargar las suscripciones de más de 6 h (al abrir y cada 30 min), y `useCalendarEvents` lee y expande las fuentes visibles con caché por fuente. Las descargas pasan por `tauri-plugin-http`, con el scope `https://*/*` porque las URL las pone el usuario.
-- Pantalla **Calendario**, con la vista de mes y el detalle del día (eventos y tareas), y la agenda del día en **Hoy**. Guía para conseguir enlaces iCal en `docs/calendarios.md`.
+- Pantalla **Calendario** con cuatro vistas (se recuerda la elegida en `meta` `calendar:view`): **mes** (en `lg` cada casilla muestra todo; debajo, los 3 primeros y el detalle del día al lado), **semana** y **día** (`TimeGrid`: rejilla de 24 h, lo de todo el día arriba y los solapes repartidos con `layoutTimed`) y **agenda** (30 días). `calendar-items.ts` junta eventos y tareas por día para todas. Los eventos abren un diálogo de solo lectura. La agenda del día también sale en **Hoy**. Guía para conseguir enlaces iCal en `docs/calendarios.md`.
+- **Ancho:** cada sección tiene su ancho máximo en `SECTION_WIDTH` (`App.tsx`) y crece con la ventana hasta él.
 
 ## Estadísticas y temas
 

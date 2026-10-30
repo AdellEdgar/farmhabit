@@ -58,6 +58,21 @@ const SECTIONS: { id: Section; name: string; short?: string; icon: typeof Sprout
   { id: 'ajustes', name: 'Ajustes', icon: Settings },
 ];
 
+/**
+ * Ancho máximo de cada sección en pantallas grandes: el contenido crece con la
+ * ventana hasta ese límite. El calendario casi sin límite; Ajustes, más
+ * estrecho porque son formularios y textos.
+ */
+const SECTION_WIDTH: Record<Section, string> = {
+  hoy: 'max-w-6xl',
+  tareas: 'max-w-5xl',
+  calendario: 'max-w-[1800px]',
+  habitos: 'max-w-6xl',
+  notas: 'max-w-7xl',
+  granja: 'max-w-6xl',
+  ajustes: 'max-w-4xl',
+};
+
 /** Sección inicial: `?section=granja` abre directamente esa sección (útil en la demo web). */
 function initialSection(): Section {
   const wanted = new URLSearchParams(location.search).get('section');
@@ -148,7 +163,12 @@ function Shell() {
         <main className="flex-1 overflow-y-auto">
           {isDemo && <DemoBanner />}
           <UpdateBanner />
-          <div className="mx-auto w-full max-w-4xl px-4 py-5 md:px-8 md:py-8">
+          <div
+            className={cx(
+              'mx-auto w-full px-4 py-5 md:px-8 md:py-8 2xl:px-12',
+              SECTION_WIDTH[section],
+            )}
+          >
             <Suspense fallback={<p className="py-12 text-center text-texto-suave">Cargando…</p>}>
               {section === 'hoy' && <TodayView />}
               {section === 'tareas' && <TasksView />}
