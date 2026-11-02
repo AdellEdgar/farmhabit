@@ -15,6 +15,7 @@ export interface ThemeColors {
   aviso: string;
   info: string;
   grano: string;
+  exito: string;
 }
 
 export interface Theme {
@@ -74,8 +75,20 @@ export function readableOn(hex: string): string {
   return luminance(hex) > 0.35 ? '#0f1a0c' : '#ffffff';
 }
 
-const DARK_STATUS = { peligro: '#e5534b', aviso: '#e3a33b', info: '#5b9cf0', grano: '#e8c15a' };
-const LIGHT_STATUS = { peligro: '#c93c37', aviso: '#b97a12', info: '#2f6fc4', grano: '#b88a14' };
+const DARK_STATUS = {
+  peligro: '#e5534b',
+  aviso: '#e3a33b',
+  info: '#5b9cf0',
+  grano: '#e8c15a',
+  exito: '#57b85e',
+};
+const LIGHT_STATUS = {
+  peligro: '#c93c37',
+  aviso: '#b97a12',
+  info: '#2f6fc4',
+  grano: '#b88a14',
+  exito: '#2f8a3a',
+};
 
 export function buildTheme(input: CustomThemeInput): Theme {
   const { fondo, superficie, texto, acento } = input;
@@ -200,6 +213,7 @@ const VAR_NAMES: Record<keyof ThemeColors, string> = {
   aviso: '--fh-aviso',
   info: '--fh-info',
   grano: '--fh-grano',
+  exito: '--fh-exito',
 };
 
 /** Aplica un tema poniendo sus variables en <html>. */

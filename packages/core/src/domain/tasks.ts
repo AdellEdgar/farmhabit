@@ -1,6 +1,7 @@
-import type { Priority, Task } from '../model/types';
+import type { Priority, Subtask, Task } from '../model/types';
 import type { LocalDate } from '../util/dates';
 import { localDateTimeToEpoch } from '../util/dates';
+import { compareSortKey } from '../util/fractional-index';
 
 // Vistas y orden de las tareas. Funciones puras: reciben la lista y "hoy".
 
@@ -90,4 +91,14 @@ export function taskReminderInstants(task: Task, defaultTime = '09:00'): number[
   if (!task.dueDate || task.status !== 'pending' || task.deletedAt !== null) return [];
   const base = localDateTimeToEpoch(task.dueDate, task.dueTime ?? defaultTime);
   return [...new Set(task.reminders.map((r) => base - r.offsetMin * 60_000))].sort((a, b) => a - b);
+}
+
+/** Subtareas vivas de una tarea, en su orden manual. */
+export function subtasksOf(subtasks: Subtask[], taskId: string): Subtask[] {
+  return subtasks.filter((s) => s.taskId === taskId && s.deletedAt === null).sort(compareSortKey);
+}
+
+/** Cuántas subtareas hay y cuántas están hechas. */
+export function subtaskProgress(subtasks: Subtask[]): { done: number; total: number } {
+  return { done: subtasks.filter((s) => s.done).length, total: subtasks.length };
 }

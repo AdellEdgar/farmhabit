@@ -7,6 +7,7 @@ import {
   noteFolderSchema,
   noteSchema,
   settingSchema,
+  subtaskSchema,
   tagSchema,
   taskCompletionSchema,
   taskSchema,
@@ -21,6 +22,7 @@ import {
 export const COLLECTIONS = {
   tags: tagSchema,
   tasks: taskSchema,
+  subtasks: subtaskSchema,
   taskCompletions: taskCompletionSchema,
   habits: habitSchema,
   habitLogs: habitLogSchema,

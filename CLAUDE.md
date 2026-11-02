@@ -7,7 +7,7 @@ El repositorio es **público** (portfolio). Cualquiera puede instalar la app y u
 ## Reglas de trabajo
 
 - Se trabaja por fases, **un commit por fase** (ver "Fases"). No adelantar trabajo de fases futuras sin acordarlo.
-- **Los commits y los push los hace el usuario.** Al terminar una fase, Claude deja los cambios sin commitear y le da los comandos y el mensaje de commit.
+- **Commits y push:** por defecto los hace el usuario (Claude deja los cambios sin commitear y le da los comandos y el mensaje). Si el usuario se lo pide, los hace Claude.
 - Antes de cerrar una fase: `pnpm check` (typecheck + lint + formato + tests) tiene que pasar.
 - Idioma: **interfaz y documentación en español**. Identificadores de código en inglés. Comentarios en español, solo cuando aportan.
 - Mantener este archivo al día cuando cambie una decisión de arquitectura, el formato del archivo, las reglas del juego o las de seguridad.
@@ -77,6 +77,7 @@ Toda tabla sincronizable tiene: `id` (UUID), `created_at`, `updated_at`, `delete
 
 - `tags`: nombre y color.
 - `tasks`: título, notas, prioridad (1 alta, 2 media, 3 baja), estado (`pending`/`done`), `due_date`, `due_time`, `rrule`, `reminders` (JSON, p. ej. `[{offsetMin:1440},{offsetMin:60}]`), `tag_ids` (JSON), `completed_at`.
+- `subtasks` (migración 3): `task_id`, título, `done` y `sort_key` (índice fraccional). Son una colección aparte y no un JSON dentro de `tasks`, así cada subtarea se fusiona por separado y una versión antigua de la app, que no conoce la colección, la ignora sin perderla. `setSubtaskDone` completa la tarea al hacer la última (en las recurrentes, pasa a la siguiente fecha y las subtareas vuelven a por hacer) y la reabre si se desmarca una de una tarea completada; completar la tarea a mano no toca las subtareas. `deleteTask` borra también sus subtareas.
 - `task_completions`: historial de tareas recurrentes. id = UUIDv5(tarea + fecha de ocurrencia). Al completar una recurrente se registra aquí y la fecha avanza a la siguiente ocurrencia.
 - `habits`: nombre, descripción, icono, color, `sort_key` (índice fraccional), `start_date`, `reminders` (JSON `[{time, days}]`), `archived_at` y `config_history` (JSON): lista de `{since, effort (1–5), schedule, target}`. `schedule` es `daily`, `weekdays{days}`, `timesPerWeek{times}`, `timesPerMonth{times}` o `everyNDays{interval}`; `target` es `{quantity, unit}` o null. Un cambio de configuración se añade con `since` = mañana (o reemplaza si el hábito empieza hoy), para no reescribir el pasado.
 - `habit_logs`: id = UUIDv5(hábito + fecha), `date`, `status` (`done`/`skipped`), `value` (cantidad o null). Desmarcar = tombstone.
@@ -171,6 +172,10 @@ El motor (`game/engine.ts`, `computeFarm`) recorre los días desde el primer há
 - Pantalla **Calendario** con cuatro vistas (se recuerda la elegida en `meta` `calendar:view`): **mes** (en `lg` cada casilla muestra todo; debajo, los 3 primeros y el detalle del día al lado), **semana** y **día** (`TimeGrid`: rejilla de 24 h, lo de todo el día arriba y los solapes repartidos con `layoutTimed`) y **agenda** (30 días). `calendar-items.ts` junta eventos y tareas por día para todas. Los eventos abren un diálogo de solo lectura. La agenda del día también sale en **Hoy**. Guía para conseguir enlaces iCal en `docs/calendarios.md`.
 - **Ancho:** cada sección tiene su ancho máximo en `SECTION_WIDTH` (`App.tsx`) y crece con la ventana hasta él.
 
+## Prioridad de las tareas
+
+Se dibuja como las barras de cobertura del móvil (`PriorityBars.tsx`): baja llena la primera barra en verde (`--fh-exito`), media las dos primeras en amarillo (`--fh-aviso`) y alta las tres en rojo (`--fh-peligro`). Las barras vacías usan `--fh-borde`. La casilla de completar ya no se colorea según la prioridad.
+
 ## Estadísticas y temas
 
 - `domain/stats.ts`: `habitCalendar` da el estado de cada día (hecho, a medias, saltado, fallado, pendiente, no tocaba), `completionRate` el porcentaje y `dailyCompletion` los datos de la gráfica de 30 días. Las gráficas son SVG propio, sin librerías.
@@ -193,6 +198,8 @@ El motor (`game/engine.ts`, `computeFarm`) recorre los días desde el primer há
 6. Granja visual (escena, tienda, logros, vacaciones, cementerio), notas privadas, estadísticas y temas editables. ✅
 7. Calendario y suscripciones `.ics` (p. ej. el calendario de la universidad). ✅
 8. Publicación: versión 1.0.0, README con capturas, CHANGELOG, Release automática y demo web en GitHub Pages. ✅
+9. Asistente con IA (OpenRouter). Publicado en la v1.1.0-rc.1 y retirado después: para esta app no hacía falta. El código sigue en el historial (commit 488c4b5).
+10. Subtareas que completan la tarea y prioridad con barras de cobertura. ✅
 
 ## Publicación (Fase 8)
 

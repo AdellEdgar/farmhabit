@@ -19,6 +19,7 @@
   --color-aviso: var(--fh-aviso);
   --color-info: var(--fh-info);
   --color-grano: var(--fh-grano);
+  --color-exito: var(--fh-exito);
 }
 
 :root,
@@ -37,6 +38,7 @@
   --fh-aviso: #e3a33b;
   --fh-info: #5b9cf0;
   --fh-grano: #e8c15a;
+  --fh-exito: #57b85e;
 }
 
 :root[data-theme='claro'] {
@@ -54,6 +56,7 @@
   --fh-aviso: #b97a12;
   --fh-info: #2f6fc4;
   --fh-grano: #b88a14;
+  --fh-exito: #2f8a3a;
 }
 
 /*

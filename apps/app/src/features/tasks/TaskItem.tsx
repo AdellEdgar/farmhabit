@@ -1,10 +1,20 @@
-import { Bell, Repeat } from 'lucide-react';
-import { completeTask, isOverdue, reopenTask, type Tag, type Task } from '@farmhabit/core';
+import { Bell, ListChecks, Repeat } from 'lucide-react';
+import {
+  completeTask,
+  isOverdue,
+  reopenTask,
+  setSubtaskDone,
+  subtaskProgress,
+  subtasksOf,
+  type Subtask,
+  type Tag,
+  type Task,
+} from '@farmhabit/core';
 import { useApp } from '../../lib/use-app';
 import { formatDue } from '../../lib/format';
 import { cx } from '../../lib/cx';
 import { CheckCircle } from '../../components/ui';
-import { priorityMeta } from './task-meta';
+import { PriorityBars } from './PriorityBars';
 
 export function TaskItem({
   task,
@@ -15,11 +25,12 @@ export function TaskItem({
   tags: Tag[];
   onOpen: (t: Task) => void;
 }) {
-  const { mutate, today, now, toast } = useApp();
+  const { data, mutate, today, now, toast } = useApp();
   const done = task.status === 'done';
   const overdue = isOverdue(task, now);
-  const prio = priorityMeta(task.priority);
   const taskTags = tags.filter((t) => task.tagIds.includes(t.id));
+  const subtasks = subtasksOf(data.subtasks, task.id);
+  const progress = subtaskProgress(subtasks);
 
   const toggle = () =>
     mutate(async (db) => {
@@ -31,6 +42,19 @@ export function TaskItem({
       return updated;
     });
 
+  const toggleSubtask = (s: Subtask) =>
+    mutate(async (db) => {
+      const res = await setSubtaskDone(db, s.id, !s.done, today);
+      if (res.autoCompleted) {
+        toast(
+          res.task.status === 'done'
+            ? 'Todas las subtareas hechas: tarea completada'
+            : `Todas las subtareas hechas. Siguiente: ${formatDue(res.task.dueDate!, res.task.dueTime, today)}`,
+        );
+      }
+      return res;
+    });
+
   return (
     <li className="group flex items-start gap-3 rounded-xl px-3 py-2.5 transition hover:bg-elevado">
       <div className="pt-0.5">
@@ -38,42 +62,81 @@ export function TaskItem({
           checked={done}
           onChange={toggle}
           label={done ? 'Marcar como pendiente' : 'Completar tarea'}
-          color={prio.color}
         />
       </div>
-      <button type="button" onClick={() => onOpen(task)} className="min-w-0 flex-1 text-left">
-        <p
-          className={cx(
-            'text-[15px] leading-snug break-words',
-            done && 'text-texto-suave line-through',
-          )}
-        >
-          {task.title || <span className="text-texto-suave italic">Sin título</span>}
-        </p>
-        {/* La descripción entera, con sus saltos de línea: la tarea crece lo que haga falta. */}
-        {task.notes && (
-          <p className="mt-1 text-[13px] leading-snug break-words whitespace-pre-line text-texto-suave">
-            {task.notes}
-          </p>
-        )}
-        {(task.dueDate || task.rrule || task.reminders.length > 0 || taskTags.length > 0) && (
-          <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-texto-suave">
-            {task.dueDate && (
-              <span className={cx(overdue && !done && 'font-medium text-peligro')}>
-                {formatDue(task.dueDate, task.dueTime, today)}
-              </span>
+      <div className="min-w-0 flex-1">
+        <button type="button" onClick={() => onOpen(task)} className="w-full text-left">
+          <p
+            className={cx(
+              'text-[15px] leading-snug break-words',
+              done && 'text-texto-suave line-through',
             )}
-            {task.rrule && <Repeat size={13} aria-label="Se repite" />}
-            {task.reminders.length > 0 && <Bell size={13} aria-label="Con aviso" />}
-            {taskTags.map((t) => (
-              <span key={t.id} className="inline-flex items-center gap-1">
-                <span className="size-2 rounded-full" style={{ background: t.color }} />
-                {t.name}
-              </span>
+          >
+            {task.title || <span className="text-texto-suave italic">Sin título</span>}
+          </p>
+          {/* La descripción entera, con sus saltos de línea: la tarea crece lo que haga falta. */}
+          {task.notes && (
+            <p className="mt-1 text-[13px] leading-snug break-words whitespace-pre-line text-texto-suave">
+              {task.notes}
+            </p>
+          )}
+          {(task.dueDate ||
+            task.rrule ||
+            task.reminders.length > 0 ||
+            taskTags.length > 0 ||
+            progress.total > 0) && (
+            <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-texto-suave">
+              {task.dueDate && (
+                <span className={cx(overdue && !done && 'font-medium text-peligro')}>
+                  {formatDue(task.dueDate, task.dueTime, today)}
+                </span>
+              )}
+              {progress.total > 0 && (
+                <span
+                  className="inline-flex items-center gap-1"
+                  aria-label={`${progress.done} de ${progress.total} subtareas hechas`}
+                >
+                  <ListChecks size={13} aria-hidden="true" />
+                  {progress.done}/{progress.total}
+                </span>
+              )}
+              {task.rrule && <Repeat size={13} aria-label="Se repite" />}
+              {task.reminders.length > 0 && <Bell size={13} aria-label="Con aviso" />}
+              {taskTags.map((t) => (
+                <span key={t.id} className="inline-flex items-center gap-1">
+                  <span className="size-2 rounded-full" style={{ background: t.color }} />
+                  {t.name}
+                </span>
+              ))}
+            </div>
+          )}
+        </button>
+        {subtasks.length > 0 && (
+          <ul className="mt-2 space-y-1.5" aria-label="Subtareas">
+            {subtasks.map((s) => (
+              <li key={s.id} className="flex items-start gap-2">
+                <div className="pt-px">
+                  <CheckCircle
+                    small
+                    checked={s.done}
+                    onChange={() => void toggleSubtask(s)}
+                    label={s.done ? `Desmarcar «${s.title}»` : `Hacer «${s.title}»`}
+                  />
+                </div>
+                <span
+                  className={cx(
+                    'text-[13px] leading-snug break-words',
+                    s.done && 'text-texto-suave line-through',
+                  )}
+                >
+                  {s.title}
+                </span>
+              </li>
             ))}
-          </div>
+          </ul>
         )}
-      </button>
+      </div>
+      <PriorityBars priority={task.priority} className="mt-1" />
     </li>
   );
 }

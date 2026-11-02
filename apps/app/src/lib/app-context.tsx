@@ -15,6 +15,7 @@ import { AppContext, type AppData } from './use-app';
 /** Campo de AppData → colección de la que se lee. */
 const FIELDS = {
   tasks: 'tasks',
+  subtasks: 'subtasks',
   taskCompletions: 'taskCompletions',
   tags: 'tags',
   allHabits: 'habits',

@@ -101,6 +101,18 @@ export const MIGRATIONS: Migration[] = [
         ics TEXT NOT NULL)`,
     ],
   },
+  {
+    version: 3,
+    name: 'subtareas',
+    statements: [
+      `CREATE TABLE subtasks (${SYNC_COLUMNS},
+        task_id TEXT NOT NULL,
+        title TEXT NOT NULL,
+        done INTEGER NOT NULL DEFAULT 0,
+        sort_key TEXT NOT NULL)`,
+      `CREATE INDEX subtasks_task ON subtasks (task_id)`,
+    ],
+  },
 ];
 
 export const LATEST_SCHEMA_VERSION = MIGRATIONS[MIGRATIONS.length - 1]!.version;

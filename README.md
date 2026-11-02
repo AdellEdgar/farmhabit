@@ -27,7 +27,8 @@ Tus datos se guardan en tu dispositivo, sin cuentas propias ni servidores. Si qu
 
 ### ✅ Tareas
 
-- Prioridad (alta, media, baja), etiquetas de colores, fecha límite y hora.
+- Prioridad alta, media o baja, dibujada como las **barras de cobertura** del móvil (3 rojas, 2 amarillas o 1 verde), etiquetas de colores, fecha límite y hora.
+- **Subtareas**: divide una tarea en pasos; al completarlos todos, la tarea se completa sola.
 - Tareas que se repiten: cada día, ciertos días de la semana, cada mes, el último día del mes…
 - **Varios avisos por tarea**: 1 semana antes, 1 día antes, 1 hora antes, a la hora…
 - Vistas **Hoy**, **Próximas**, **Todas** y **Completadas**; orden por fecha o _inteligente_, que combina urgencia y prioridad.

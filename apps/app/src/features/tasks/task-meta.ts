@@ -1,9 +1,10 @@
 import type { Priority } from '@farmhabit/core';
 
-export const PRIORITIES: { value: Priority; label: string; color: string; text: string }[] = [
-  { value: 1, label: 'Alta', color: 'var(--fh-peligro)', text: 'text-peligro' },
-  { value: 2, label: 'Media', color: 'var(--fh-aviso)', text: 'text-aviso' },
-  { value: 3, label: 'Baja', color: 'var(--fh-info)', text: 'text-info' },
+/** bars: barras llenas en el icono de cobertura (1 baja, 2 media, 3 alta). */
+export const PRIORITIES: { value: Priority; label: string; color: string; bars: number }[] = [
+  { value: 1, label: 'Alta', color: 'var(--fh-peligro)', bars: 3 },
+  { value: 2, label: 'Media', color: 'var(--fh-aviso)', bars: 2 },
+  { value: 3, label: 'Baja', color: 'var(--fh-exito)', bars: 1 },
 ];
 
 export function priorityMeta(p: Priority) {

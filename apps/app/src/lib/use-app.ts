@@ -10,6 +10,7 @@ import type {
   Note,
   NoteFolder,
   Setting,
+  Subtask,
   Tag,
   Task,
   TaskCompletion,
@@ -18,6 +19,7 @@ import type {
 
 export interface AppData {
   tasks: Task[];
+  subtasks: Subtask[];
   taskCompletions: TaskCompletion[];
   /** Ajustes sincronizados (caja de notas privadas, temas personalizados…). */
   settings: Setting[];

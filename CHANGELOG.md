@@ -2,6 +2,17 @@
 
 Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/). Versionado [semántico](https://semver.org/lang/es/).
 
+## [Sin publicar]
+
+### Tareas
+
+- Subtareas: se añaden, renombran, marcan y borran desde la tarea, y se ven en la lista con su progreso. Al completarlas todas, la tarea se completa sola; en las que se repiten, pasa a la siguiente fecha con las subtareas por hacer.
+- La prioridad se muestra como barras de cobertura: 1 barra verde (baja), 2 amarillas (media) o 3 rojas (alta).
+
+### Quitado
+
+- El asistente con IA de la v1.1.0-rc.1: para esta app no hacía falta.
+
 ## [1.0.0] - 2026-10-29
 
 Primera versión completa.

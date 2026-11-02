@@ -34,6 +34,11 @@ export const TABLES: Record<CollectionName, TableSpec> = {
     },
     purgeOnDelete: { title: '', notes: '', reminders: [], tagIds: [] },
   },
+  subtasks: {
+    table: 'subtasks',
+    columns: { ...sync, taskId: 'text', title: 'text', done: 'bool', sortKey: 'text' },
+    purgeOnDelete: { title: '' },
+  },
   taskCompletions: {
     table: 'task_completions',
     columns: { ...sync, taskId: 'text', occurrenceDate: 'text', completedAt: 'int' },

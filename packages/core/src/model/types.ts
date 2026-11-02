@@ -13,6 +13,7 @@ import type {
   prioritySchema,
   settingSchema,
   speciesSchema,
+  subtaskSchema,
   tagSchema,
   taskCompletionSchema,
   taskReminderSchema,
@@ -24,6 +25,7 @@ export type Tag = z.infer<typeof tagSchema>;
 export type Priority = z.infer<typeof prioritySchema>;
 export type TaskReminder = z.infer<typeof taskReminderSchema>;
 export type Task = z.infer<typeof taskSchema>;
+export type Subtask = z.infer<typeof subtaskSchema>;
 export type TaskCompletion = z.infer<typeof taskCompletionSchema>;
 export type HabitSchedule = z.infer<typeof habitScheduleSchema>;
 export type HabitTarget = z.infer<typeof habitTargetSchema>;
