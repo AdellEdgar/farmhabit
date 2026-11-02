@@ -45,6 +45,11 @@ export * from './game/game-rules';
 export * from './game/engine';
 export * from './game/achievements';
 
+// Asistente
+export type * from './assistant/chat';
+export * from './assistant/tools';
+export * from './assistant/conversation';
+
 // Cifrado, formato y sincronización
 export { DecryptionError, PRODUCTION_KDF } from './crypto/sodium';
 export * from './crypto/private-notes';

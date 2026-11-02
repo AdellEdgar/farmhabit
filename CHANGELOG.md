@@ -2,6 +2,14 @@
 
 Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/). Versionado [semántico](https://semver.org/lang/es/).
 
+## [Sin publicar]
+
+### Asistente con IA
+
+- Asistente que consulta y cambia tareas, hábitos y notas, y cuenta cómo va la granja. Cada cambio se propone y se aplica solo al confirmarlo.
+- Funciona con una API key de OpenRouter guardada en el llavero del sistema y permite elegir el modelo.
+- En escritorio, barra en la parte de abajo; en Android, botón flotante con el chat a pantalla completa.
+
 ## [1.0.0] - 2026-10-29
 
 Primera versión completa.
