@@ -41,12 +41,11 @@ packages/core/        Núcleo SIN UI ni dependencias de plataforma (lo vigila ES
   src/game/           motor de la granja + config de reglas (game-rules.ts)
   src/crypto/         envoltorio de libsodium
   src/sync/           formato .agx, migraciones de formato, fusión
-  src/assistant/      asistente con IA: herramientas y bucle de conversación
   src/util/           reloj monotónico, UUID, fechas locales
 apps/app/             React + src-tauri (Windows, Linux, Android)
   src/lib/            drivers SQLite, contexto de datos (AppProvider/useApp), formato de fechas, tema, atajos
   src/components/     componentes base (ui.tsx)
-  src/features/       una carpeta por sección: today, tasks, habits, notes, farm, settings, assistant
+  src/features/       una carpeta por sección: today, tasks, habits, notes, farm, settings
   src-tauri/src/db.rs comandos db_select, db_execute y db_transaction
 ```
 
@@ -177,16 +176,6 @@ El motor (`game/engine.ts`, `computeFarm`) recorre los días desde el primer há
 - `domain/stats.ts`: `habitCalendar` da el estado de cada día (hecho, a medias, saltado, fallado, pendiente, no tocaba), `completionRate` el porcentaje y `dailyCompletion` los datos de la gráfica de 30 días. Las gráficas son SVG propio, sin librerías.
 - **Temas** (`lib/themes.ts`): 7 predefinidos y temas personalizados creados a partir de 4 colores (fondo, tarjetas, texto, acento); el resto se deriva mezclándolos. Los personalizados se sincronizan (ajuste `themes.custom`); el elegido es de cada dispositivo (`meta.theme`). Se aplican como variables `--fh-*` en `<html>`.
 
-## Asistente con IA (Fase 9)
-
-- **Proveedor:** OpenRouter (`https://openrouter.ai/api/v1/chat/completions`, formato de OpenAI con `tools`). Una sola API key da acceso a modelos de muchos proveedores. Cliente en `apps/app/src/lib/openrouter.ts`, con `tauri-plugin-http`. Modelo por defecto `anthropic/claude-haiku-5.5`; se puede cambiar en Ajustes (cualquier modelo que admita herramientas).
-- **API key:** la pone cada usuario en Ajustes → Asistente con IA. Se comprueba con `GET /key` y se guarda en el llavero (`SECRET_KEYS.openRouterKey`); nunca en el código, el repo ni la BD. El modelo elegido es del dispositivo (`meta` `assistant:model`). En el modo navegador no hay llavero, así que el asistente no está disponible.
-- **Núcleo** (`packages/core/src/assistant/`): `chat.ts` (tipos y la interfaz `ChatClient`, que la app implementa), `tools.ts` (herramientas con argumentos en zod, que se convierten a JSON Schema con `z.toJSONSchema`) y `conversation.ts` (`AssistantConversation`: el bucle con el modelo, como mucho 8 pasos por turno). Se prueba con un modelo falso con guion (`test/assistant.test.ts`).
-- **Herramientas:** de lectura (`list_tasks`, `list_habits`, `get_farm`, `search_notes`, `read_note`) que se ejecutan sin preguntar, y de escritura (`create_task`, `update_task`, `complete_task`, `reopen_task`, `delete_task`, `log_habit`, `create_habit`, `create_note`). Las de escritura tienen `describe` (valida y da el texto de la propuesta, sin tocar nada) y `run` (aplica el cambio con los servicios del núcleo, así se respetan sus reglas, p. ej. `ClosedDayError`).
-- **Confirmación siempre:** cada cambio sale como tarjeta con Confirmar/Cancelar y el modelo espera la respuesta. Escribir otro mensaje cancela las propuestas pendientes. Toda llamada a herramienta recibe su resultado (también los errores y las cancelaciones) antes del siguiente mensaje, como exige el formato.
-- **Privacidad:** las notas privadas quedan fuera (ni se buscan ni se leen). Lo que el asistente consulta se envía a OpenRouter y al proveedor del modelo; se avisa en Ajustes. La conversación vive solo en memoria y no se sincroniza.
-- **Interfaz:** `AssistantProvider` (`lib/`) y `features/assistant/`. En escritorio (`md+`) es una barra fija bajo el contenido que se despliega con la conversación (`AssistantDock`); en móvil, un botón flotante encima de la barra de secciones que abre el chat a pantalla completa (`AssistantMobile`).
-
 ## Repositorio público
 
 - Nunca se suben bases de datos, archivos `.agx`, exportaciones ni `.env` (ver `.gitignore`). Los datos de prueba y los fixtures son inventados.
@@ -204,7 +193,6 @@ El motor (`game/engine.ts`, `computeFarm`) recorre los días desde el primer há
 6. Granja visual (escena, tienda, logros, vacaciones, cementerio), notas privadas, estadísticas y temas editables. ✅
 7. Calendario y suscripciones `.ics` (p. ej. el calendario de la universidad). ✅
 8. Publicación: versión 1.0.0, README con capturas, CHANGELOG, Release automática y demo web en GitHub Pages. ✅
-9. Asistente con IA (OpenRouter): consultas y cambios con confirmación sobre tareas, hábitos y notas.
 
 ## Publicación (Fase 8)
 

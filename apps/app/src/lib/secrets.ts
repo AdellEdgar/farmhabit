@@ -7,7 +7,6 @@ import { isDesktopApp } from './drivers';
 export const SECRET_KEYS = {
   vaultKey: 'sync:vaultKey',
   googleRefreshToken: 'google:refreshToken',
-  openRouterKey: 'assistant:openRouterKey',
 } as const;
 
 export async function getSecret(name: string): Promise<string | null> {

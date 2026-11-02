@@ -23,7 +23,6 @@ import {
 import { ReminderScheduler } from './lib/ReminderScheduler';
 import { MobileReminderScheduler } from './lib/MobileReminderScheduler';
 import { SyncProvider } from './lib/SyncProvider';
-import { AssistantProvider } from './lib/AssistantProvider';
 import { CalendarRefresher } from './lib/CalendarRefresher';
 import { isDemo } from './lib/demo-data';
 import { DemoBanner } from './components/DemoBanner';
@@ -32,8 +31,6 @@ import { cx } from './lib/cx';
 import { TodayView } from './features/today/TodayView';
 import { TasksView } from './features/tasks/TasksView';
 import { HabitsView } from './features/habits/HabitsView';
-import { AssistantDock } from './features/assistant/AssistantDock';
-import { AssistantMobile } from './features/assistant/AssistantMobile';
 
 // Secciones pesadas (editor de notas, calendario, granja, ajustes): se
 // descargan la primera vez que se abren, así la app arranca antes.
@@ -86,9 +83,7 @@ export function App() {
   return (
     <AppProvider>
       <SyncProvider>
-        <AssistantProvider>
-          <Shell />
-        </AssistantProvider>
+        <Shell />
       </SyncProvider>
     </AppProvider>
   );
@@ -165,33 +160,27 @@ function Shell() {
           })}
         </nav>
 
-        {/* El asistente queda fijo debajo del contenido, que es lo que se desplaza. */}
-        <main className="flex min-h-0 min-w-0 flex-1 flex-col">
-          <div className="flex-1 overflow-y-auto">
-            {isDemo && <DemoBanner />}
-            <UpdateBanner />
-            <div
-              className={cx(
-                // En móvil, hueco abajo para que el botón del asistente no tape nada.
-                'mx-auto w-full px-4 pt-5 pb-24 md:px-8 md:py-8 2xl:px-12',
-                SECTION_WIDTH[section],
-              )}
-            >
-              <Suspense fallback={<p className="py-12 text-center text-texto-suave">Cargando…</p>}>
-                {section === 'hoy' && <TodayView />}
-                {section === 'tareas' && <TasksView />}
-                {section === 'calendario' && <CalendarView />}
-                {section === 'habitos' && <HabitsView />}
-                {section === 'notas' && <NotesView />}
-                {section === 'granja' && <FarmView />}
-                {section === 'ajustes' && <SettingsView />}
-              </Suspense>
-            </div>
+        <main className="flex-1 overflow-y-auto">
+          {isDemo && <DemoBanner />}
+          <UpdateBanner />
+          <div
+            className={cx(
+              'mx-auto w-full px-4 py-5 md:px-8 md:py-8 2xl:px-12',
+              SECTION_WIDTH[section],
+            )}
+          >
+            <Suspense fallback={<p className="py-12 text-center text-texto-suave">Cargando…</p>}>
+              {section === 'hoy' && <TodayView />}
+              {section === 'tareas' && <TasksView />}
+              {section === 'calendario' && <CalendarView />}
+              {section === 'habitos' && <HabitsView />}
+              {section === 'notas' && <NotesView />}
+              {section === 'granja' && <FarmView />}
+              {section === 'ajustes' && <SettingsView />}
+            </Suspense>
           </div>
-          <AssistantDock />
         </main>
       </div>
-      <AssistantMobile />
     </NavigationContext.Provider>
   );
 }

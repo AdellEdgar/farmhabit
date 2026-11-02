@@ -61,13 +61,6 @@ Tus datos se guardan en tu dispositivo, sin cuentas propias ni servidores. Si qu
 - Muestra junto a tus tareas el calendario de la **universidad**, **Google**, **Outlook** o **iCloud**: puedes suscribirte con su enlace iCal (se actualiza solo) o importar un archivo `.ics`. Solo se leen, nunca se modifican. Cómo conseguir el enlace: [docs/calendarios.md](docs/calendarios.md).
 - La pantalla **Hoy** muestra la agenda del día.
 
-### ✨ Asistente con IA
-
-- Pídele cosas con tus palabras: _"apúntame entregar la práctica el viernes a las 10"_, _"he bebido 2 litros de agua"_, _"¿cómo está mi granja?"_.
-- Consulta y cambia tareas, hábitos y notas. **Cada cambio te lo propone y solo se aplica si lo confirmas.**
-- Funciona con tu propia API key de [OpenRouter](https://openrouter.ai/keys) (Ajustes → Asistente con IA) y puedes elegir el modelo. Las notas privadas nunca se le envían.
-- En escritorio está en la parte de abajo de la ventana; en el móvil, en un botón flotante.
-
 ### 🎨 Temas
 
 - 7 temas (Noche, Día, Bosque, Océano, Atardecer, Lavanda, Granja), seguir el modo claro/oscuro del sistema o **crear el tuyo** eligiendo 4 colores, con vista previa en directo.

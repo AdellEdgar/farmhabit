@@ -4,7 +4,6 @@ import { isDesktopApp } from '../../lib/drivers';
 import { isDemo } from '../../lib/demo-data';
 import { Card, PageHeader } from '../../components/ui';
 import { AppearanceSettings } from './AppearanceSettings';
-import { AssistantSettings } from './AssistantSettings';
 import { BackupSettings } from './BackupSettings';
 import { NotificationSettings } from './NotificationSettings';
 import { PrivateNotesSettings } from './PrivateNotesSettings';
@@ -26,8 +25,6 @@ export function SettingsView() {
 
       <div className="space-y-5">
         <AppearanceSettings />
-
-        <AssistantSettings />
 
         <NotificationSettings />
 
