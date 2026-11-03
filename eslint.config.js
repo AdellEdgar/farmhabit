@@ -21,6 +21,11 @@ export default tseslint.config(
     },
   },
   {
+    // Scripts de herramientas (Node): pueden usar console y process.
+    files: ['scripts/**/*.mjs'],
+    languageOptions: { globals: globals.node },
+  },
+  {
     files: ['apps/app/src/**/*.{ts,tsx}'],
     languageOptions: { globals: globals.browser },
     plugins: { 'react-hooks': reactHooks, 'react-refresh': reactRefresh },

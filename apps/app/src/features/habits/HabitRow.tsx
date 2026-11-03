@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Flame, SkipForward } from 'lucide-react';
 import {
   configOn,
@@ -12,6 +12,8 @@ import {
 import { useApp } from '../../lib/use-app';
 import { cx } from '../../lib/cx';
 import { CheckCircle, IconButton } from '../../components/ui';
+import { CreatureImage } from '../creatures/CreatureImage';
+import { CreatureSheet } from '../creatures/CreatureSheet';
 import { formatQuantity, penaltyFor, rewardFor, streakUnit } from './habit-meta';
 
 export function HabitRow({
@@ -25,7 +27,13 @@ export function HabitRow({
   compact?: boolean;
   onOpen?: (h: Habit) => void;
 }) {
-  const { data, mutate, today } = useApp();
+  const { data, game, mutate, today } = useApp();
+  const creature = game.creatures.find((c) => c.habitId === habit.id);
+  const [sheet, setSheet] = useState(false);
+  // "+N XP" flotante y saltito de la criatura al marcarlo como hecho.
+  const [burst, setBurst] = useState<{ xp: number; key: number } | null>(null);
+  const burstTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
+  useEffect(() => () => clearTimeout(burstTimer.current), []);
   const cfg = configOn(habit, date)!;
   const log = data.habitLogs.find((l) => l.id === habitLogId(habit.id, date));
   const ratio = logRatio(log, cfg);
@@ -42,12 +50,21 @@ export function HabitRow({
   const setLog = (input: Parameters<typeof setHabitLog>[3]) =>
     mutate((db) => setHabitLog(db, habit.id, date, input, today));
 
-  const toggleDone = () =>
-    setLog(
-      done || skipped
-        ? { status: 'none' }
-        : { status: 'done', value: cfg.target ? cfg.target.quantity : null },
+  const celebrate = () => {
+    clearTimeout(burstTimer.current);
+    setBurst({ xp: rewardFor(cfg.effort), key: (burst?.key ?? 0) + 1 });
+    burstTimer.current = setTimeout(() => setBurst(null), 1200);
+  };
+
+  const toggleDone = async () => {
+    const marking = !(done || skipped);
+    const ok = await setLog(
+      marking
+        ? { status: 'done', value: cfg.target ? cfg.target.quantity : null }
+        : { status: 'none' },
     );
+    if (ok !== undefined && marking) celebrate();
+  };
 
   const saveQty = (raw: string) => {
     setDraftQty(null);
@@ -68,13 +85,35 @@ export function HabitRow({
         skipped && 'opacity-60',
       )}
     >
-      <span
-        className="grid size-10 shrink-0 place-items-center rounded-xl text-xl"
-        style={{ background: `${habit.color || '#7cc46b'}26` }}
-        aria-hidden="true"
+      <button
+        type="button"
+        onClick={() => setSheet(true)}
+        disabled={!creature}
+        className="relative shrink-0"
+        aria-label={creature ? `Ver a ${creature.name}` : undefined}
       >
-        {habit.icon || '✨'}
-      </span>
+        {creature ? (
+          <CreatureImage
+            key={`criatura-${burst?.key ?? 0}`}
+            species={creature.species}
+            stage={creature.stage}
+            px={44}
+            mood={creature.mood}
+            className={burst ? 'creature-jump' : undefined}
+          />
+        ) : (
+          <span className="grid size-11 place-items-center rounded-xl bg-elevado text-xl">✨</span>
+        )}
+        {burst && (
+          <span
+            key={`xp-${burst.key}`}
+            className="xp-burst pointer-events-none absolute -top-2 left-1/2 text-xs font-bold whitespace-nowrap text-acento"
+            aria-live="polite"
+          >
+            +{burst.xp} XP
+          </span>
+        )}
+      </button>
       <button
         type="button"
         className="min-w-0 flex-1 text-left"
@@ -127,10 +166,11 @@ export function HabitRow({
       )}
       <CheckCircle
         checked={done}
-        onChange={toggleDone}
+        onChange={() => void toggleDone()}
         label={done ? 'Desmarcar' : `Marcar ${habit.name} como hecho`}
         color={habit.color || undefined}
       />
+      {sheet && creature && <CreatureSheet habitId={habit.id} onClose={() => setSheet(false)} />}
     </li>
   );
 }

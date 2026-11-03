@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { fnv1a, localDateOf, localDateTimeToEpoch, remindersBetween } from '@farmhabit/core';
-import { FARM_ALERT_TIME, farmAlertText, reminderText } from './reminder-text';
+import { CREATURE_ALERT_TIME, creatureAlertText, reminderText } from './reminder-text';
 import {
   getFlag,
   notificationPermission,
@@ -29,7 +29,7 @@ function notificationId(key: string): number {
  * hoy desaparece porque se recalcula la lista.
  */
 export function MobileReminderScheduler() {
-  const { db, data, farm } = useApp();
+  const { db, data, game } = useApp();
 
   useEffect(() => {
     const id = setTimeout(() => {
@@ -53,11 +53,11 @@ export function MobileReminderScheduler() {
             ...reminderText(e, data.habitLogs),
           }));
 
-          // Aviso de la granja: hoy a las 20:00, si algún animal está a punto de morir.
-          const farmText = farmAlertText(farm);
-          const farmAt = localDateTimeToEpoch(localDateOf(now), FARM_ALERT_TIME);
-          if (farmText && farmAt > now)
-            list.push({ id: notificationId('farm-alert'), at: farmAt, ...farmText });
+          // Aviso de las criaturas: hoy a las 20:00, si alguna está triste y su hábito sigue pendiente.
+          const alert = creatureAlertText(game);
+          const alertAt = localDateTimeToEpoch(localDateOf(now), CREATURE_ALERT_TIME);
+          if (alert && alertAt > now)
+            list.push({ id: notificationId('creature-alert'), at: alertAt, ...alert });
 
           list.sort((a, b) => a.at - b.at);
           await replaceScheduledNotifications(list.slice(0, MAX_SCHEDULED));
@@ -67,7 +67,7 @@ export function MobileReminderScheduler() {
       })();
     }, DEBOUNCE_MS);
     return () => clearTimeout(id);
-  }, [db, data, farm]);
+  }, [db, data, game]);
 
   return null;
 }

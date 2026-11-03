@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { ReactNode } from 'react';
 import {
-  computeFarm,
+  computeGame,
   Database,
   localDateOf,
   systemClock,
@@ -14,14 +14,14 @@ import { AppContext, type AppData } from './use-app';
 
 /** Campo de AppData → colección de la que se lee. */
 const FIELDS = {
-  tasks: 'tasks',
+  allTasks: 'tasks',
   taskCompletions: 'taskCompletions',
   tags: 'tags',
   allHabits: 'habits',
   habitLogs: 'habitLogs',
   notes: 'notes',
   noteFolders: 'noteFolders',
-  animals: 'animals',
+  purchases: 'purchases',
   vacations: 'vacations',
   settings: 'settings',
   calendarSources: 'calendarSources',
@@ -34,7 +34,7 @@ interface Loaded {
 
 /**
  * Carga los datos reutilizando las colecciones que no han cambiado (misma
- * huella). Así, escribir una nota no relee los hábitos ni recalcula la granja.
+ * huella). Así, escribir una nota no relee los hábitos ni recalcula las criaturas.
  */
 async function loadData(db: Database, prev: Loaded | null): Promise<Loaded> {
   const signatures = await db.collectionSignatures();
@@ -48,7 +48,10 @@ async function loadData(db: Database, prev: Loaded | null): Promise<Loaded> {
           return;
         }
         changed = true;
-        fresh[field] = await db.repo(name).list({ includeDeleted: name === 'habits' });
+        // Hábitos y tareas incluyen los borrados: el motor del juego los necesita para el pasado.
+        fresh[field] = await db
+          .repo(name)
+          .list({ includeDeleted: name === 'habits' || name === 'tasks' });
       },
     ),
   );
@@ -58,7 +61,15 @@ async function loadData(db: Database, prev: Loaded | null): Promise<Loaded> {
     prev && allHabits === prev.data.allHabits
       ? prev.data.habits
       : allHabits.filter((h) => h.deletedAt === null);
-  return { signatures, data: { ...(fresh as Omit<AppData, 'habits'>), habits } };
+  const allTasks = fresh.allTasks as AppData['allTasks'];
+  const tasks =
+    prev && allTasks === prev.data.allTasks
+      ? prev.data.tasks
+      : allTasks.filter((t) => t.deletedAt === null);
+  return {
+    signatures,
+    data: { ...(fresh as Omit<AppData, 'habits' | 'tasks'>), habits, tasks },
+  };
 }
 
 interface Toast {
@@ -129,20 +140,30 @@ export function AppProvider({ children }: { children: ReactNode }) {
   );
 
   const today = localDateOf(now);
-  const farm = useMemo(
+  const game = useMemo(
     () =>
       data
-        ? computeFarm({
+        ? computeGame({
             habits: data.allHabits,
             logs: data.habitLogs,
-            animals: data.animals,
+            tasks: data.allTasks,
+            taskCompletions: data.taskCompletions,
+            purchases: data.purchases,
             vacations: data.vacations,
             today,
           })
         : null,
-    // Solo depende de lo que usa el motor: editar notas o tareas no la recalcula.
+    // Solo depende de lo que usa el motor: editar notas no lo recalcula.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [data?.allHabits, data?.habitLogs, data?.animals, data?.vacations, today],
+    [
+      data?.allHabits,
+      data?.habitLogs,
+      data?.allTasks,
+      data?.taskCompletions,
+      data?.purchases,
+      data?.vacations,
+      today,
+    ],
   );
 
   if (fatal) {
@@ -155,12 +176,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
       </div>
     );
   }
-  if (!db || !data || !farm) {
+  if (!db || !data || !game) {
     return <div className="grid h-full place-items-center text-texto-suave">Cargando…</div>;
   }
 
   return (
-    <AppContext.Provider value={{ db, data, farm, today, now, mutate, toast }}>
+    <AppContext.Provider value={{ db, data, game, today, now, mutate, toast }}>
       {children}
       <div
         aria-live="polite"

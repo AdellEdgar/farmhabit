@@ -2,6 +2,24 @@
 
 Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/). Versionado [semántico](https://semver.org/lang/es/).
 
+## [2.0.0] - sin publicar
+
+FarmHabit pasa a llamarse **¡Chambea!** y la granja se sustituye por criaturas.
+
+### Criaturas
+
+- Cada hábito tiene su criatura: 16 especies (figuras históricas caricaturizadas y monstruitos propios) con 4 etapas cada una, más el huevo.
+- Gana XP al hacer su hábito y la pierde al fallarlo (fallar lo fácil castiga más); evoluciona con la XP y retrocede si la descuidas, pero nunca muere.
+- Ánimo según los últimos días, celebración al nacer o evolucionar y aviso a las 20:00 si alguna está triste.
+- Nivel de entrenador que desbloquea especies, colección con las 64 etapas y logros nuevos.
+- Pesetas por hábitos, tareas y logros, y tienda con comodines (protegen solos un día malo), fondos y auras.
+- Selector de criatura al crear o editar un hábito, con sugerencia según el nombre.
+
+### Cambios
+
+- La sección Granja pasa a ser Criaturas; los datos de la granja se conservan pero ya no se usan.
+- El instalador, el acceso directo y los archivos de descarga siguen llamándose FarmHabit, para que la versión nueva se instale encima de la anterior.
+
 ## [1.0.0] - 2026-10-29
 
 Primera versión completa.

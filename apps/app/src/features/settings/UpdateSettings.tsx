@@ -48,7 +48,7 @@ export function UpdateSettings() {
       {available && (
         <div className="space-y-2 rounded-xl bg-acento-suave px-3 py-2.5 text-sm">
           <p>
-            <b>FarmHabit {available.version}</b> ya está disponible.
+            <b>Chambea {available.version}</b> ya está disponible.
           </p>
           {available.notes && (
             <p className="text-xs whitespace-pre-line text-texto-suave">{available.notes}</p>
@@ -60,7 +60,7 @@ export function UpdateSettings() {
         </div>
       )}
       {update.status === 'installing' && (
-        <p className="text-sm">Instalando FarmHabit {update.update.version}…</p>
+        <p className="text-sm">Instalando Chambea {update.update.version}…</p>
       )}
 
       <Button

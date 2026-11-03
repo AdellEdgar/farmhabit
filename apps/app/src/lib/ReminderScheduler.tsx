@@ -1,6 +1,11 @@
 import { useEffect, useRef } from 'react';
 import { remindersBetween } from '@farmhabit/core';
-import { farmAlertDue, farmAlertText, reminderText, type NotificationText } from './reminder-text';
+import {
+  creatureAlertDue,
+  creatureAlertText,
+  reminderText,
+  type NotificationText,
+} from './reminder-text';
 import { getFlag, notificationPermission, PREF_KEYS, showNotification } from './platform';
 import { useApp } from './use-app';
 
@@ -17,10 +22,10 @@ const MAX_SEPARATE = 3;
  * se repiten al reiniciar) y los muestra como notificaciones del sistema.
  */
 export function ReminderScheduler() {
-  const { db, data, farm } = useApp();
-  const latest = useRef({ data, farm });
+  const { db, data, game } = useApp();
+  const latest = useRef({ data, game });
   useEffect(() => {
-    latest.current = { data, farm };
+    latest.current = { data, game };
   });
 
   useEffect(() => {
@@ -41,7 +46,7 @@ export function ReminderScheduler() {
         if (!(await getFlag(db, PREF_KEYS.remindersEnabled, true))) return;
         if ((await notificationPermission()) !== 'granted') return;
 
-        const { data: d, farm: f } = latest.current;
+        const { data: d, game: g } = latest.current;
         const texts: NotificationText[] = remindersBetween({
           tasks: d.tasks,
           habits: d.habits,
@@ -49,8 +54,8 @@ export function ReminderScheduler() {
           from,
           to: now,
         }).map((e) => reminderText(e, d.habitLogs));
-        const farmText = farmAlertDue(from, now) ? farmAlertText(f) : null;
-        if (farmText) texts.unshift(farmText);
+        const alert = creatureAlertDue(from, now) ? creatureAlertText(g) : null;
+        if (alert) texts.unshift(alert);
 
         if (texts.length > MAX_SEPARATE) {
           await showNotification(

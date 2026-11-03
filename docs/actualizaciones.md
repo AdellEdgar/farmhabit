@@ -1,6 +1,6 @@
 # Actualizaciones
 
-FarmHabit busca versiones nuevas al abrirse y dos veces al día. Se puede desactivar o buscar a mano en **Ajustes → Actualizaciones**.
+Chambea busca versiones nuevas al abrirse y dos veces al día. Se puede desactivar o buscar a mano en **Ajustes → Actualizaciones**.
 
 | Plataforma       | Qué hace                                                                                                     |
 | ---------------- | ------------------------------------------------------------------------------------------------------------ |

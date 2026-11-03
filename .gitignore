@@ -34,3 +34,6 @@ backup*/
 .DS_Store
 Thumbs.db
 *.log
+
+# Imágenes originales generadas con IA (en la app van convertidas a WebP)
+art/

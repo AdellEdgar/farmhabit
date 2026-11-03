@@ -113,7 +113,7 @@ jobs:
           done
       - uses: actions/upload-artifact@v7
         with:
-          name: FarmHabit-${{ matrix.name }}
+          name: Chambea-${{ matrix.name }}
           path: ${{ matrix.bundles }}
           if-no-files-found: error
 
@@ -156,6 +156,8 @@ jobs:
           # Actividad propia: pasa a la web el tamaño de las barras del sistema.
           cp src-tauri/android/MainActivity.kt \
             src-tauri/gen/android/app/src/main/java/io/github/adelledgar/farmhabit/MainActivity.kt
+          # Iconos de la app (los genera `tauri icon` en src-tauri/icons/android).
+          cp -r src-tauri/icons/android/. src-tauri/gen/android/app/src/main/res/
       # Con el secreto ANDROID_KEYSTORE se compila en modo release y se firma
       # siempre con la misma clave, para que cada versión se instale encima de
       # la anterior sin perder datos. Sin él (forks, PR), firma de depuración.
@@ -169,7 +171,7 @@ jobs:
           else
             pnpm tauri android build --apk --debug --target aarch64
           fi
-      - name: Firmar el APK con la clave de FarmHabit
+      - name: Firmar el APK con la clave de la app
         working-directory: apps/app/src-tauri/gen/android/app/build/outputs/apk
         env:
           ANDROID_KEYSTORE: ${{ secrets.ANDROID_KEYSTORE }}
@@ -190,7 +192,7 @@ jobs:
           "$tools/apksigner" verify FarmHabit.apk
       - uses: actions/upload-artifact@v7
         with:
-          name: FarmHabit-Android
+          name: Chambea-Android
           path: apps/app/src-tauri/gen/android/app/build/outputs/apk/**/*.apk
           if-no-files-found: error
 
@@ -248,7 +250,7 @@ jobs:
         run: |
           mapfile -t files < <(find release -type f ! -name '*.sig')
           gh release create "$GITHUB_REF_NAME" "${files[@]}" \
-            --title "FarmHabit $GITHUB_REF_NAME" \
+            --title "¡Chambea! $GITHUB_REF_NAME" \
             --notes "Instaladores para Windows (.exe), Linux (.AppImage/.deb) y Android (.apk). Cambios en [CHANGELOG.md](https://github.com/${{ github.repository }}/blob/main/CHANGELOG.md)." \
             --generate-notes
 

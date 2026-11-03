@@ -36,12 +36,12 @@ fn setup_tray(app: &tauri::App) -> tauri::Result<()> {
     use tauri::menu::{Menu, MenuItem};
     use tauri::tray::{MouseButton, MouseButtonState, TrayIconBuilder, TrayIconEvent};
 
-    let open = MenuItem::with_id(app, "open", "Abrir FarmHabit", true, None::<&str>)?;
+    let open = MenuItem::with_id(app, "open", "Abrir Chambea", true, None::<&str>)?;
     let quit = MenuItem::with_id(app, "quit", "Salir", true, None::<&str>)?;
     let menu = Menu::with_items(app, &[&open, &quit])?;
 
     let mut tray = TrayIconBuilder::with_id("main")
-        .tooltip("FarmHabit")
+        .tooltip("¡Chambea!")
         .menu(&menu)
         .show_menu_on_left_click(false)
         .on_menu_event(|app, event| match event.id.as_ref() {
@@ -138,5 +138,5 @@ pub fn run() {
             set_close_to_tray
         ])
         .run(tauri::generate_context!())
-        .expect("error al arrancar FarmHabit");
+        .expect("error al arrancar Chambea");
 }

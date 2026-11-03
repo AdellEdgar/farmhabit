@@ -2,8 +2,9 @@ import type { Database } from '../db/database';
 import { NotFoundError } from '../db/database';
 import { withConfigChange } from '../domain/habits';
 import type { Habit, HabitConfig, HabitLog } from '../model/types';
+import type { SpeciesId } from '../game/species';
 import type { LocalDate } from '../util/dates';
-import { addDays } from '../util/dates';
+import { addDays, localDateOf } from '../util/dates';
 import { compareSortKey, keyBetween } from '../util/fractional-index';
 import { deterministicId } from '../util/ids';
 
@@ -58,6 +59,8 @@ export interface NewHabitInput {
   startDate: LocalDate;
   config: Omit<HabitConfig, 'since'>;
   reminders?: Habit['reminders'];
+  creatureSpecies?: SpeciesId;
+  creatureName?: string;
 }
 
 /** Crea un hábito al final de la lista. */
@@ -75,6 +78,10 @@ export async function createHabit(db: Database, input: NewHabitInput): Promise<H
     configHistory: [{ ...input.config, since: input.startDate }],
     reminders: input.reminders ?? [],
     archivedAt: null,
+    creatureSpecies: input.creatureSpecies ?? null,
+    creatureName: input.creatureName ?? '',
+    creatureBackground: null,
+    creatureAura: null,
   });
 }
 
@@ -106,4 +113,31 @@ export async function moveHabit(
   // Caso raro: dos dispositivos generaron la misma clave. Se coloca tras `before`.
   if (lo !== null && hi !== null && lo >= hi) hi = null;
   return repo.update(habitId, { sortKey: keyBetween(lo, hi) });
+}
+
+/**
+ * Archiva o reactiva un hábito. Al reactivarlo se apunta en su configuración
+ * desde qué día estuvo en pausa: esos días no cuentan como fallos.
+ */
+export async function setHabitArchived(
+  db: Database,
+  id: string,
+  archived: boolean,
+  today: LocalDate,
+): Promise<Habit> {
+  const repo = db.repo('habits');
+  const habit = await repo.get(id);
+  if (!habit) throw new NotFoundError('habits', id);
+  if (archived)
+    return habit.archivedAt === null ? repo.update(id, { archivedAt: db.source.now() }) : habit;
+  if (habit.archivedAt === null) return habit;
+  const pausedSince = localDateOf(habit.archivedAt);
+  const current = habit.configHistory.reduce((a, b) => (b.since >= a.since ? b : a));
+  // Si ya hay una configuración que empieza hoy, se le añade la pausa.
+  const rest = habit.configHistory.filter((c) => c.since !== today);
+  const configHistory =
+    pausedSince < today
+      ? [...rest, { ...current, since: today, pausedSince }]
+      : habit.configHistory;
+  return repo.update(id, { archivedAt: null, configHistory });
 }

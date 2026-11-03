@@ -88,6 +88,8 @@ export const habitConfigSchema = z.object({
   effort: z.number().int().min(1).max(5),
   schedule: habitScheduleSchema,
   target: habitTargetSchema.nullable(),
+  /** Al reactivar un hábito archivado: estuvo en pausa desde este día hasta since (sin incluirlo). */
+  pausedSince: localDate.optional(),
 });
 
 export const habitReminderSchema = z.object({
@@ -107,6 +109,12 @@ export const habitSchema = z.object({
   configHistory: z.array(habitConfigSchema).min(1),
   reminders: z.array(habitReminderSchema).max(10),
   archivedAt: epochMs.nullable(),
+  // Criatura del hábito (migración 3). Con valores por defecto para leer datos de
+  // versiones anteriores, que no traen estos campos.
+  creatureSpecies: z.string().max(30).nullable().default(null),
+  creatureName: z.string().max(50).default(''),
+  creatureBackground: z.string().max(30).nullable().default(null),
+  creatureAura: z.string().max(30).nullable().default(null),
 });
 
 export const habitLogSchema = z.object({
@@ -187,6 +195,14 @@ export const calendarSourceSchema = z.object({
 });
 
 // ---------- Ajustes ----------
+
+/** Compra en la tienda de criaturas: comodín, fondo o aura. */
+export const purchaseSchema = z.object({
+  ...syncFields,
+  item: z.string().regex(/^(freeze|background:[a-z]+|aura:[a-z]+)$/),
+  date: localDate,
+  price: z.number().int().nonnegative(),
+});
 
 export const settingSchema = z.object({
   ...syncFields,

@@ -129,93 +129,158 @@ select {
   scrollbar-color: var(--fh-borde) transparent;
 }
 
-/* ---------- Granja ---------- */
-.farm-animal {
-  animation: farm-wander linear infinite;
-  filter: drop-shadow(0 2px 1px rgb(0 0 0 / 0.25));
-  cursor: pointer;
+/* ---------- Criaturas ---------- */
+.creature {
+  isolation: isolate;
 }
-.farm-animal__body {
-  animation: farm-bob 0.6s ease-in-out infinite alternate;
+.creature-body {
+  transform-origin: 50% 100%;
 }
-.farm-animal--sick {
-  filter: grayscale(0.85) drop-shadow(0 2px 1px rgb(0 0 0 / 0.25));
+.mood-feliz .creature-body {
+  animation: creature-hop 2.6s ease-in-out infinite;
 }
-.farm-animal--sick .farm-animal__body {
-  animation-duration: 1.4s;
+.mood-cansada .creature-body {
+  filter: saturate(0.6) brightness(0.92);
+  animation: creature-sway 4s ease-in-out infinite;
 }
-@keyframes farm-wander {
-  0% {
-    transform: translateX(0) scaleX(1);
+.mood-triste .creature-body {
+  filter: grayscale(0.85) brightness(0.9);
+}
+.creature-cloud {
+  position: absolute;
+  top: -4%;
+  right: -2%;
+  animation: creature-drift 3s ease-in-out infinite alternate;
+}
+.creature-silhouette .creature-body {
+  filter: brightness(0) opacity(0.25);
+}
+/* Salto al marcar un hábito (se añade y quita desde JS). */
+.creature-jump .creature-body {
+  animation: creature-jump 0.6s ease-out;
+}
+@keyframes creature-hop {
+  0%,
+  70%,
+  100% {
+    transform: translateY(0) scale(1, 1);
   }
-  45% {
-    transform: translateX(var(--dx)) scaleX(1);
+  78% {
+    transform: translateY(0) scale(1.06, 0.94);
+  }
+  86% {
+    transform: translateY(-8%) scale(0.97, 1.03);
+  }
+}
+@keyframes creature-sway {
+  0%,
+  100% {
+    transform: rotate(-2deg);
   }
   50% {
-    transform: translateX(var(--dx)) scaleX(-1);
-  }
-  95% {
-    transform: translateX(0) scaleX(-1);
-  }
-  100% {
-    transform: translateX(0) scaleX(1);
+    transform: rotate(2deg);
   }
 }
-@keyframes farm-bob {
+@keyframes creature-drift {
   from {
-    transform: translateY(0);
+    transform: translateX(-3px);
   }
   to {
-    transform: translateY(-3px);
+    transform: translateX(3px);
   }
 }
-.farm-heart {
-  animation: farm-float 2.4s ease-in infinite;
-}
-@keyframes farm-float {
-  0% {
-    opacity: 0;
-    transform: translate(-50%, 4px);
-  }
+@keyframes creature-jump {
   30% {
+    transform: translateY(-18%) scale(0.95, 1.05);
+  }
+  60% {
+    transform: translateY(0) scale(1.08, 0.92);
+  }
+}
+
+.xp-burst {
+  animation: xp-burst 1.2s ease-out forwards;
+}
+@keyframes xp-burst {
+  from {
     opacity: 1;
+    transform: translate(-50%, 0);
   }
-  100% {
+  to {
     opacity: 0;
-    transform: translate(-50%, -14px);
+    transform: translate(-50%, -28px);
   }
 }
-.farm-sun {
-  animation: farm-pulse 4s ease-in-out infinite alternate;
-  transform-origin: 340px 42px;
+
+.celebrate-pop {
+  animation: celebrate-pop 0.5s cubic-bezier(0.2, 1.4, 0.4, 1);
 }
-@keyframes farm-pulse {
-  to {
-    transform: scale(1.06);
+@keyframes celebrate-pop {
+  from {
+    opacity: 0;
+    transform: scale(0.6);
   }
 }
-.farm-rain {
-  background-image: repeating-linear-gradient(
-    105deg,
-    transparent 0 14px,
-    rgb(255 255 255 / 0.35) 14px 15px,
-    transparent 15px 28px
-  );
-  background-size: 60px 60px;
-  animation: farm-rain 0.5s linear infinite;
+
+/* Auras: detrás de la criatura. */
+.aura::before {
+  content: '';
+  position: absolute;
+  inset: -8%;
+  z-index: -1;
+  border-radius: 9999px;
+  pointer-events: none;
 }
-@keyframes farm-rain {
+.aura-dorada::before {
+  background: radial-gradient(circle, #ffd34d99 0%, #ffd34d33 45%, transparent 70%);
+  animation: aura-pulse 2.4s ease-in-out infinite;
+}
+.aura-llamas::before {
+  background: radial-gradient(circle at 50% 70%, #ff7a1a99 0%, #ff3d0055 40%, transparent 70%);
+  animation: aura-flicker 0.9s ease-in-out infinite alternate;
+}
+.aura-estrellas::before {
+  background:
+    radial-gradient(circle at 15% 25%, #fff 0 2px, transparent 3px),
+    radial-gradient(circle at 85% 20%, #fff 0 2px, transparent 3px),
+    radial-gradient(circle at 75% 80%, #fff 0 1.5px, transparent 2.5px),
+    radial-gradient(circle at 20% 75%, #fff 0 1.5px, transparent 2.5px),
+    radial-gradient(circle, #8fb8ff55 0%, transparent 70%);
+  animation: aura-pulse 1.8s ease-in-out infinite;
+}
+.aura-confeti::before {
+  background:
+    radial-gradient(circle at 20% 20%, #e5534b 0 3px, transparent 4px),
+    radial-gradient(circle at 80% 30%, #5b9cf0 0 3px, transparent 4px),
+    radial-gradient(circle at 30% 85%, #e8c15a 0 3px, transparent 4px),
+    radial-gradient(circle at 75% 75%, #7cc46b 0 3px, transparent 4px),
+    radial-gradient(circle at 50% 10%, #e07bb0 0 3px, transparent 4px);
+  animation: aura-spin 6s linear infinite;
+}
+@keyframes aura-pulse {
+  50% {
+    transform: scale(1.08);
+    opacity: 0.7;
+  }
+}
+@keyframes aura-flicker {
   to {
-    background-position: -12px 60px;
+    transform: scale(1.05, 1.12);
+    opacity: 0.8;
+  }
+}
+@keyframes aura-spin {
+  to {
+    transform: rotate(360deg);
   }
 }
 @media (prefers-reduced-motion: reduce) {
-  .farm-animal,
-  .farm-animal__body,
-  .farm-heart,
-  .farm-sun,
-  .farm-rain {
-    animation: none;
+  .creature-body,
+  .creature-cloud,
+  .xp-burst,
+  .celebrate-pop,
+  .aura::before {
+    animation: none !important;
   }
 }
 

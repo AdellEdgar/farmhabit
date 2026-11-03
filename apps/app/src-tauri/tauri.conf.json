@@ -13,7 +13,7 @@
     "windows": [
       {
         "label": "main",
-        "title": "FarmHabit",
+        "title": "¡Chambea!",
         "visible": false,
         "width": 1100,
         "height": 760,
@@ -41,8 +41,8 @@
     "publisher": "AdellEdgar",
     "copyright": "© 2026 AdellEdgar · Licencia MIT",
     "homepage": "https://github.com/AdellEdgar/farmhabit",
-    "shortDescription": "Tareas, hábitos con granja de animales y notas",
-    "longDescription": "FarmHabit es una app de productividad local-first: tareas con avisos y repeticiones, hábitos que mantienen viva una granja de animales, notas con notas privadas cifradas, calendario y sincronización cifrada con Google Drive.",
+    "shortDescription": "Tareas, hábitos con criaturas que evolucionan y notas",
+    "longDescription": "¡Chambea! es una app de productividad local-first: tareas con avisos y repeticiones, hábitos con criaturas que evolucionan cuando los cumples, notas con notas privadas cifradas, calendario y sincronización cifrada con Google Drive.",
     "windows": {
       "nsis": {
         "languages": ["Spanish"],

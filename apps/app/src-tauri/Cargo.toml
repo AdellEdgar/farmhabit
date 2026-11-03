@@ -1,7 +1,7 @@
 [package]
 name = "farmhabit"
-version = "1.0.0"
-description = "FarmHabit: tareas, hábitos con granja de animales y notas"
+version = "2.0.0"
+description = "¡Chambea!: tareas, hábitos con criaturas y notas"
 license = "MIT"
 edition = "2021"
 

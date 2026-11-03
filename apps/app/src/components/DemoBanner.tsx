@@ -7,7 +7,7 @@ export function DemoBanner() {
   return (
     <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1 border-b border-borde bg-acento-suave px-4 py-2 text-center text-xs">
       <span>
-        <b>Demo de FarmHabit:</b> datos de ejemplo, guardados solo en tu navegador. Sin avisos ni
+        <b>Demo de ¡Chambea!:</b> datos de ejemplo, guardados solo en tu navegador. Sin avisos ni
         sincronización.
       </span>
       <a

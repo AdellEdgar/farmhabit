@@ -1,6 +1,6 @@
-# FarmHabit: guía del proyecto
+# ¡Chambea!: guía del proyecto
 
-App personal **local-first** de productividad: tareas, hábitos con una **granja de animales** como sistema de motivación, notas (con notas privadas cifradas) y calendario. Plataformas: **Windows, Linux y Android**. Interfaz en **español**.
+App personal **local-first** de productividad: tareas, hábitos con una **criatura por hábito** que evoluciona como sistema de motivación, notas (con notas privadas cifradas) y calendario. Plataformas: **Windows, Linux y Android**. Interfaz en **español**. Antes se llamaba **FarmHabit**: los nombres técnicos (`productName` del instalador, repositorio, identificador `io.github.adelledgar.farmhabit`, paquete `@farmhabit/*`, formato `farmhabit-export`, archivos de sincronización) se mantienen a propósito para no romper datos ni actualizaciones. Cambiar `productName` instalaría la app al lado de la antigua (otra carpeta, otro arranque automático) y, al compartir identificador, la antigua abriría una base de datos más nueva y daría error.
 
 El repositorio es **público** (portfolio). Cualquiera puede instalar la app y usarla con sus propios datos: los datos nunca están en el repo.
 
@@ -38,7 +38,7 @@ packages/core/        Núcleo SIN UI ni dependencias de plataforma (lo vigila ES
   src/db/             SqlDriver (interfaz), migraciones, repositorios
   src/domain/         funciones puras: orden de tareas, recurrencias, frecuencias, rachas, avisos
   src/services/       operaciones sobre la BD (completar tarea, registrar hábito, reordenar…)
-  src/game/           motor de la granja + config de reglas (game-rules.ts)
+  src/game/           motor de criaturas (creatures.ts), especies, reglas (creature-rules.ts) y logros
   src/crypto/         envoltorio de libsodium
   src/sync/           formato .agx, migraciones de formato, fusión
   src/util/           reloj monotónico, UUID, fechas locales
@@ -49,12 +49,12 @@ apps/app/             React + src-tauri (Windows, Linux, Android)
   src-tauri/src/db.rs comandos db_select, db_execute y db_transaction
 ```
 
-**Datos en la UI:** `AppProvider` abre la BD, carga todas las colecciones en memoria y calcula la granja con `computeFarm`. Toda escritura pasa por `mutate(fn)`, que ejecuta el cambio, recarga los datos y muestra los errores en un aviso.
+**Datos en la UI:** `AppProvider` abre la BD, carga todas las colecciones en memoria y calcula el juego con `computeGame`. Toda escritura pasa por `mutate(fn)`, que ejecuta el cambio, recarga los datos y muestra los errores en un aviso.
 
 **Rendimiento:**
 
-- **Recarga incremental:** antes de releer, `Database.collectionSignatures()` da una huella por colección (filas y suma de `updated_at`). Solo se releen las colecciones cuya huella cambió, y las demás conservan la misma referencia. La granja se memoriza solo sobre `allHabits`, `habitLogs`, `animals`, `vacations` y `today`: escribir una nota no la recalcula. Referencia medida: 3 años, 15 hábitos y 13.000 registros dan 43 ms la granja y 15 ms las rachas.
-- **Carga bajo demanda:** libsodium se importa dinámicamente en `crypto/sodium.ts`. Notas (TipTap), Calendario, Granja, Ajustes y Estadísticas van con `React.lazy`. La carga inicial pasó de 1,5 MB a unos 530 KB (de 505 a unos 170 KB comprimido).
+- **Recarga incremental:** antes de releer, `Database.collectionSignatures()` da una huella por colección (filas y suma de `updated_at`). Solo se releen las colecciones cuya huella cambió, y las demás conservan la misma referencia. El juego se memoriza solo sobre `allHabits`, `habitLogs`, `tasks`, `taskCompletions`, `purchases`, `vacations` y `today`: escribir una nota no lo recalcula. Referencia medida (con el motor anterior, de coste parecido): 3 años, 15 hábitos y 13.000 registros dan unos 43 ms el motor y 15 ms las rachas.
+- **Carga bajo demanda:** libsodium se importa dinámicamente en `crypto/sodium.ts`. Notas (TipTap), Calendario, Criaturas, Ajustes y Estadísticas van con `React.lazy`. La carga inicial pasó de 1,5 MB a unos 530 KB (de 505 a unos 170 KB comprimido).
 - **Hashes deterministas** en `util/hash.ts`: `fnv1a` (el motor depende de él: no cambiarlo, o cambiarían las muertes pasadas) y `stableRandom`.
 
 **Regla de oro:** el núcleo no importa React, Tauri ni nada del DOM. La plataforma se le inyecta mediante interfaces (`SqlDriver`, almacén de claves, notificador). Así se prueba en Node y se reutiliza tal cual en Android.
@@ -82,7 +82,8 @@ Toda tabla sincronizable tiene: `id` (UUID), `created_at`, `updated_at`, `delete
 - `habit_logs`: id = UUIDv5(hábito + fecha), `date`, `status` (`done`/`skipped`), `value` (cantidad o null). Desmarcar = tombstone.
 - `note_folders`: nombre, `parent_id`, `sort_key`.
 - `notes`: `folder_id`, título, contenido (JSON de TipTap), texto plano para buscar, `tag_ids`, `pinned`, `is_private`, `private_blob`.
-- `animals`: nombre (lo elige el usuario), especie, `acquired_on`, origen (`starter`/`bought`/`born`) y precio. La muerte **no** se guarda: la calcula el motor. Las crías tienen id = UUIDv5(padre + fecha); si el usuario les pone nombre se guarda una fila con ese id.
+- `animals`: de la antigua granja. Se conserva (y viaja en copias y sincronización) pero ya no se usa.
+- Migración 3 (criaturas): `habits` gana `creature_species`, `creature_name`, `creature_background` y `creature_aura` (con valores por defecto en zod para leer datos de versiones anteriores). Tabla `purchases` (sincronizable): `item` (`freeze`, `background:<id>`, `aura:<id>`), `date` y `price`.
 - `vacations`: `start_date`, `end_date`. Solo protegen los días posteriores al día en que se crearon.
 - `settings`: clave y valor (sincronizados). Lo que es solo del dispositivo (p. ej. el tema elegido) va en `meta`.
 - `calendar_sources` (migración 2): calendarios externos de solo lectura. Tienen nombre, tipo (`url` o `file`), `url`, `ics` (solo para los importados, se sincroniza), color y si están visibles.
@@ -138,27 +139,21 @@ Cabecera: `format: "farmhabit-export"`, `formatVersion`, `createdAt`, `deviceId`
 - Tests: parámetros bajos de Argon2id inyectados para que vayan rápidos, y un test que verifica que producción usa los parámetros fuertes.
 - La app abre sin contraseña; solo las notas privadas piden desbloqueo. La protección del disco es del sistema (BitLocker o similar).
 
-## Reglas del juego (granja)
+## Reglas del juego (criaturas)
 
-El estado de la granja **no se guarda: se calcula** a partir de los registros de hábitos (más las compras y los nombres de los animales, que sí son datos). Todos los números viven en `packages/core/src/game/game-rules.ts` para poder ajustarlos sin tocar la lógica.
+Diseño completo en `docs/superpowers/specs/2026-11-03-chambea-criaturas-design.md`. El estado del juego **no se guarda: se calcula** con `computeGame` (`game/creatures.ts`) a partir de hábitos, registros, tareas, compras y vacaciones. Todos los números viven en `game/creature-rules.ts`. El motor recorre los días desde el primer dato hasta hoy; **los días anteriores a hoy están cerrados** y hoy es provisional: suma, pero no resta ni hace retroceder. El resultado no depende del orden de los datos (test con fast-check).
 
-El motor (`game/engine.ts`, `computeFarm`) recorre los días desde el primer hábito o animal hasta hoy. **Los días anteriores a hoy están cerrados**; hoy es provisional: suma los puntos de lo hecho, pero no penaliza ni cambia bienestar, salud o animales. El resultado no depende del orden de los datos.
-
-- **Puntos:** si haces el hábito, `+10 × effort`; si no lo haces, `−10 × (6 − effort)` (fallar lo fácil penaliza más). "Saltado" y los días no programados son neutros. Las cantidades dan puntos y penalización proporcionales. Bonus de racha de +5 % por semana, hasta +50 %.
-- **Frecuencias flexibles** (N veces por semana o mes): hacerlo suma ese día; lo que falte del objetivo se penaliza al cerrar el periodo (domingo o fin de mes). Un día saltado cuenta para el objetivo.
-- **XP:** suma solo lo ganado y nunca baja. Nivel n a partir de `100·n·(n−1)` XP. **Grano:** lo ganado menos penalizaciones y compras, nunca por debajo de 0.
-- **Bienestar (0–100, empieza en 80):** depende del **cumplimiento del día** = puntos conseguidos / puntos posibles (sin bonus) de los hábitos que tocan y no se saltaron.
-  - Menos del 40 %: −15. Entre 40 y 69 %: −5. Entre 70 y 89 %: +8. 90 % o más: +12.
-  - Si no se hicieron al menos 3 hábitos (o todos, si tocaban menos), un día con un 70 % o más cuenta como −5 y no es "bueno".
-  - Un día sin hábitos que cuenten no cambia el bienestar.
-- **Enfermedad y muerte:** por debajo del 30 % los animales enferman. Al tercer día seguido por debajo del 30 % muere un animal (elegido de forma determinista) **para siempre** y el contador vuelve a 0. `deathWarning` da el animal y los días que le quedan.
-- **Curación:** 2 días buenos seguidos y el bienestar en el 30 % o más.
-- **Crías:** 7 días seguidos con bienestar de 70 o más y sin enfermedad hacen nacer una cría de la especie de un padre, si cabe (capacidad `4 + 2·nivel`).
-- **Contra las trampas:** los hábitos con menos de 7 días no cuentan para el cumplimiento (sí dan puntos). Borrar o archivar un hábito no borra las penalizaciones pasadas. Cambiar el esfuerzo solo afecta a partir del cambio. Solo se puede registrar hoy y ayer (`setHabitLog` → `ClosedDayError`).
-- **Modo vacaciones:** solo protege los días posteriores al día en que se creó. Esos días no hay penalizaciones ni cambios de bienestar o salud. `scheduleVacation` exige empezar como pronto mañana, un máximo de 30 días y que no se solape con otras. `endVacation` borra las futuras y acorta las que están en curso hasta ayer, así cancelar no quita la protección de días ya cerrados.
-- **Tienda** (`services/farm.ts`): comprar exige la especie desbloqueada (`speciesUnlockLevel`), grano suficiente y sitio (`capacity(level)`). El motor descuenta el precio el día de la compra.
-- **Logros** (`game/achievements.ts`): se calculan desde los datos (no se guardan), igual que la granja.
-- **Gráficos:** la escena (`FarmScene.tsx`) es SVG propio con los animales como emojis animados con CSS. No hay recursos de terceros, así que no hace falta atribución. El tiempo refleja el estado: sol si están contentos, nubes si están tristes, lluvia si están enfermos.
+- **Especies** (`game/species.ts`): 16, mezcla de figuras históricas o mitológicas de dominio público y criaturas originales. Nada de personas fallecidas hace menos de un siglo ni personajes con derechos. Un hábito sin especie usa `defaultSpecies(id)` (determinista, de nivel 1).
+- **XP de cada criatura:** hacer el hábito da `round(ratio × (10 + 5 × esfuerzo) × bonus de racha)` (+5 % por semana seguida, máx. +50 %); fallar un día cerrado resta `round((1 − ratio) × 5 × (6 − esfuerzo))`. Saltado, no programado, vacaciones y días protegidos por comodín son neutros. Flexibles: lo que falte del objetivo resta al cerrar la semana o el mes. Nunca por debajo de 0.
+- **Etapas:** 0 huevo, 1 bebé (50 XP), 2 joven (500), 3 adulto (1.500), 4 leyenda (4.000). Sube al llegar al umbral; **baja solo por debajo del 80 %** del umbral de su etapa. `history` guarda eclosiones, evoluciones y retrocesos.
+- **Ánimo:** cumplimiento medio de los últimos 7 días programados y cerrados: ≥ 80 % feliz, ≥ 50 % normal, ≥ 20 % cansada, menos triste; con menos de 3 días, normal. `alerts` = criaturas tristes con su hábito pendiente hoy (aviso de las 20:00).
+- **Entrenador:** XP = suma de lo **ganado** por todas las criaturas (nunca baja; incluye hábitos borrados y archivados). Nivel n desde `100·n·(n−1)`. Desbloquea 6 especies de inicio y 2 más por nivel (todas en el 6).
+- **Pesetas:** hábito hecho = `round(ratio × esfuerzo)`; tarea completada = 3/2/1 por prioridad alta/media/baja si se creó un día antes o más, con tope de 15 al día; logros = su premio. Las compras restan al final del día de su fecha. Nunca por debajo de 0 (compras simultáneas desde dos dispositivos: se queda en 0 y lo comprado sigue comprado).
+- **Tienda** (`services/shop.ts`, `buyItem`): comodín 50 (máximo 2 guardados), fondos 150, auras 200. Un comodín se gasta solo el primer día cerrado posterior a la compra con algún fallo: ese día es neutro para todas las criaturas.
+- **Logros** (`game/creature-achievements.ts`): se cumplen el día en que se da la condición y dan su premio en pesetas.
+- **Contra las trampas:** solo se registra hoy y ayer (`setHabitLog` → `ClosedDayError`); borrar o archivar un hábito no quita lo ganado ni las penalizaciones pasadas; cambiar el esfuerzo solo afecta desde el cambio.
+- **Vacaciones:** solo protegen los días posteriores a su creación. `scheduleVacation` exige empezar como pronto mañana, máximo 30 días y sin solaparse; `endVacation` borra las futuras y acorta las que están en curso hasta ayer.
+- **App:** sección **Criaturas** (`features/creatures/`: equipo, colección, tienda, logros y ficha). Imágenes en `apps/app/src/assets/criaturas/` (WebP generados por `pnpm criaturas` desde `art/criaturas/`, que no se versiona; prompt en `docs/arte/prompt-imagenes.md`); sin imagen, `CreatureImage` muestra el emoji de la especie. Ánimo y auras son CSS. La celebración de eclosiones y evoluciones se muestra una vez por dispositivo (`meta` `creatures:seen:<habitId>`).
 
 ## Calendario (Fase 7)
 
@@ -193,6 +188,7 @@ El motor (`game/engine.ts`, `computeFarm`) recorre los días desde el primer há
 6. Granja visual (escena, tienda, logros, vacaciones, cementerio), notas privadas, estadísticas y temas editables. ✅
 7. Calendario y suscripciones `.ics` (p. ej. el calendario de la universidad). ✅
 8. Publicación: versión 1.0.0, README con capturas, CHANGELOG, Release automática y demo web en GitHub Pages. ✅
+9. 2.0: criaturas en lugar de la granja, tienda con pesetas, nombre ¡Chambea!, actualizaciones automáticas y vistas del calendario. ✅
 
 ## Publicación (Fase 8)
 

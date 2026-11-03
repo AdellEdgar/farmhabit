@@ -1,13 +1,13 @@
 # Añadir otros calendarios (universidad, Google, Outlook…)
 
-FarmHabit puede mostrar en su **Calendario** y en **Hoy** los eventos de otros calendarios, junto a tus tareas. Solo los lee: nunca cambia nada en ellos.
+Chambea puede mostrar en su **Calendario** y en **Hoy** los eventos de otros calendarios, junto a tus tareas. Solo los lee: nunca cambia nada en ellos.
 
 Hay dos formas de añadirlos, desde **Calendario → Calendarios**:
 
-| Forma                                     | Cuándo usarla                                                                                                           |
-| ----------------------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
-| **Suscribirse a un enlace** (recomendado) | El calendario cambia a menudo, como los horarios y exámenes de la universidad. FarmHabit lo descarga solo cada 6 horas. |
-| **Importar un archivo `.ics`**            | Solo tienes el archivo, o es algo que no cambia. Es una foto fija: si cambia, hay que volver a importarlo.              |
+| Forma                                     | Cuándo usarla                                                                                                         |
+| ----------------------------------------- | --------------------------------------------------------------------------------------------------------------------- |
+| **Suscribirse a un enlace** (recomendado) | El calendario cambia a menudo, como los horarios y exámenes de la universidad. Chambea lo descarga solo cada 6 horas. |
+| **Importar un archivo `.ics`**            | Solo tienes el archivo, o es algo que no cambia. Es una foto fija: si cambia, hay que volver a importarlo.            |
 
 Los dos usan el formato estándar **iCalendar** (`.ics`), que exportan casi todos los calendarios.
 
@@ -36,10 +36,10 @@ Los dos usan el formato estándar **iCalendar** (`.ics`), que exportan casi todo
 ### Apple Calendar (iCloud)
 
 1. En el Mac o en <https://www.icloud.com/calendar>, pulsa el icono de compartir del calendario.
-2. Activa **Calendario público** y copia el enlace (empieza por `webcal://`; FarmHabit lo acepta tal cual).
+2. Activa **Calendario público** y copia el enlace (empieza por `webcal://`; Chambea lo acepta tal cual).
 
 ## Privacidad
 
-- El enlace se guarda en tus datos de FarmHabit y se sincroniza cifrado con tus otros dispositivos, que descargan el calendario por su cuenta.
+- El enlace se guarda en tus datos de Chambea y se sincroniza cifrado con tus otros dispositivos, que descargan el calendario por su cuenta.
 - Lo descargado se guarda solo en cada dispositivo y no viaja en las copias de seguridad.
 - Solo se aceptan enlaces `https://` o `webcal://`.

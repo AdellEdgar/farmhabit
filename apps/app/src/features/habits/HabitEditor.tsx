@@ -4,11 +4,17 @@ import {
   changeHabitConfig,
   createHabit,
   currentConfig,
+  setHabitArchived,
+  SPECIES,
+  speciesById,
+  suggestSpecies,
   type Habit,
   type HabitConfig,
   type HabitReminder,
   type HabitSchedule,
+  type SpeciesId,
 } from '@farmhabit/core';
+import { CreatureImage } from '../creatures/CreatureImage';
 import { useApp } from '../../lib/use-app';
 import { WEEKDAYS } from '../../lib/format';
 import { cx } from '../../lib/cx';
@@ -23,24 +29,22 @@ import {
   Select,
   Textarea,
 } from '../../components/ui';
-import {
-  EFFORT_LABELS,
-  HABIT_COLORS,
-  HABIT_ICONS,
-  penaltyFor,
-  rewardFor,
-  sameConfig,
-} from './habit-meta';
+import { EFFORT_LABELS, HABIT_COLORS, penaltyFor, rewardFor, sameConfig } from './habit-meta';
 
 type ScheduleType = HabitSchedule['type'];
 
 export function HabitEditor({ habit, onClose }: { habit: Habit | null; onClose: () => void }) {
-  const { mutate, today, now } = useApp();
+  const { mutate, today, game } = useApp();
   const cfg = habit ? currentConfig(habit) : null;
 
   const [name, setName] = useState(habit?.name ?? '');
   const [description, setDescription] = useState(habit?.description ?? '');
-  const [icon, setIcon] = useState(habit?.icon || HABIT_ICONS[0]!);
+  // Especie elegida a mano; si no, se sugiere según el nombre del hábito.
+  const [picked, setPicked] = useState<SpeciesId | null>(
+    (speciesById(habit?.creatureSpecies ?? '')?.id as SpeciesId | undefined) ?? null,
+  );
+  const [creatureName, setCreatureName] = useState(habit?.creatureName ?? '');
+  const species = picked ?? suggestSpecies(name, game.unlockedSpecies);
   const [color, setColor] = useState(habit?.color || HABIT_COLORS[0]!);
   const [effort, setEffort] = useState(cfg?.effort ?? 3);
   const [type, setType] = useState<ScheduleType>(cfg?.schedule.type ?? 'daily');
@@ -85,7 +89,16 @@ export function HabitEditor({ habit, onClose }: { habit: Habit | null; onClose: 
   const save = async () => {
     if (!name.trim()) return;
     const config = { effort, schedule: schedule(), target: target() };
-    const base = { name: name.trim(), description, icon, color, reminders };
+    const base = {
+      name: name.trim(),
+      description,
+      // El emoji de la especie sigue sirviendo de icono en los avisos.
+      icon: speciesById(species)!.emoji,
+      color,
+      reminders,
+      creatureSpecies: species,
+      creatureName: creatureName.trim().slice(0, 50),
+    };
     const ok = await mutate(async (db) => {
       if (!habit) return createHabit(db, { ...base, startDate, config });
       const updated = await db.repo('habits').update(habit.id, base);
@@ -98,9 +111,7 @@ export function HabitEditor({ habit, onClose }: { habit: Habit | null; onClose: 
 
   const archive = async () => {
     if (!habit) return;
-    await mutate((db) =>
-      db.repo('habits').update(habit.id, { archivedAt: habit.archivedAt ? null : now }),
-    );
+    await mutate((db) => setHabitArchived(db, habit.id, habit.archivedAt === null, today));
     onClose();
   };
 
@@ -145,7 +156,7 @@ export function HabitEditor({ habit, onClose }: { habit: Habit | null; onClose: 
           <p className="font-medium text-peligro">¿Borrar «{habit?.name}»?</p>
           <p className="text-texto-suave">
             Desaparecerá de tu lista, pero las penalizaciones de los días ya cerrados se mantienen
-            en la granja. Si solo quieres dejarlo por un tiempo, mejor archívalo.
+            en su criatura. Si solo quieres dejarlo por un tiempo, mejor archívalo.
           </p>
           <div className="flex gap-2">
             <Button variant="danger" onClick={remove}>
@@ -159,13 +170,7 @@ export function HabitEditor({ habit, onClose }: { habit: Habit | null; onClose: 
       ) : null}
 
       <div className="flex gap-3">
-        <span
-          className="grid size-12 shrink-0 place-items-center rounded-xl text-2xl"
-          style={{ background: `${color}26` }}
-          aria-hidden="true"
-        >
-          {icon}
-        </span>
+        <CreatureImage species={species} stage={1} px={48} />
         <Input
           autoFocus
           placeholder="Nombre del hábito"
@@ -176,25 +181,55 @@ export function HabitEditor({ habit, onClose }: { habit: Habit | null; onClose: 
         />
       </div>
 
-      <Field label="Icono y color">
-        <div className="flex flex-wrap gap-1.5">
-          {HABIT_ICONS.map((i) => (
-            <button
-              key={i}
-              type="button"
-              onClick={() => setIcon(i)}
-              aria-label={`Icono ${i}`}
-              aria-pressed={icon === i}
-              className={cx(
-                'grid size-9 place-items-center rounded-lg text-lg transition',
-                icon === i ? 'bg-acento-suave ring-2 ring-acento' : 'hover:bg-elevado',
-              )}
-            >
-              {i}
-            </button>
-          ))}
+      <Field
+        label="Criatura"
+        hint={
+          !picked
+            ? 'Te sugerimos una según el nombre; elige la que quieras. Las bloqueadas se consiguen subiendo de nivel.'
+            : undefined
+        }
+      >
+        {habit && !habit.creatureSpecies && (
+          <p className="mb-2 rounded-xl bg-aviso/10 px-3 py-2 text-sm text-aviso">
+            Este hábito aún no tiene criatura elegida: elige su especie.
+          </p>
+        )}
+        <div className="grid grid-cols-4 gap-2 sm:grid-cols-8">
+          {SPECIES.map((sp) => {
+            const locked = !game.unlockedSpecies.includes(sp.id);
+            return (
+              <button
+                key={sp.id}
+                type="button"
+                disabled={locked}
+                onClick={() => setPicked(sp.id)}
+                title={locked ? `${sp.name} (nivel ${sp.unlockLevel})` : sp.name}
+                aria-label={sp.name}
+                aria-pressed={species === sp.id}
+                className={cx(
+                  'grid place-items-center rounded-xl border p-1 transition disabled:opacity-30',
+                  species === sp.id
+                    ? 'border-acento bg-acento-suave'
+                    : 'border-borde hover:border-texto-suave',
+                )}
+              >
+                <CreatureImage species={sp.id} stage={1} px={40} />
+              </button>
+            );
+          })}
         </div>
-        <div className="mt-2 flex gap-2">
+        <Input
+          className="mt-2"
+          placeholder={`Nombre de la criatura (por defecto, ${speciesById(species)!.name})`}
+          value={creatureName}
+          maxLength={50}
+          onChange={(e) => setCreatureName(e.target.value)}
+          aria-label="Nombre de la criatura"
+        />
+      </Field>
+
+      <Field label="Color">
+        <div className="flex gap-2">
           {HABIT_COLORS.map((c) => (
             <button
               key={c}
@@ -213,12 +248,12 @@ export function HabitEditor({ habit, onClose }: { habit: Habit | null; onClose: 
       </Field>
 
       <Field
-        label="Importancia para tu granja"
+        label="Esfuerzo"
         hint={
           <>
-            Si lo haces: <b className="text-acento">+{rewardFor(effort)}</b> puntos. Si no:{' '}
-            <b className="text-peligro">−{penaltyFor(effort)}</b>. Fallar un hábito fácil penaliza
-            más.
+            Si lo haces: <b className="text-acento">+{rewardFor(effort)}</b> XP para su criatura. Si
+            no: <b className="text-peligro">−{penaltyFor(effort)}</b>. Fallar un hábito fácil
+            penaliza más.
           </>
         }
       >
@@ -383,7 +418,7 @@ export function HabitEditor({ habit, onClose }: { habit: Habit | null; onClose: 
       {!habit && (
         <Field
           label="Empieza el"
-          hint="Los primeros 7 días no cuentan para recuperar el bienestar de la granja."
+          hint="Su criatura empieza a contar desde ese día: los días sin hacerlo a partir de entonces le quitan XP."
         >
           <Input
             type="date"

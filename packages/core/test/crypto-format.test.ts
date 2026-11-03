@@ -225,3 +225,15 @@ describe('parámetros de producción', () => {
     expect(k1).not.toEqual(k3);
   });
 });
+
+describe('compras en las copias', () => {
+  it('las compras viajan en la copia', async () => {
+    const { db } = await openTestDb();
+    await db.repo('purchases').create({ item: 'freeze', date: '2026-10-24', price: 50 });
+    const bytes = await exportDatabase(db, PASSWORD, { kdf: TEST_KDF });
+    const { payload } = await decodeExport(bytes, PASSWORD);
+    expect(payload.collections.purchases).toEqual([
+      expect.objectContaining({ item: 'freeze', price: 50 }),
+    ]);
+  });
+});

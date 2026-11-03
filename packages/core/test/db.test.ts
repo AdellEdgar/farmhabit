@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { Database, NotFoundError } from '../src/db/database';
-import { getSchemaVersion, LATEST_SCHEMA_VERSION, migrate } from '../src/db/migrations';
+import { getSchemaVersion, LATEST_SCHEMA_VERSION, migrate, MIGRATIONS } from '../src/db/migrations';
 import type { Migration } from '../src/db/migrations';
 import { NodeSqliteDriver } from './helpers/node-sqlite-driver';
 import { noon, openTestDb } from './helpers/fixtures';
@@ -158,5 +158,47 @@ describe('base de datos', () => {
       ]),
     ).rejects.toThrow();
     expect(await driver.select(`SELECT * FROM meta WHERE key = 'x'`)).toHaveLength(0);
+  });
+});
+
+describe('migración 3: criaturas', () => {
+  it('conserva hábitos y animales y añade los campos de criatura y las compras', async () => {
+    const driver = new NodeSqliteDriver();
+    await migrate(driver, MIGRATIONS.slice(0, 2));
+    await driver.execute(
+      `INSERT INTO habits (id, created_at, updated_at, deleted_at, name, description, icon, color,
+         sort_key, start_date, config_history, reminders, archived_at)
+       VALUES ('h1', 1, 1, NULL, 'Leer', '', '', '', 'V', '2026-01-01',
+         '[{"since":"2026-01-01","effort":3,"schedule":{"type":"daily"},"target":null}]', '[]', NULL)`,
+    );
+    await driver.execute(
+      `INSERT INTO animals (id, created_at, updated_at, deleted_at, name, species, acquired_on, source, price)
+       VALUES ('a1', 1, 1, NULL, 'Lola', 'chicken', '2026-01-01', 'starter', 0)`,
+    );
+    const db = await Database.open(driver);
+    const habit = await db.repo('habits').get('h1');
+    expect(habit).toMatchObject({
+      name: 'Leer',
+      creatureSpecies: null,
+      creatureName: '',
+      creatureBackground: null,
+      creatureAura: null,
+    });
+    expect(await db.repo('animals').get('a1')).toMatchObject({ name: 'Lola' });
+    expect(await db.repo('purchases').list()).toEqual([]);
+  });
+
+  it('guarda y lee compras', async () => {
+    const { db } = await openTestDb();
+    const p = await db
+      .repo('purchases')
+      .create({ item: 'background:playa', date: '2026-10-24', price: 150 });
+    expect(await db.repo('purchases').get(p.id)).toMatchObject({
+      item: 'background:playa',
+      price: 150,
+    });
+    await expect(
+      db.repo('purchases').create({ item: 'sombrero', date: '2026-10-24', price: 1 }),
+    ).rejects.toThrow();
   });
 });

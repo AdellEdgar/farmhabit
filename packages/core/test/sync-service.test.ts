@@ -1,7 +1,10 @@
 import { describe, expect, it } from 'vitest';
 import { DecryptionError } from '../src/crypto/sodium';
 import { createHabit, setHabitLog } from '../src/services/habits';
-import { exportDatabase, importIntoDatabase } from '../src/sync/service';
+import { emptyDataset } from '../src/model/collections';
+import type { Habit } from '../src/model/types';
+import type { ExportPayload } from '../src/sync/format';
+import { exportDatabase, importIntoDatabase, mergeIntoDatabase } from '../src/sync/service';
 import { makeTask, noon, openTestDb, TEST_KDF } from './helpers/fixtures';
 
 const PASSWORD = 'contraseña maestra larga';
@@ -90,5 +93,68 @@ describe('exportar e importar entre dos dispositivos', () => {
       DecryptionError,
     );
     expect(await mobile.db.repo('tasks').list()).toEqual([]);
+  });
+});
+
+describe('datos de una versión anterior (sin criaturas)', () => {
+  /** Lo que sube un dispositivo con la versión 1: el hábito sin los campos de criatura. */
+  async function setup() {
+    const { db } = await openTestDb(noon('2026-10-24'));
+    const h = await createHabit(db, {
+      name: 'Leer',
+      startDate: '2026-10-01',
+      config: { effort: 3, schedule: { type: 'daily' }, target: null },
+      creatureSpecies: 'medusa',
+      creatureName: 'Mery',
+    });
+    const withAura = await db.repo('habits').update(h.id, {
+      creatureAura: 'dorada',
+      creatureBackground: 'playa',
+    });
+    const old: Habit = {
+      ...withAura,
+      creatureSpecies: null,
+      creatureName: '',
+      creatureBackground: null,
+      creatureAura: null,
+    };
+    const payload = (habit: Habit, schemaVersion: number): ExportPayload => ({
+      formatVersion: 1,
+      schemaVersion,
+      exportedAt: noon('2026-10-24'),
+      sourceDeviceId: 'otro-dispositivo',
+      collections: { ...emptyDataset(), habits: [habit] },
+      privateVault: null,
+    });
+    return { db, habit: withAura, old, payload };
+  }
+
+  it('el eco de una versión antigua (misma fecha) no borra la criatura', async () => {
+    const { db, habit, old, payload } = await setup();
+    await mergeIntoDatabase(db, payload(old, 2));
+    expect(await db.repo('habits').get(habit.id)).toMatchObject({
+      creatureSpecies: 'medusa',
+      creatureName: 'Mery',
+      creatureAura: 'dorada',
+      creatureBackground: 'playa',
+    });
+  });
+
+  it('una edición desde una versión antigua conserva la criatura', async () => {
+    const { db, habit, old, payload } = await setup();
+    const edited = { ...old, name: 'Leer 30 min', updatedAt: habit.updatedAt + 1000 };
+    await mergeIntoDatabase(db, payload(edited, 2));
+    expect(await db.repo('habits').get(habit.id)).toMatchObject({
+      name: 'Leer 30 min',
+      creatureSpecies: 'medusa',
+      creatureAura: 'dorada',
+    });
+  });
+
+  it('desde la versión actual, quitar el aura sí se respeta', async () => {
+    const { db, habit, payload } = await setup();
+    const edited = { ...habit, creatureAura: null, updatedAt: habit.updatedAt + 1000 };
+    await mergeIntoDatabase(db, payload(edited, 3));
+    expect((await db.repo('habits').get(habit.id))?.creatureAura).toBeNull();
   });
 });

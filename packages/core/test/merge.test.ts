@@ -1,6 +1,6 @@
 import fc from 'fast-check';
 import { describe, expect, it } from 'vitest';
-import { emptyDataset } from '../src/model/collections';
+import { COLLECTIONS, emptyDataset } from '../src/model/collections';
 import type { Dataset } from '../src/model/collections';
 import type { SyncEntity, Tag } from '../src/model/types';
 import {
@@ -215,5 +215,18 @@ describe('propiedades de la fusión', () => {
         expect(applied).toEqual(merge(local, remote));
       }),
     );
+  });
+});
+
+describe('criaturas en datos de otras versiones', () => {
+  it('un hábito sin campos de criatura (versión antigua) se lee con valores por defecto', () => {
+    const { creatureSpecies, creatureName, creatureBackground, creatureAura, ...old } = makeHabit();
+    void [creatureSpecies, creatureName, creatureBackground, creatureAura];
+    expect(COLLECTIONS.habits.parse(old)).toMatchObject({
+      creatureSpecies: null,
+      creatureName: '',
+      creatureBackground: null,
+      creatureAura: null,
+    });
   });
 });

@@ -48,7 +48,7 @@ export function UpdateBanner() {
     return (
       <div className="border-b border-borde bg-acento-suave px-4 py-2 text-sm">
         <p>
-          Descargando FarmHabit {update.update.version}
+          Descargando Chambea {update.update.version}
           {update.progress !== null && ` (${Math.round(update.progress * 100)} %)`}… La app se
           reiniciará sola.
         </p>
@@ -69,7 +69,7 @@ export function UpdateBanner() {
           <span className="text-peligro">{update.message}</span>
         ) : (
           <>
-            🐔 <b>FarmHabit {available.version}</b> ya está disponible.
+            🐼 <b>Chambea {available.version}</b> ya está disponible.
           </>
         )}
       </span>

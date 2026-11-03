@@ -4,6 +4,7 @@ import {
   habitReminderInstants,
   habitsDueOn,
   habitStreak,
+  isActiveOn,
   isScheduledOn,
   logRatio,
   withConfigChange,
@@ -14,8 +15,10 @@ import {
   createHabit,
   habitLogId,
   moveHabit,
+  setHabitArchived,
   setHabitLog,
 } from '../src/services/habits';
+import { computeGame } from '../src/game/creatures';
 import { compareSortKey } from '../src/util/fractional-index';
 import { addDays, localDateTimeToEpoch } from '../src/util/dates';
 import { makeHabit, makeLog, noon, openTestDb } from './helpers/fixtures';
@@ -255,5 +258,61 @@ describe('servicio de hábitos', () => {
       ['2026-10-01', 4],
       ['2026-10-25', 5],
     ]);
+  });
+});
+
+describe('criatura del hábito', () => {
+  it('createHabit guarda la especie y el nombre de la criatura', async () => {
+    const { db } = await openTestDb(noon(TODAY));
+    const h = await createHabit(db, {
+      name: 'Leer',
+      startDate: TODAY,
+      config: { effort: 3, schedule: { type: 'daily' }, target: null },
+      creatureSpecies: 'tortuga',
+      creatureName: 'Tortuguita',
+    });
+    expect(await db.repo('habits').get(h.id)).toMatchObject({
+      creatureSpecies: 'tortuga',
+      creatureName: 'Tortuguita',
+    });
+  });
+});
+
+describe('archivar y reactivar', () => {
+  it('reactivar guarda la pausa y los días archivados no cuentan como fallos', async () => {
+    const { db, clock } = await openTestDb(noon('2026-09-01'));
+    const h = await createHabit(db, {
+      name: 'Leer',
+      startDate: '2026-09-01',
+      config: { effort: 3, schedule: { type: 'daily' }, target: null },
+    });
+    for (const d of ['2026-09-01', '2026-09-02', '2026-09-03']) {
+      clock.set(noon(d));
+      await setHabitLog(db, h.id, d, { status: 'done' }, d);
+    }
+    clock.set(noon('2026-09-04'));
+    await setHabitArchived(db, h.id, true, '2026-09-04');
+    clock.set(noon('2026-09-10'));
+    const back = await setHabitArchived(db, h.id, false, '2026-09-10');
+    expect(back.archivedAt).toBeNull();
+    expect(back.configHistory.at(-1)).toMatchObject({
+      since: '2026-09-10',
+      pausedSince: '2026-09-04',
+    });
+    expect(isActiveOn(back, '2026-09-06')).toBe(false);
+    expect(isActiveOn(back, '2026-09-10')).toBe(true);
+
+    const [logs] = await Promise.all([db.repo('habitLogs').list()]);
+    const game = computeGame({
+      habits: [back],
+      logs,
+      tasks: [],
+      taskCompletions: [],
+      purchases: [],
+      vacations: [],
+      today: '2026-09-11',
+    });
+    // 3 días hechos (+25) y solo el 10 fallado (−15): del 4 al 9 estaba archivado.
+    expect(game.creatures[0]!.xp).toBe(3 * 25 - 15);
   });
 });

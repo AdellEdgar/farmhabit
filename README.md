@@ -1,26 +1,25 @@
-# 🐔 FarmHabit
+# 🐼 ¡Chambea!
 
-**Tareas, hábitos y notas en una sola app, con una granja que depende de ti.**
+**Tareas, hábitos y notas en una sola app, con una criatura para cada hábito que crece contigo.**
 
-FarmHabit es una app de productividad personal _local-first_ para **Windows, Linux y Android**. Cada hábito que cumples hace crecer tu granja; si los descuidas, tus animales enferman… y pueden morir para siempre.
+¡Chambea! es una app de productividad personal _local-first_ para **Windows, Linux y Android**. Cada hábito tiene su criatura: nace de un huevo, evoluciona cuando lo cumples y retrocede si lo descuidas. Hay 16 especies, entre figuras históricas caricaturizadas (Napoleón, Cervantes, Blas de Lezo…) y monstruitos propios.
 
 Tus datos se guardan en tu dispositivo, sin cuentas propias ni servidores. Si quieres usarla en varios dispositivos, se sincronizan cifrados a través de tu Google Drive.
 
 **[▶ Probar la demo en el navegador](https://adelledgar.github.io/farmhabit/)** · **[⬇ Descargar](https://github.com/AdellEdgar/farmhabit/releases/latest)** · Interfaz en español
 
 <p align="center">
-  <img src="docs/screenshots/hoy.png" alt="Pantalla Hoy: agenda, tareas y hábitos del día junto al estado de la granja" width="820">
+  <img src="docs/screenshots/hoy.png" alt="Pantalla Hoy: agenda, tareas y hábitos del día" width="820">
 </p>
 
 <p align="center">
-  <img src="docs/screenshots/granja.png" alt="La granja animada con sus animales" width="404">
   <img src="docs/screenshots/calendario.png" alt="Calendario del mes con clases de la universidad y tareas" width="404">
 </p>
 
 <p align="center">
-  <img src="docs/screenshots/habitos.png" alt="Lista de hábitos con puntos y rachas" width="268">
+  <img src="docs/screenshots/habitos.png" alt="Lista de hábitos con XP y rachas" width="268">
   <img src="docs/screenshots/notas.png" alt="Notas con carpetas y etiquetas" width="268">
-  <img src="docs/screenshots/movil-hoy.png" alt="FarmHabit en el móvil" width="140">
+  <img src="docs/screenshots/movil-hoy.png" alt="¡Chambea! en el móvil" width="140">
 </p>
 
 ## Qué puedes hacer
@@ -35,20 +34,20 @@ Tus datos se guardan en tu dispositivo, sin cuentas propias ni servidores. Si qu
 ### 🔁 Hábitos
 
 - Frecuencias: cada día, días concretos, N veces por semana o por mes, cada N días.
-- Hábitos con **cantidad** (2 L de agua, 8000 pasos) y puntos parciales.
+- Hábitos con **cantidad** (2 L de agua, 8000 pasos) y XP parcial.
 - Marcar como **saltado** (no rompe la racha), rachas y recordatorios configurables.
 - Orden manual por importancia.
 - **Estadísticas:** gráfica de cumplimiento de los últimos 30 días y, por hábito, un calendario coloreado al estilo de GitHub con su racha actual, su mejor racha y su porcentaje.
 
-### 🐔 La granja
+### 🐼 Criaturas
 
-- Cada hábito tiene una **importancia** del 1 al 5. Hacerlo suma `10 × importancia` puntos; no hacerlo resta `10 × (6 − importancia)`. **Fallar lo fácil penaliza más.**
-- La **XP** solo sube y hace crecer la granja de nivel. El **bienestar** sube o baja cada día según cuánto cumples.
-- Con el bienestar bajo, los animales **enferman** y, tras 3 días malos, **mueren** (te avisa antes, con su nombre). Curarlos exige 2 días buenos seguidos.
-- Reglas contra trampas: solo se puede apuntar hoy y ayer, los hábitos recién creados no cuentan para recuperar y borrar un hábito no borra sus penalizaciones.
-- **Modo vacaciones**, activado por adelantado.
-- Una **escena animada** de tu granja: el tiempo cambia con el bienestar (sol, nubes o lluvia) y los animales pasean, o se ven enfermos.
-- **Tienda** para comprar animales con el grano ganado (gallinas, conejos, ovejas… hasta caballos en el nivel 10), **crías** que nacen solas, **logros** y un **cementerio** con los que no sobrevivieron.
+- Cada hábito tiene una **criatura** que eliges entre 16 especies, cada una con 4 etapas: bebé, joven, adulta y leyenda (y el huevo).
+- Hacer el hábito le da **XP** (`10 + 5 × esfuerzo`); fallarlo se la quita (`5 × (6 − esfuerzo)`): **fallar lo fácil castiga más**. Con suficiente XP **evoluciona**; si la descuidas, **retrocede**, pero nunca muere.
+- Su **ánimo** (feliz, normal, cansada, triste) refleja tus últimos días con ese hábito.
+- **Nivel de entrenador** con toda la XP ganada: desbloquea especies.
+- **Pesetas** por hábitos, tareas y logros, para la **tienda**: **comodines** que protegen solos un día malo, **fondos** y **auras**.
+- **Colección** con las 64 etapas por descubrir, **logros** y **modo vacaciones**.
+- Reglas contra trampas: solo se puede apuntar hoy y ayer, las tareas creadas y completadas el mismo día no dan pesetas, y borrar un hábito no borra lo pasado.
 
 ### 📝 Notas
 
@@ -63,11 +62,11 @@ Tus datos se guardan en tu dispositivo, sin cuentas propias ni servidores. Si qu
 
 ### 🎨 Temas
 
-- 7 temas (Noche, Día, Bosque, Océano, Atardecer, Lavanda, Granja), seguir el modo claro/oscuro del sistema o **crear el tuyo** eligiendo 4 colores, con vista previa en directo.
+- 7 temas (Noche, Día, Bosque, Océano, Atardecer, Lavanda, Pradera), seguir el modo claro/oscuro del sistema o **crear el tuyo** eligiendo 4 colores, con vista previa en directo.
 
 ### 🔔 Avisos
 
-- Notificaciones del sistema para tareas, hábitos y la granja.
+- Notificaciones del sistema para tareas, hábitos y criaturas tristes.
 - En escritorio, la app puede quedarse en la **bandeja del sistema** y **arrancar con el ordenador**. En Android, los avisos se programan con antelación.
 
 ### ☁️ Sincronización y copias
@@ -91,7 +90,7 @@ La app se **actualiza sola**: en Windows y Linux instala la versión nueva y se 
 
 ## Privacidad y seguridad
 
-- **Sin servidores propios ni cuentas de FarmHabit.** La base de datos (SQLite) vive en tu dispositivo.
+- **Sin servidores propios ni cuentas.** La base de datos (SQLite) vive en tu dispositivo.
 - **Cifrado con [libsodium](https://doc.libsodium.org/):** Argon2id para derivar claves y XChaCha20-Poly1305 para cifrar. No hay criptografía casera.
 - **La frase secreta y las contraseñas nunca se guardan.** Para sincronizar se guarda solo la clave derivada, en el llavero del sistema (Credential Manager en Windows, Secret Service en Linux).
 - **Acceso mínimo a Google Drive** (`drive.appdata`): solo la carpeta de la app, no el resto de tus archivos.
@@ -116,21 +115,21 @@ La sincronización necesita credenciales de Google propias: sigue [docs/google-d
 ### Arquitectura
 
 ```
-packages/core/   Núcleo en TypeScript, sin interfaz: modelo, SQLite, motor de la granja,
-                 cifrado, formato .agx, fusión y sincronización. ~185 tests (Vitest + fast-check).
+packages/core/   Núcleo en TypeScript, sin interfaz: modelo, SQLite, motor de criaturas,
+                 cifrado, formato .agx, fusión y sincronización. ~200 tests (Vitest + fast-check).
 apps/app/        Interfaz en React 19 + Tailwind 4, empaquetada con Tauri 2.
   src-tauri/     Rust mínimo: SQLite nativo con transacciones atómicas, llavero del sistema,
                  inicio de sesión con Google y bandeja del sistema.
 ```
 
 - **Local-first con fusión determinista:** cada elemento tiene UUID, `updatedAt` y marca de borrado. Al sincronizar gana el cambio más reciente; la fusión es conmutativa, asociativa e idempotente, y lo comprueban tests de propiedades.
-- **La granja se calcula, no se guarda:** el estado sale de reproducir el historial de hábitos día a día, así todos los dispositivos ven exactamente la misma granja.
+- **Las criaturas se calculan, no se guardan:** su estado sale de reproducir el historial día a día, así todos los dispositivos ven exactamente lo mismo y no se puede trucar.
 
 Para publicar una versión nueva: sube la versión en `apps/app/package.json` (y en los demás `package.json` y en `Cargo.toml`), apúntala en el CHANGELOG y crea la etiqueta, por ejemplo `git tag v1.0.1 && git push --tags`. GitHub Actions compila todo, firma las actualizaciones y publica la Release con su `latest.json`: las apps instaladas la detectan solas.
 
 ## Cómo se hizo
 
-FarmHabit lo he construido por fases con un asistente de IA (Claude) como "desarrollador principal": yo decidía el producto, las reglas y las prioridades, revisaba cada fase y hacía los commits. Las decisiones de diseño, el formato del archivo y todas las reglas del juego están en [CLAUDE.md](CLAUDE.md), que también sirve de guía para seguir desarrollándola.
+¡Chambea! (antes FarmHabit) lo he construido por fases con un asistente de IA (Claude) como "desarrollador principal": yo decidía el producto, las reglas y las prioridades, revisaba cada fase y hacía los commits. Las decisiones de diseño, el formato del archivo y todas las reglas del juego están en [CLAUDE.md](CLAUDE.md), que también sirve de guía para seguir desarrollándola.
 
 | Fase | Contenido                                                    |
 | ---- | ------------------------------------------------------------ |
@@ -143,6 +142,7 @@ FarmHabit lo he construido por fases con un asistente de IA (Claude) como "desar
 | 6    | Granja visual, notas privadas, estadísticas y temas          |
 | 7    | Calendario y suscripción a calendarios `.ics`                |
 | 8    | Publicación: versión 1.0.0, Releases y demo web              |
+| 9    | 2.0: criaturas en lugar de la granja y nombre ¡Chambea!      |
 
 ## Licencia
 

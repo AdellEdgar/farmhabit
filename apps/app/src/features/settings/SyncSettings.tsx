@@ -66,7 +66,7 @@ export function SyncSettings() {
             {busy ? 'Completa el inicio de sesión en el navegador…' : 'Conectar con Google Drive'}
           </Button>
           <p className="text-xs text-texto-suave">
-            Se abrirá tu navegador para iniciar sesión. FarmHabit solo pide acceso a su propia
+            Se abrirá tu navegador para iniciar sesión. Chambea solo pide acceso a su propia
             carpeta, no al resto de tu Drive.
           </p>
         </div>

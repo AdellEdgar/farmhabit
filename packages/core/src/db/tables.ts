@@ -51,6 +51,10 @@ export const TABLES: Record<CollectionName, TableSpec> = {
       configHistory: 'json',
       reminders: 'json',
       archivedAt: 'int',
+      creatureSpecies: 'text',
+      creatureName: 'text',
+      creatureBackground: 'text',
+      creatureAura: 'text',
     },
   },
   habitLogs: {
@@ -104,6 +108,10 @@ export const TABLES: Record<CollectionName, TableSpec> = {
       visible: 'bool',
     },
     purgeOnDelete: { url: null, ics: null },
+  },
+  purchases: {
+    table: 'purchases',
+    columns: { ...sync, item: 'text', date: 'text', price: 'int' },
   },
 };
 

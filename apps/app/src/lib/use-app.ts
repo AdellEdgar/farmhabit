@@ -1,9 +1,8 @@
 import { createContext, useContext } from 'react';
 import type {
-  Animal,
   CalendarSource,
   Database,
-  FarmState,
+  GameState,
   Habit,
   HabitLog,
   LocalDate,
@@ -13,22 +12,25 @@ import type {
   Tag,
   Task,
   TaskCompletion,
+  Purchase,
   Vacation,
 } from '@farmhabit/core';
 
 export interface AppData {
   tasks: Task[];
+  /** Incluye borradas: las tareas ya completadas siguen contando pesetas. */
+  allTasks: Task[];
   taskCompletions: TaskCompletion[];
   /** Ajustes sincronizados (caja de notas privadas, temas personalizados…). */
   settings: Setting[];
   tags: Tag[];
-  /** Incluye borrados: el motor de la granja los necesita para el pasado. */
+  /** Incluye borrados: el motor de las criaturas los necesita para el pasado. */
   allHabits: Habit[];
   habits: Habit[];
   habitLogs: HabitLog[];
   notes: Note[];
   noteFolders: NoteFolder[];
-  animals: Animal[];
+  purchases: Purchase[];
   calendarSources: CalendarSource[];
   vacations: Vacation[];
 }
@@ -36,7 +38,7 @@ export interface AppData {
 export interface AppContextValue {
   db: Database;
   data: AppData;
-  farm: FarmState;
+  game: GameState;
   today: LocalDate;
   now: number;
   /** Ejecuta un cambio, recarga los datos y muestra los errores. */

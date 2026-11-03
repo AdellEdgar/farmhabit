@@ -28,7 +28,7 @@ import { dayProgress, describeSchedule } from './habit-meta';
 const HabitStats = lazy(() => import('./HabitStats').then((m) => ({ default: m.HabitStats })));
 
 export function HabitsView() {
-  const { data, farm, today, mutate } = useApp();
+  const { data, game, today, mutate } = useApp();
   const [which, setWhich] = useState<'hoy' | 'ayer' | 'stats'>('hoy');
   const [organize, setOrganize] = useState(false);
   const [editing, setEditing] = useState<Habit | 'new' | null>(null);
@@ -43,8 +43,7 @@ export function HabitsView() {
   const notDue = active.filter((h) => !due.includes(h) && isActiveOn(h, date) && configOn(h, date));
 
   const progress = dayProgress(due, data.habitLogs, date);
-  const earned =
-    (which !== 'ayer' ? farm.todayProgress : farm.days.find((d) => d.date === date))?.earned ?? 0;
+  const earned = game.dailyXp[date] ?? 0;
 
   const move = (index: number, dir: -1 | 1) => {
     const h = active[index]!;
@@ -169,7 +168,7 @@ export function HabitsView() {
             <Card className="p-2">
               {active.length === 0 ? (
                 <EmptyState icon="🌱" title="Aún no tienes hábitos">
-                  Crea tu primer hábito: cada uno que cumplas hará crecer tu granja.
+                  Crea tu primer hábito: cada uno tendrá una criatura que crece cuando lo cumples.
                   <div className="mt-4">
                     <Button variant="primary" onClick={() => setEditing('new')}>
                       <Plus size={16} /> Crear hábito

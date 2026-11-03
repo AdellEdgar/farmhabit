@@ -168,7 +168,7 @@ export const PRESET_THEMES: Theme[] = [
   }),
   buildTheme({
     id: 'granja',
-    name: 'Granja',
+    name: 'Pradera',
     dark: false,
     fondo: '#f6efe2',
     superficie: '#fffaf0',

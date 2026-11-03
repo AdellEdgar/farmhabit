@@ -101,6 +101,20 @@ export const MIGRATIONS: Migration[] = [
         ics TEXT NOT NULL)`,
     ],
   },
+  {
+    version: 3,
+    name: 'criaturas',
+    statements: [
+      `ALTER TABLE habits ADD COLUMN creature_species TEXT`,
+      `ALTER TABLE habits ADD COLUMN creature_name TEXT NOT NULL DEFAULT ''`,
+      `ALTER TABLE habits ADD COLUMN creature_background TEXT`,
+      `ALTER TABLE habits ADD COLUMN creature_aura TEXT`,
+      `CREATE TABLE purchases (${SYNC_COLUMNS},
+        item TEXT NOT NULL,
+        date TEXT NOT NULL,
+        price INTEGER NOT NULL)`,
+    ],
+  },
 ];
 
 export const LATEST_SCHEMA_VERSION = MIGRATIONS[MIGRATIONS.length - 1]!.version;
@@ -122,7 +136,7 @@ export async function migrate(driver: SqlDriver, migrations = MIGRATIONS): Promi
   const latest = migrations[migrations.length - 1]?.version ?? 0;
   if (current > latest) {
     throw new Error(
-      `La base de datos es de una versión más nueva de FarmHabit (esquema ${current}). Actualiza la app.`,
+      `La base de datos es de una versión más nueva de Chambea (esquema ${current}). Actualiza la app.`,
     );
   }
   for (const m of migrations) {

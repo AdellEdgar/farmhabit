@@ -12,10 +12,10 @@ use tauri::State;
 #[derive(Default)]
 pub struct OAuthListener(Mutex<Option<TcpListener>>);
 
-const PAGE: &str = "<!doctype html><html lang=\"es\"><meta charset=\"utf-8\"><title>FarmHabit</title>\
+const PAGE: &str = "<!doctype html><html lang=\"es\"><meta charset=\"utf-8\"><title>Chambea</title>\
 <body style=\"font-family:system-ui;background:#101318;color:#e8ecf1;display:grid;place-items:center;height:100vh;margin:0\">\
-<div style=\"text-align:center\"><p style=\"font-size:48px;margin:0\">🐔</p><h1>Listo</h1>\
-<p>Ya puedes cerrar esta pestaña y volver a FarmHabit.</p></div></body></html>";
+<div style=\"text-align:center\"><p style=\"font-size:48px;margin:0\">🐼</p><h1>Listo</h1>\
+<p>Ya puedes cerrar esta pestaña y volver a Chambea.</p></div></body></html>";
 
 fn err(e: impl std::fmt::Display) -> String {
     e.to_string()

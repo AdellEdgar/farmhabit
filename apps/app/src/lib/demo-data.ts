@@ -8,6 +8,7 @@ import {
   type Database,
   type HabitConfig,
   type NewEntity,
+  type SpeciesId,
 } from '@farmhabit/core';
 import { isDesktopApp } from './drivers';
 
@@ -32,11 +33,15 @@ interface DemoHabit {
   /** Probabilidad de cumplirlo cada día. */
   rate: number;
   reminder?: string;
+  species: SpeciesId;
+  creature: string;
 }
 
 const HABITS: DemoHabit[] = [
   {
     name: 'Hacer ejercicio',
+    species: 'panda',
+    creature: 'Bambú',
     icon: '🏃',
     color: '#e5534b',
     config: { effort: 5, schedule: { type: 'weekdays', days: [1, 3, 5] }, target: null },
@@ -45,6 +50,8 @@ const HABITS: DemoHabit[] = [
   },
   {
     name: 'Leer 20 minutos',
+    species: 'tortuga',
+    creature: 'Lola',
     icon: '📚',
     color: '#5b9cf0',
     config: { effort: 3, schedule: daily, target: null },
@@ -53,6 +60,8 @@ const HABITS: DemoHabit[] = [
   },
   {
     name: 'Beber agua',
+    species: 'poseidon',
+    creature: 'Posi',
     icon: '💧',
     color: '#4fc1c6',
     config: { effort: 2, schedule: daily, target: { quantity: 2, unit: 'L' } },
@@ -60,6 +69,8 @@ const HABITS: DemoHabit[] = [
   },
   {
     name: 'Hacer la cama',
+    species: 'yorkshire',
+    creature: 'Rufo',
     icon: '🛏️',
     color: '#a3a86b',
     config: { effort: 1, schedule: daily, target: null },
@@ -67,6 +78,8 @@ const HABITS: DemoHabit[] = [
   },
   {
     name: 'Meditar',
+    species: 'rana',
+    creature: 'Kero',
     icon: '🧘',
     color: '#b57edc',
     config: { effort: 4, schedule: { type: 'timesPerWeek', times: 3 }, target: null },
@@ -203,9 +216,13 @@ export async function seedDemo(db: Database): Promise<void> {
       configHistory: [{ ...h.config, since: start }],
       reminders: h.reminder ? [{ time: h.reminder, days: [] }] : [],
       archivedAt: null,
+      creatureSpecies: h.species,
+      creatureName: h.creature,
+      creatureBackground: null,
+      creatureAura: null,
     });
     for (let d = start; d < today; d = addDays(d, 1)) {
-      // Más constancia en las últimas semanas: la granja va a mejor.
+      // Más constancia en las últimas semanas: las criaturas van a mejor.
       const boost = d > addDays(today, -21) ? 0.08 : -0.05;
       const r = rand(`${h.name}|${d}`);
       if (r > h.rate + boost) {
@@ -235,17 +252,11 @@ export async function seedDemo(db: Database): Promise<void> {
     }
   }
 
-  // Granja
-  const animal = (
-    name: string,
-    species: 'chicken' | 'rabbit' | 'sheep',
-    acquiredOn: string,
-    source: 'starter' | 'bought',
-    price: number,
-  ) => db.repo('animals').create({ name, species, acquiredOn, source, price });
-  await animal('Copito', 'chicken', start, 'starter', 0);
-  await animal('Pelusa', 'rabbit', addDays(start, 18), 'bought', 80);
-  await animal('Lana', 'sheep', addDays(start, 32), 'bought', 150);
+  // Tienda: un comodín y un fondo comprados por el camino.
+  await db.repo('purchases').create({ item: 'freeze', date: addDays(start, 20), price: 50 });
+  await db
+    .repo('purchases')
+    .create({ item: 'background:biblioteca', date: addDays(start, 40), price: 150 });
 
   // Notas
   const folder = await db

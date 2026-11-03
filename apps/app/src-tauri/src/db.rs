@@ -1,4 +1,4 @@
-// SQLite local de FarmHabit. Expone tres comandos (select, execute y
+// SQLite local de Chambea. Expone tres comandos (select, execute y
 // transaction) que implementan la interfaz SqlDriver del núcleo. Se usa
 // rusqlite con una única conexión protegida por un Mutex: así cada
 // transacción es atómica de verdad (plugin-sql usa un pool y no lo garantiza).

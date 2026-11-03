@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { Database } from '../src/db/database';
-import { getSchemaVersion, migrate, MIGRATIONS } from '../src/db/migrations';
+import { getSchemaVersion, LATEST_SCHEMA_VERSION, migrate, MIGRATIONS } from '../src/db/migrations';
 import { monthGrid, shiftMonth, tasksInRange } from '../src/domain/calendar';
 import {
   addFileCalendar,
@@ -102,7 +102,7 @@ describe('migración 2', () => {
       `INSERT INTO tags (id, created_at, updated_at, deleted_at, name, color) VALUES ('t1', 1, 1, NULL, 'Uni', '#fff')`,
     );
     const db = await Database.open(driver);
-    expect(await getSchemaVersion(driver)).toBe(2);
+    expect(await getSchemaVersion(driver)).toBe(LATEST_SCHEMA_VERSION);
     expect((await db.repo('tags').list()).map((t) => t.name)).toEqual(['Uni']);
     expect(await db.repo('calendarSources').list()).toEqual([]);
   });

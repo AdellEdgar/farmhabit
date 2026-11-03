@@ -190,7 +190,7 @@ export function CalendarSources({ onClose }: { onClose: () => void }) {
       ) : (
         <p className="text-sm text-texto-suave">
           Añade el calendario de tu universidad, de Google o de Outlook para verlo junto a tus
-          tareas. Solo se lee: FarmHabit no cambia nada en él.
+          tareas. Solo se lee: Chambea no cambia nada en él.
         </p>
       )}
 

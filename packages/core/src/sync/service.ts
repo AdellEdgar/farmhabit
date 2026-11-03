@@ -1,4 +1,5 @@
 import type { Database } from '../db/database';
+import type { Dataset } from '../model/collections';
 import { LATEST_SCHEMA_VERSION } from '../db/migrations';
 import type { ExportPayload, FileSecret, FormatOptions } from './format';
 import { decodeExport, encodeExport, InvalidFileError } from './format';
@@ -39,6 +40,34 @@ export async function exportDatabase(
   );
 }
 
+/** Esquema en el que los hábitos ganaron sus campos de criatura. */
+const CREATURE_SCHEMA_VERSION = 3;
+
+/**
+ * Un archivo de una versión anterior a las criaturas trae los hábitos sin sus
+ * campos (al leerlo valen null/''). Sin esto, ese dispositivo borraría la
+ * especie, el nombre, el fondo y el aura de los demás al sincronizar: se
+ * conservan los locales.
+ */
+function keepCreatureFields(local: Dataset, payload: ExportPayload): Dataset {
+  if (payload.schemaVersion >= CREATURE_SCHEMA_VERSION) return payload.collections;
+  const mine = new Map(local.habits.map((h) => [h.id, h]));
+  return {
+    ...payload.collections,
+    habits: payload.collections.habits.map((h) => {
+      const m = mine.get(h.id);
+      if (!m) return h;
+      return {
+        ...h,
+        creatureSpecies: m.creatureSpecies,
+        creatureName: m.creatureName,
+        creatureBackground: m.creatureBackground,
+        creatureAura: m.creatureAura,
+      };
+    }),
+  };
+}
+
 /** Fusiona el contenido de un archivo ya descifrado con los datos locales. */
 export async function mergeIntoDatabase(
   db: Database,
@@ -46,7 +75,8 @@ export async function mergeIntoDatabase(
 ): Promise<MergeReport> {
   const now = db.source.now();
   const lastSync = await db.getMeta(lastSyncKey(payload.sourceDeviceId));
-  const { changes, report } = mergeDatasets(await db.exportDataset(), payload.collections, {
+  const local = await db.exportDataset();
+  const { changes, report } = mergeDatasets(local, keepCreatureFields(local, payload), {
     now,
     lastSyncedAt: lastSync === null ? null : Number(lastSync),
   });

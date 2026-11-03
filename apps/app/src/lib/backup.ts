@@ -7,7 +7,7 @@ import { isDesktopApp } from './drivers';
 // diálogos devuelven rutas content:// que solo él sabe abrir. El diálogo
 // concede acceso únicamente al archivo que elige el usuario.
 
-const FILTERS = [{ name: 'Copia de FarmHabit', extensions: ['agx'] }];
+const FILTERS = [{ name: 'Copia de Chambea', extensions: ['agx'] }];
 const MAX_BYTES = 100 * 1024 * 1024;
 
 export function backupFileName(date: string): string {

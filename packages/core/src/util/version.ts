@@ -1,5 +1,5 @@
 // Comparación de versiones semánticas (https://semver.org/lang/es/), para
-// saber si hay una versión de FarmHabit más reciente que la instalada.
+// saber si hay una versión de Chambea más reciente que la instalada.
 
 interface Parsed {
   core: [number, number, number];

@@ -1,6 +1,6 @@
-// Punto de entrada público del núcleo de FarmHabit.
+// Punto de entrada público del núcleo de ¡Chambea!
 
-export const APP_NAME = 'FarmHabit';
+export const APP_NAME = '¡Chambea!';
 
 export { LATEST_SCHEMA_VERSION as SCHEMA_VERSION } from './db/migrations';
 export { CURRENT_FORMAT_VERSION as EXPORT_FORMAT_VERSION } from './sync/format';
@@ -36,14 +36,17 @@ export * from './domain/calendar';
 // Servicios
 export * from './services/tasks';
 export * from './services/habits';
-export * from './services/farm';
+export * from './services/shop';
 export * from './services/private-notes';
 export * from './services/calendar';
 
-// Granja
-export * from './game/game-rules';
-export * from './game/engine';
-export * from './game/achievements';
+// Criaturas
+export * from './game/species';
+export * from './game/creature-rules';
+export * from './game/creatures';
+export * from './game/vacations';
+export * from './game/creature-achievements';
+export * from './game/celebrations';
 
 // Cifrado, formato y sincronización
 export { DecryptionError, PRODUCTION_KDF } from './crypto/sodium';

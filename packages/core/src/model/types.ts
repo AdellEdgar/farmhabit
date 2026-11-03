@@ -18,6 +18,7 @@ import type {
   taskReminderSchema,
   taskSchema,
   vacationSchema,
+  purchaseSchema,
 } from './schemas';
 
 export type Tag = z.infer<typeof tagSchema>;
@@ -36,6 +37,7 @@ export type Note = z.infer<typeof noteSchema>;
 export type Species = z.infer<typeof speciesSchema>;
 export type Animal = z.infer<typeof animalSchema>;
 export type Vacation = z.infer<typeof vacationSchema>;
+export type Purchase = z.infer<typeof purchaseSchema>;
 export type Setting = z.infer<typeof settingSchema>;
 export type CalendarSource = z.infer<typeof calendarSourceSchema>;
 

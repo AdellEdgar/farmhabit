@@ -33,6 +33,13 @@ export function isActiveOn(habit: Habit, date: LocalDate): boolean {
   if (date < habit.startDate) return false;
   if (habit.archivedAt !== null && date >= localDateOf(habit.archivedAt)) return false;
   if (habit.deletedAt !== null && date >= localDateOf(habit.deletedAt)) return false;
+  // Días en que estuvo archivado antes de reactivarlo.
+  if (
+    habit.configHistory.some(
+      (c) => c.pausedSince !== undefined && c.pausedSince <= date && date < c.since,
+    )
+  )
+    return false;
   return true;
 }
 

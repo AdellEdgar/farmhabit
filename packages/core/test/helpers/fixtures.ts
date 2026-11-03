@@ -65,6 +65,10 @@ export function makeHabit(
     ],
     reminders: [],
     archivedAt: null,
+    creatureSpecies: null,
+    creatureName: '',
+    creatureBackground: null,
+    creatureAura: null,
     ...rest,
   };
 }

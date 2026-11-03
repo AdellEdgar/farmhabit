@@ -25,7 +25,7 @@ export class NotFoundError extends Error {
 }
 
 /**
- * Base de datos local de FarmHabit. Aplica migraciones al abrir, gestiona el
+ * Base de datos local de Chambea. Aplica migraciones al abrir, gestiona el
  * deviceId y el reloj monotónico, y ofrece un repositorio por colección.
  */
 export class Database {

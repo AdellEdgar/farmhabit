@@ -5,7 +5,7 @@ import type { RemoteFile, RemoteStore } from '@farmhabit/core';
 import { deleteSecret, getSecret, SECRET_KEYS, setSecret } from './secrets';
 
 // Google Drive como almacenamiento de la sincronización. Se usa la carpeta
-// oculta de la app (appDataFolder): solo FarmHabit la ve, no aparece en tu
+// oculta de la app (appDataFolder): solo Chambea la ve, no aparece en tu
 // Drive y no da acceso al resto de tus archivos. Todo lo que se sube va cifrado.
 //
 // Inicio de sesión: OAuth 2.0 para apps instaladas con PKCE y redirección a
@@ -168,7 +168,7 @@ async function driveFetch(url: string, init: RequestInit = {}): Promise<Response
 }
 
 const MISSING_PERMISSION =
-  'Google no dio permiso para la carpeta de FarmHabit. Desconecta, vuelve a conectar y, en la pantalla de Google, marca la casilla de acceso a Drive.';
+  'Google no dio permiso para la carpeta de Chambea. Desconecta, vuelve a conectar y, en la pantalla de Google, marca la casilla de acceso a Drive.';
 
 /** Mensaje entendible a partir de la respuesta de error de la API de Drive. */
 async function describeDriveError(res: Response): Promise<string> {
@@ -196,7 +196,7 @@ interface DriveFile {
   modifiedTime: string;
 }
 
-/** Carpeta oculta de FarmHabit en Google Drive. */
+/** Carpeta oculta de Chambea en Google Drive. */
 export class DriveStore implements RemoteStore {
   private ids = new Map<string, string>();
 

@@ -4,3 +4,6 @@ coverage/
 target/
 apps/app/src-tauri/gen/
 apps/app/src-tauri/icons/
+
+# Espacio de trabajo local de los planes (no se versiona)
+.superpowers

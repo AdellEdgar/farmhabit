@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { BellRing } from 'lucide-react';
 import { useApp } from '../../lib/use-app';
 import { isDesktopApp } from '../../lib/drivers';
-import { FARM_ALERT_TIME } from '../../lib/reminder-text';
+import { CREATURE_ALERT_TIME } from '../../lib/reminder-text';
 import {
   applyCloseToTray,
   DEFAULT_CLOSE_TO_TRAY,
@@ -45,7 +45,7 @@ export function NotificationSettings() {
       setPermission(p);
       if (p !== 'granted') return toast('No hay permiso para mostrar notificaciones', 'error');
     }
-    await showNotification('🐔 FarmHabit', 'Así se verán tus avisos.');
+    await showNotification('🐼 ¡Chambea!', 'Así se verán tus avisos.');
   };
 
   const toggleEnabled = async (v: boolean) => {
@@ -73,8 +73,8 @@ export function NotificationSettings() {
       <div>
         <h2 className="font-semibold">Avisos</h2>
         <p className="mt-1 text-sm text-texto-suave">
-          Recordatorios de tareas y hábitos, y un aviso a las {FARM_ALERT_TIME} si algún animal está
-          a punto de morir.
+          Recordatorios de tareas y hábitos, y un aviso a las {CREATURE_ALERT_TIME} si alguna
+          criatura está triste y su hábito sigue pendiente.
         </p>
       </div>
 
@@ -110,7 +110,7 @@ export function NotificationSettings() {
             checked={closeToTray}
             onChange={toggleTray}
             label="Seguir en la bandeja al cerrar"
-            description="Al cerrar la ventana, FarmHabit sigue en la bandeja del sistema para avisarte. Para salir del todo: clic derecho en el icono → Salir."
+            description="Al cerrar la ventana, Chambea sigue en la bandeja del sistema para avisarte. Para salir del todo: clic derecho en el icono → Salir."
           />
           <Toggle
             checked={autostart ?? false}

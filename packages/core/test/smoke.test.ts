@@ -3,8 +3,8 @@ import { APP_NAME, EXPORT_FORMAT_VERSION, SCHEMA_VERSION } from '../src/index';
 
 describe('núcleo', () => {
   it('expone el nombre de la app y las versiones', () => {
-    expect(APP_NAME).toBe('FarmHabit');
+    expect(APP_NAME).toBe('¡Chambea!');
     expect(EXPORT_FORMAT_VERSION).toBe(1);
-    expect(SCHEMA_VERSION).toBe(2);
+    expect(SCHEMA_VERSION).toBe(3);
   });
 });

@@ -1,6 +1,6 @@
 import {
   configOn,
-  DEFAULT_RULES,
+  DEFAULT_CREATURE_RULES as RULES,
   habitLogId,
   logRatio,
   type Habit,
@@ -19,24 +19,6 @@ export const EFFORT_LABELS: Record<number, string> = {
   5: 'Máximo',
 };
 
-export const HABIT_ICONS = [
-  '💧',
-  '🏃',
-  '📚',
-  '🛏️',
-  '🧘',
-  '🥗',
-  '💪',
-  '🦷',
-  '💊',
-  '🎸',
-  '✍️',
-  '🧹',
-  '🌱',
-  '😴',
-  '🚶',
-  '🧠',
-];
 export const HABIT_COLORS = [
   '#7cc46b',
   '#5b9cf0',
@@ -48,12 +30,14 @@ export const HABIT_COLORS = [
   '#a3a86b',
 ];
 
+/** XP que gana la criatura al hacer el hábito (sin bonus de racha). */
 export function rewardFor(effort: number): number {
-  return DEFAULT_RULES.pointsPerEffort * effort;
+  return RULES.xpBase + RULES.xpPerEffort * effort;
 }
 
+/** XP que pierde la criatura si se falla. */
 export function penaltyFor(effort: number): number {
-  return DEFAULT_RULES.pointsPerEffort * (DEFAULT_RULES.penaltyBase - effort);
+  return RULES.penaltyPerMissingEffort * (RULES.penaltyBase - effort);
 }
 
 export function describeSchedule(s: HabitSchedule): string {
@@ -79,7 +63,7 @@ export function describeSchedule(s: HabitSchedule): string {
 
 /**
  * Progreso visible de un día: hábitos hechos de los que tocan (sin contar los
- * saltados). Incluye los hábitos nuevos, aunque aún no cuenten para la granja.
+ * saltados). Incluye los hábitos nuevos, aunque aún sean nuevos.
  */
 export function dayProgress(
   habits: Habit[],

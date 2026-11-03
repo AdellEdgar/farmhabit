@@ -5,8 +5,8 @@ import {
   CheckSquare,
   NotebookPen,
   Repeat,
+  PawPrint,
   Settings,
-  Sprout,
 } from 'lucide-react';
 import { APP_NAME } from '@farmhabit/core';
 import { AppProvider } from './lib/app-context';
@@ -24,6 +24,7 @@ import { ReminderScheduler } from './lib/ReminderScheduler';
 import { MobileReminderScheduler } from './lib/MobileReminderScheduler';
 import { SyncProvider } from './lib/SyncProvider';
 import { CalendarRefresher } from './lib/CalendarRefresher';
+import { Celebration } from './features/creatures/Celebration';
 import { isDemo } from './lib/demo-data';
 import { DemoBanner } from './components/DemoBanner';
 import { UpdateBanner } from './components/UpdateBanner';
@@ -32,7 +33,7 @@ import { TodayView } from './features/today/TodayView';
 import { TasksView } from './features/tasks/TasksView';
 import { HabitsView } from './features/habits/HabitsView';
 
-// Secciones pesadas (editor de notas, calendario, granja, ajustes): se
+// Secciones pesadas (editor de notas, calendario, criaturas, ajustes): se
 // descargan la primera vez que se abren, así la app arranca antes.
 const CalendarView = lazy(() =>
   import('./features/calendar/CalendarView').then((m) => ({ default: m.CalendarView })),
@@ -40,21 +41,21 @@ const CalendarView = lazy(() =>
 const NotesView = lazy(() =>
   import('./features/notes/NotesView').then((m) => ({ default: m.NotesView })),
 );
-const FarmView = lazy(() =>
-  import('./features/farm/FarmView').then((m) => ({ default: m.FarmView })),
+const CreaturesView = lazy(() =>
+  import('./features/creatures/CreaturesView').then((m) => ({ default: m.CreaturesView })),
 );
 const SettingsView = lazy(() =>
   import('./features/settings/SettingsView').then((m) => ({ default: m.SettingsView })),
 );
 
 /** short: nombre en la barra inferior del móvil, donde hay menos sitio. */
-const SECTIONS: { id: Section; name: string; short?: string; icon: typeof Sprout }[] = [
+const SECTIONS: { id: Section; name: string; short?: string; icon: typeof PawPrint }[] = [
   { id: 'hoy', name: 'Hoy', icon: CalendarCheck },
   { id: 'tareas', name: 'Tareas', icon: CheckSquare },
   { id: 'calendario', name: 'Calendario', short: 'Agenda', icon: CalendarDays },
   { id: 'habitos', name: 'Hábitos', icon: Repeat },
   { id: 'notas', name: 'Notas', icon: NotebookPen },
-  { id: 'granja', name: 'Granja', icon: Sprout },
+  { id: 'criaturas', name: 'Criaturas', icon: PawPrint },
   { id: 'ajustes', name: 'Ajustes', icon: Settings },
 ];
 
@@ -69,13 +70,15 @@ const SECTION_WIDTH: Record<Section, string> = {
   calendario: 'max-w-[1800px]',
   habitos: 'max-w-6xl',
   notas: 'max-w-7xl',
-  granja: 'max-w-6xl',
+  criaturas: 'max-w-6xl',
   ajustes: 'max-w-4xl',
 };
 
-/** Sección inicial: `?section=granja` abre directamente esa sección (útil en la demo web). */
+/** Sección inicial: `?section=criaturas` abre directamente esa sección (útil en la demo web). */
 function initialSection(): Section {
-  const wanted = new URLSearchParams(location.search).get('section');
+  const param = new URLSearchParams(location.search).get('section');
+  // Enlaces antiguos de la demo, de cuando era una granja.
+  const wanted = param === 'granja' ? 'criaturas' : param;
   return SECTIONS.find((s) => s.id === wanted)?.id ?? 'hoy';
 }
 
@@ -90,7 +93,7 @@ export function App() {
 }
 
 function Shell() {
-  const { db, data, farm } = useApp();
+  const { db, data, game } = useApp();
   const [section, setSection] = useState<Section>(initialSection);
 
   useEffect(() => {
@@ -112,12 +115,13 @@ function Shell() {
     );
   }, [db, data.settings]);
 
-  const alerts = farm.deathWarning || farm.sick;
+  const alerts = game.alerts.length > 0;
 
   return (
     <NavigationContext.Provider value={{ section, go: setSection }}>
       {isMobileApp ? <MobileReminderScheduler /> : <ReminderScheduler />}
       <CalendarRefresher />
+      <Celebration />
       {/* Móvil: barra de navegación abajo. Escritorio (md+): barra lateral. */}
       <div className="flex h-full flex-col md:flex-row">
         <nav
@@ -126,7 +130,7 @@ function Shell() {
         >
           <div className="hidden items-center gap-2 px-3 pt-2 pb-5 md:flex">
             <span className="grid size-8 place-items-center rounded-lg bg-acento-suave text-lg">
-              🐔
+              🐼
             </span>
             <span className="text-lg font-bold tracking-tight">{APP_NAME}</span>
           </div>
@@ -149,10 +153,10 @@ function Shell() {
                 <Icon size={20} strokeWidth={active ? 2.4 : 1.9} aria-hidden="true" />
                 <span className="md:hidden">{s.short ?? s.name}</span>
                 <span className="hidden md:inline">{s.name}</span>
-                {s.id === 'granja' && alerts && (
+                {s.id === 'criaturas' && alerts && (
                   <span
                     className="absolute top-1.5 right-[calc(50%-16px)] size-2 rounded-full bg-peligro md:static md:ml-auto"
-                    aria-label="Tu granja necesita atención"
+                    aria-label="Tus criaturas te necesitan"
                   />
                 )}
               </button>
@@ -175,7 +179,7 @@ function Shell() {
               {section === 'calendario' && <CalendarView />}
               {section === 'habitos' && <HabitsView />}
               {section === 'notas' && <NotesView />}
-              {section === 'granja' && <FarmView />}
+              {section === 'criaturas' && <CreaturesView />}
               {section === 'ajustes' && <SettingsView />}
             </Suspense>
           </div>

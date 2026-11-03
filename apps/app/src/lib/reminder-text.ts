@@ -4,15 +4,15 @@ import {
   habitLogId,
   localDateOf,
   localDateTimeToEpoch,
-  type FarmState,
+  type GameState,
   type HabitLog,
   type ReminderEvent,
 } from '@farmhabit/core';
 import { formatQuantity } from '../features/habits/habit-meta';
 import { formatDue } from './format';
 
-/** Hora del aviso diario de la granja cuando un animal está a punto de morir. */
-export const FARM_ALERT_TIME = '20:00';
+/** Hora del aviso diario cuando alguna criatura está triste y su hábito sigue pendiente. */
+export const CREATURE_ALERT_TIME = '20:00';
 
 export interface NotificationText {
   title: string;
@@ -37,26 +37,26 @@ export function reminderText(event: ReminderEvent, logs: HabitLog[]): Notificati
   const log = logs.find((l) => l.id === habitLogId(h.id, event.date) && l.deletedAt === null);
   const body = cfg?.target
     ? `Llevas ${formatQuantity(log?.value ?? 0)} de ${formatQuantity(cfg.target.quantity)} ${cfg.target.unit}. ¡Tú puedes!`
-    : '¿Ya lo has hecho hoy? Tu granja te lo agradecerá.';
+    : '¿Ya lo has hecho hoy? Tu criatura te lo agradecerá.';
   return { title: `${h.icon || '✨'} ${h.name}`, body };
 }
 
-export function farmAlertText(farm: FarmState): NotificationText | null {
-  const w = farm.deathWarning;
-  if (!w) return null;
+export function creatureAlertText(game: GameState): NotificationText | null {
+  const [first, ...rest] = game.alerts;
+  if (!first) return null;
   return {
-    title: '🐔 Tu granja te necesita',
+    title: '😢 Tus criaturas te necesitan',
     body:
-      w.daysLeft === 1
-        ? `${w.name} está muy enfermo. Si hoy no cumples tus hábitos, morirá esta noche.`
-        : `${w.name} está muy enfermo. Le quedan ${w.daysLeft} días malos antes de morir.`,
+      rest.length === 0
+        ? `${first.name} está triste: si hoy no haces su hábito, puede retroceder.`
+        : `${first.name} y ${rest.length} más están tristes: haz sus hábitos hoy para que no retrocedan.`,
   };
 }
 
-/** ¿Cae la hora del aviso de la granja dentro de (from, to]? */
-export function farmAlertDue(from: number, to: number): boolean {
+/** ¿Cae la hora del aviso de las criaturas dentro de (from, to]? */
+export function creatureAlertDue(from: number, to: number): boolean {
   for (let d = localDateOf(from); d <= localDateOf(to); d = addDays(d, 1)) {
-    const at = localDateTimeToEpoch(d, FARM_ALERT_TIME);
+    const at = localDateTimeToEpoch(d, CREATURE_ALERT_TIME);
     if (at > from && at <= to) return true;
   }
   return false;

@@ -6,7 +6,7 @@ import { formatLongDate, greeting } from '../../lib/format';
 import { useNavigation } from '../../lib/navigation';
 import { useShortcut } from '../../lib/shortcuts';
 import { Card, EmptyState } from '../../components/ui';
-import { FarmSummary } from '../farm/FarmSummary';
+import { TeamStrip } from '../creatures/TeamStrip';
 import { HabitRow } from '../habits/HabitRow';
 import { dayProgress } from '../habits/habit-meta';
 import { QuickAdd } from '../tasks/QuickAdd';
@@ -15,7 +15,7 @@ import { TaskItem } from '../tasks/TaskItem';
 import { TodayAgenda } from '../calendar/TodayAgenda';
 
 export function TodayView() {
-  const { data, farm, today, now } = useApp();
+  const { data, today, now } = useApp();
   const { go } = useNavigation();
   const [editing, setEditing] = useState<Task | 'new' | null>(null);
   useShortcut('n', () => setEditing('new'));
@@ -84,7 +84,7 @@ export function TodayView() {
         </div>
 
         <aside className="order-first lg:order-last">
-          <FarmSummary farm={farm} onOpen={() => go('granja')} />
+          <TeamStrip onOpen={() => go('criaturas')} />
         </aside>
       </div>
 

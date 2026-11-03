@@ -28,7 +28,7 @@ export const MIN_PASSWORD_LENGTH = 8;
 
 export class InvalidFileError extends Error {
   constructor(reason: string) {
-    super(`El archivo no es una copia válida de FarmHabit (${reason})`);
+    super(`El archivo no es una copia válida de Chambea (${reason})`);
     this.name = 'InvalidFileError';
   }
 }
@@ -36,7 +36,7 @@ export class InvalidFileError extends Error {
 export class UnsupportedVersionError extends Error {
   constructor(readonly version: number) {
     super(
-      `El archivo es de una versión más nueva de FarmHabit (formato ${version}). Actualiza la app.`,
+      `El archivo es de una versión más nueva de Chambea (formato ${version}). Actualiza la app.`,
     );
     this.name = 'UnsupportedVersionError';
   }
