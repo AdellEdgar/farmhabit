@@ -5,6 +5,6 @@ describe('núcleo', () => {
   it('expone el nombre de la app y las versiones', () => {
     expect(APP_NAME).toBe('¡Chambea!');
     expect(EXPORT_FORMAT_VERSION).toBe(1);
-    expect(SCHEMA_VERSION).toBe(3);
+    expect(SCHEMA_VERSION).toBe(4);
   });
 });

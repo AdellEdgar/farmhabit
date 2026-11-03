@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 import { ArrowDownUp, Plus, RotateCcw, Sparkles, Trash2 } from 'lucide-react';
 import {
   completedTasks,
+  deleteTask,
   pendingTasks,
   sortTasks,
   todayTasks,
@@ -92,7 +93,7 @@ export function TasksView() {
 
   const purgeCompleted = async () => {
     await mutate(async (db) => {
-      for (const t of completedTasks(data.tasks)) await db.repo('tasks').remove(t.id);
+      for (const t of completedTasks(data.tasks)) await deleteTask(db, t.id);
     });
     setConfirmPurge(false);
   };
@@ -260,7 +261,7 @@ function CompletedRow({ task, onOpen }: { task: Task; onOpen: (t: Task) => void 
       </IconButton>
       <IconButton
         label="Borrar definitivamente"
-        onClick={() => mutate((db) => db.repo('tasks').remove(task.id))}
+        onClick={() => mutate((db) => deleteTask(db, task.id))}
         className="hover:text-peligro"
       >
         <Trash2 size={16} />

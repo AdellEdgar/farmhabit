@@ -2,6 +2,8 @@ import { useState } from 'react';
 import { Plus, Trash2 } from 'lucide-react';
 import {
   addDays,
+  addSubtask,
+  deleteTask,
   toRRule,
   type LocalDate,
   type Priority,
@@ -21,6 +23,8 @@ import {
   Select,
   Textarea,
 } from '../../components/ui';
+import { PriorityBars } from './PriorityBars';
+import { SubtaskEditor } from './SubtaskEditor';
 import { PRIORITIES, REMINDER_PRESETS, TAG_COLORS } from './task-meta';
 
 type RepeatKind = 'none' | 'daily' | 'weekly' | 'monthly' | 'yearly' | 'custom';
@@ -38,6 +42,8 @@ interface Draft {
   customRule: string | null;
   reminders: number[];
   tagIds: string[];
+  /** Subtareas de una tarea nueva: se crean al guardarla. */
+  newSubtasks: string[];
 }
 
 function toDraft(task: Task | null, defaultDate: LocalDate | null): Draft {
@@ -55,6 +61,7 @@ function toDraft(task: Task | null, defaultDate: LocalDate | null): Draft {
     customRule: rec === 'custom' ? (task?.rrule ?? null) : null,
     reminders: task?.reminders.map((r) => r.offsetMin) ?? [],
     tagIds: task?.tagIds ?? [],
+    newSubtasks: [],
   };
 }
 
@@ -113,17 +120,20 @@ export function TaskEditor({
       tagIds: draft.tagIds,
     };
     if (!fields.title) return;
-    const ok = await mutate((db) =>
-      task
-        ? db.repo('tasks').update(task.id, fields)
-        : db.repo('tasks').create({ ...fields, status: 'pending', completedAt: null }),
-    );
+    const ok = await mutate(async (db) => {
+      if (task) return db.repo('tasks').update(task.id, fields);
+      const created = await db
+        .repo('tasks')
+        .create({ ...fields, status: 'pending', completedAt: null });
+      for (const title of draft.newSubtasks) await addSubtask(db, created.id, title);
+      return created;
+    });
     if (ok) onClose();
   };
 
   const remove = async () => {
     if (!task) return;
-    await mutate((db) => db.repo('tasks').remove(task.id));
+    await mutate((db) => deleteTask(db, task.id));
     onClose();
   };
 
@@ -177,6 +187,14 @@ export function TaskEditor({
         aria-label="Notas"
       />
 
+      <Field label="Subtareas" hint="Al completarlas todas, la tarea se completa sola.">
+        <SubtaskEditor
+          taskId={task?.id ?? null}
+          pending={draft.newSubtasks}
+          onPendingChange={(titles) => set('newSubtasks', titles)}
+        />
+      </Field>
+
       <Field label="Prioridad">
         <Segmented
           value={String(draft.priority)}
@@ -185,7 +203,7 @@ export function TaskEditor({
             value: String(p.value),
             label: (
               <span className="inline-flex items-center gap-1.5">
-                <span className="size-2 rounded-full" style={{ background: p.color }} />
+                <PriorityBars priority={p.value} />
                 {p.label}
               </span>
             ),

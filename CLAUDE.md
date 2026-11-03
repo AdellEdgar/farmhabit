@@ -7,7 +7,7 @@ El repositorio es **público** (portfolio). Cualquiera puede instalar la app y u
 ## Reglas de trabajo
 
 - Se trabaja por fases, **un commit por fase** (ver "Fases"). No adelantar trabajo de fases futuras sin acordarlo.
-- **Los commits y los push los hace el usuario.** Al terminar una fase, Claude deja los cambios sin commitear y le da los comandos y el mensaje de commit.
+- **Commits y push:** por defecto los hace el usuario (Claude deja los cambios sin commitear y le da los comandos y el mensaje). Si el usuario se lo pide, los hace Claude.
 - Antes de cerrar una fase: `pnpm check` (typecheck + lint + formato + tests) tiene que pasar.
 - Idioma: **interfaz y documentación en español**. Identificadores de código en inglés. Comentarios en español, solo cuando aportan.
 - Mantener este archivo al día cuando cambie una decisión de arquitectura, el formato del archivo, las reglas del juego o las de seguridad.
@@ -77,13 +77,14 @@ Toda tabla sincronizable tiene: `id` (UUID), `created_at`, `updated_at`, `delete
 
 - `tags`: nombre y color.
 - `tasks`: título, notas, prioridad (1 alta, 2 media, 3 baja), estado (`pending`/`done`), `due_date`, `due_time`, `rrule`, `reminders` (JSON, p. ej. `[{offsetMin:1440},{offsetMin:60}]`), `tag_ids` (JSON), `completed_at`.
+- `subtasks` (migración 3): `task_id`, título, `done` y `sort_key` (índice fraccional). Son una colección aparte y no un JSON dentro de `tasks`, así cada subtarea se fusiona por separado y una versión antigua de la app, que no conoce la colección, la ignora sin perderla. `setSubtaskDone` completa la tarea al hacer la última (en las recurrentes, pasa a la siguiente fecha y las subtareas vuelven a por hacer) y la reabre si se desmarca una de una tarea completada; completar la tarea a mano no toca las subtareas. `deleteTask` borra también sus subtareas.
 - `task_completions`: historial de tareas recurrentes. id = UUIDv5(tarea + fecha de ocurrencia). Al completar una recurrente se registra aquí y la fecha avanza a la siguiente ocurrencia.
 - `habits`: nombre, descripción, icono, color, `sort_key` (índice fraccional), `start_date`, `reminders` (JSON `[{time, days}]`), `archived_at` y `config_history` (JSON): lista de `{since, effort (1–5), schedule, target}`. `schedule` es `daily`, `weekdays{days}`, `timesPerWeek{times}`, `timesPerMonth{times}` o `everyNDays{interval}`; `target` es `{quantity, unit}` o null. Un cambio de configuración se añade con `since` = mañana (o reemplaza si el hábito empieza hoy), para no reescribir el pasado.
 - `habit_logs`: id = UUIDv5(hábito + fecha), `date`, `status` (`done`/`skipped`), `value` (cantidad o null). Desmarcar = tombstone.
 - `note_folders`: nombre, `parent_id`, `sort_key`.
 - `notes`: `folder_id`, título, contenido (JSON de TipTap), texto plano para buscar, `tag_ids`, `pinned`, `is_private`, `private_blob`.
 - `animals`: de la antigua granja. Se conserva (y viaja en copias y sincronización) pero ya no se usa.
-- Migración 3 (criaturas): `habits` gana `creature_species`, `creature_name`, `creature_background` y `creature_aura` (con valores por defecto en zod para leer datos de versiones anteriores). Tabla `purchases` (sincronizable): `item` (`freeze`, `background:<id>`, `aura:<id>`), `date` y `price`.
+- Migración 4 (criaturas): `habits` gana `creature_species`, `creature_name`, `creature_background` y `creature_aura` (con valores por defecto en zod para leer datos de versiones anteriores). Tabla `purchases` (sincronizable): `item` (`freeze`, `background:<id>`, `aura:<id>`), `date` y `price`.
 - `vacations`: `start_date`, `end_date`. Solo protegen los días posteriores al día en que se crearon.
 - `settings`: clave y valor (sincronizados). Lo que es solo del dispositivo (p. ej. el tema elegido) va en `meta`.
 - `calendar_sources` (migración 2): calendarios externos de solo lectura. Tienen nombre, tipo (`url` o `file`), `url`, `ics` (solo para los importados, se sincroniza), color y si están visibles.
@@ -166,6 +167,10 @@ Diseño completo en `docs/superpowers/specs/2026-11-03-chambea-criaturas-design.
 - Pantalla **Calendario** con cuatro vistas (se recuerda la elegida en `meta` `calendar:view`): **mes** (en `lg` cada casilla muestra todo; debajo, los 3 primeros y el detalle del día al lado), **semana** y **día** (`TimeGrid`: rejilla de 24 h, lo de todo el día arriba y los solapes repartidos con `layoutTimed`) y **agenda** (30 días). `calendar-items.ts` junta eventos y tareas por día para todas. Los eventos abren un diálogo de solo lectura. La agenda del día también sale en **Hoy**. Guía para conseguir enlaces iCal en `docs/calendarios.md`.
 - **Ancho:** cada sección tiene su ancho máximo en `SECTION_WIDTH` (`App.tsx`) y crece con la ventana hasta él.
 
+## Prioridad de las tareas
+
+Se dibuja como las barras de cobertura del móvil (`PriorityBars.tsx`): baja llena la primera barra en verde (`--fh-exito`), media las dos primeras en amarillo (`--fh-aviso`) y alta las tres en rojo (`--fh-peligro`). Las barras vacías usan `--fh-borde`. La casilla de completar ya no se colorea según la prioridad.
+
 ## Estadísticas y temas
 
 - `domain/stats.ts`: `habitCalendar` da el estado de cada día (hecho, a medias, saltado, fallado, pendiente, no tocaba), `completionRate` el porcentaje y `dailyCompletion` los datos de la gráfica de 30 días. Las gráficas son SVG propio, sin librerías.
@@ -188,7 +193,9 @@ Diseño completo en `docs/superpowers/specs/2026-11-03-chambea-criaturas-design.
 6. Granja visual (escena, tienda, logros, vacaciones, cementerio), notas privadas, estadísticas y temas editables. ✅
 7. Calendario y suscripciones `.ics` (p. ej. el calendario de la universidad). ✅
 8. Publicación: versión 1.0.0, README con capturas, CHANGELOG, Release automática y demo web en GitHub Pages. ✅
-9. 2.0: criaturas en lugar de la granja, tienda con pesetas, nombre ¡Chambea!, actualizaciones automáticas y vistas del calendario. ✅
+9. Asistente con IA (OpenRouter). Publicado en la v1.1.0-rc.1 y retirado después: para esta app no hacía falta. El código sigue en el historial (commit 488c4b5).
+10. Subtareas que completan la tarea y prioridad con barras de cobertura. ✅
+11. 2.0: criaturas en lugar de la granja, tienda con pesetas, nombre ¡Chambea!, actualizaciones automáticas y vistas del calendario. ✅
 
 ## Publicación (Fase 8)
 

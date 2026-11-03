@@ -131,7 +131,7 @@ describe('datos de una versión anterior (sin criaturas)', () => {
 
   it('el eco de una versión antigua (misma fecha) no borra la criatura', async () => {
     const { db, habit, old, payload } = await setup();
-    await mergeIntoDatabase(db, payload(old, 2));
+    await mergeIntoDatabase(db, payload(old, 3));
     expect(await db.repo('habits').get(habit.id)).toMatchObject({
       creatureSpecies: 'medusa',
       creatureName: 'Mery',
@@ -143,7 +143,7 @@ describe('datos de una versión anterior (sin criaturas)', () => {
   it('una edición desde una versión antigua conserva la criatura', async () => {
     const { db, habit, old, payload } = await setup();
     const edited = { ...old, name: 'Leer 30 min', updatedAt: habit.updatedAt + 1000 };
-    await mergeIntoDatabase(db, payload(edited, 2));
+    await mergeIntoDatabase(db, payload(edited, 3));
     expect(await db.repo('habits').get(habit.id)).toMatchObject({
       name: 'Leer 30 min',
       creatureSpecies: 'medusa',
@@ -154,7 +154,7 @@ describe('datos de una versión anterior (sin criaturas)', () => {
   it('desde la versión actual, quitar el aura sí se respeta', async () => {
     const { db, habit, payload } = await setup();
     const edited = { ...habit, creatureAura: null, updatedAt: habit.updatedAt + 1000 };
-    await mergeIntoDatabase(db, payload(edited, 3));
+    await mergeIntoDatabase(db, payload(edited, 4));
     expect((await db.repo('habits').get(habit.id))?.creatureAura).toBeNull();
   });
 });

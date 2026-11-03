@@ -55,6 +55,19 @@ export const taskSchema = z.object({
   completedAt: epochMs.nullable(),
 });
 
+/**
+ * Subtarea: un paso de una tarea, en su orden manual. Al completar todas, la
+ * tarea se completa sola (ver setSubtaskDone).
+ */
+export const subtaskSchema = z.object({
+  ...syncFields,
+  taskId: id,
+  /** Vacío solo en los tombstones (el contenido se borra al eliminarla). */
+  title: z.string().max(500),
+  done: z.boolean(),
+  sortKey: z.string().min(1).max(200),
+});
+
 /** Historial de ocurrencias completadas de una tarea recurrente. */
 export const taskCompletionSchema = z.object({
   ...syncFields,

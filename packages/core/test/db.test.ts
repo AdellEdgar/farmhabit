@@ -161,10 +161,10 @@ describe('base de datos', () => {
   });
 });
 
-describe('migración 3: criaturas', () => {
+describe('migración 4: criaturas', () => {
   it('conserva hábitos y animales y añade los campos de criatura y las compras', async () => {
     const driver = new NodeSqliteDriver();
-    await migrate(driver, MIGRATIONS.slice(0, 2));
+    await migrate(driver, MIGRATIONS.slice(0, 3));
     await driver.execute(
       `INSERT INTO habits (id, created_at, updated_at, deleted_at, name, description, icon, color,
          sort_key, start_date, config_history, reminders, archived_at)

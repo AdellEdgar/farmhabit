@@ -20,6 +20,15 @@ FarmHabit pasa a llamarse **¡Chambea!** y la granja se sustituye por criaturas.
 - La sección Granja pasa a ser Criaturas; los datos de la granja se conservan pero ya no se usan.
 - El instalador, el acceso directo y los archivos de descarga siguen llamándose FarmHabit, para que la versión nueva se instale encima de la anterior.
 
+### Tareas
+
+- Subtareas: se añaden, renombran, marcan y borran desde la tarea, y se ven en la lista con su progreso. Al completarlas todas, la tarea se completa sola; en las que se repiten, pasa a la siguiente fecha con las subtareas por hacer.
+- La prioridad se muestra como barras de cobertura: 1 barra verde (baja), 2 amarillas (media) o 3 rojas (alta).
+
+### Quitado
+
+- El asistente con IA de la v1.1.0-rc.1: para esta app no hacía falta.
+
 ## [1.0.0] - 2026-10-29
 
 Primera versión completa.

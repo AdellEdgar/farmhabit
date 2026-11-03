@@ -317,11 +317,14 @@ export function CheckCircle({
   onChange,
   label,
   color,
+  small,
 }: {
   checked: boolean;
   onChange: () => void;
   label: string;
   color?: string;
+  /** Versión pequeña, para las subtareas. */
+  small?: boolean;
 }) {
   return (
     <button
@@ -331,13 +334,14 @@ export function CheckCircle({
       aria-label={label}
       onClick={onChange}
       className={cx(
-        'grid size-6 shrink-0 place-items-center rounded-full border-2 transition',
+        'grid shrink-0 place-items-center rounded-full border-2 transition',
+        small ? 'size-[18px]' : 'size-6',
         checked ? 'border-acento bg-acento text-acento-texto' : 'hover:bg-elevado',
       )}
       style={!checked && color ? { borderColor: color } : undefined}
     >
       {checked && (
-        <svg viewBox="0 0 16 16" className="size-3.5" aria-hidden="true">
+        <svg viewBox="0 0 16 16" className={small ? 'size-2.5' : 'size-3.5'} aria-hidden="true">
           <path
             d="M3.5 8.5l3 3 6-7"
             fill="none"

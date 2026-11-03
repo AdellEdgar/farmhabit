@@ -103,6 +103,18 @@ export const MIGRATIONS: Migration[] = [
   },
   {
     version: 3,
+    name: 'subtareas',
+    statements: [
+      `CREATE TABLE subtasks (${SYNC_COLUMNS},
+        task_id TEXT NOT NULL,
+        title TEXT NOT NULL,
+        done INTEGER NOT NULL DEFAULT 0,
+        sort_key TEXT NOT NULL)`,
+      `CREATE INDEX subtasks_task ON subtasks (task_id)`,
+    ],
+  },
+  {
+    version: 4,
     name: 'criaturas',
     statements: [
       `ALTER TABLE habits ADD COLUMN creature_species TEXT`,

@@ -9,6 +9,7 @@ import type {
   Note,
   NoteFolder,
   Setting,
+  Subtask,
   Tag,
   Task,
   TaskCompletion,
@@ -20,6 +21,7 @@ export interface AppData {
   tasks: Task[];
   /** Incluye borradas: las tareas ya completadas siguen contando pesetas. */
   allTasks: Task[];
+  subtasks: Subtask[];
   taskCompletions: TaskCompletion[];
   /** Ajustes sincronizados (caja de notas privadas, temas personalizados…). */
   settings: Setting[];

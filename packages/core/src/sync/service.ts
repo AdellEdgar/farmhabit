@@ -41,7 +41,7 @@ export async function exportDatabase(
 }
 
 /** Esquema en el que los hábitos ganaron sus campos de criatura. */
-const CREATURE_SCHEMA_VERSION = 3;
+const CREATURE_SCHEMA_VERSION = 4;
 
 /**
  * Un archivo de una versión anterior a las criaturas trae los hábitos sin sus
