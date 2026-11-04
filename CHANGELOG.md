@@ -11,7 +11,7 @@ FarmHabit pasa a llamarse **¡Chambea!** y la granja se sustituye por criaturas.
 - Cada hábito tiene su criatura: 16 especies (figuras históricas caricaturizadas y monstruitos propios) con 4 etapas cada una, más el huevo.
 - Gana XP al hacer su hábito y la pierde al fallarlo (fallar lo fácil castiga más); evoluciona con la XP y retrocede si la descuidas, pero nunca muere.
 - Ánimo según los últimos días, celebración al nacer o evolucionar y aviso a las 20:00 si alguna va a retroceder.
-- Nivel de entrenador que desbloquea especies, colección con las 64 etapas y logros nuevos.
+- Las 16 especies disponibles desde el principio, nivel de entrenador, colección con las 64 etapas y logros nuevos.
 - Fondos y auras gratis para cada criatura, y comodines que protegen solos un día malo: se ganan cumpliendo las misiones de hábitos de la semana.
 - Selector de criatura al crear o editar un hábito, con sugerencia según el nombre.
 

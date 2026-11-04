@@ -57,12 +57,13 @@ export function TaskItem({
 
   return (
     <li className="group flex items-start gap-3 rounded-xl px-3 py-2.5 transition hover:bg-elevado">
-      <div className="pt-0.5">
+      <div className="flex shrink-0 items-center gap-2 pt-0.5">
         <CheckCircle
           checked={done}
           onChange={toggle}
           label={done ? 'Marcar como pendiente' : 'Completar tarea'}
         />
+        <PriorityBars priority={task.priority} />
       </div>
       <div className="min-w-0 flex-1">
         <button type="button" onClick={() => onOpen(task)} className="w-full text-left">
@@ -136,7 +137,6 @@ export function TaskItem({
           </ul>
         )}
       </div>
-      <PriorityBars priority={task.priority} className="mt-1" />
     </li>
   );
 }

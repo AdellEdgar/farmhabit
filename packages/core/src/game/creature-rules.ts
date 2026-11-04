@@ -1,5 +1,3 @@
-import { SPECIES, type SpeciesId } from './species';
-
 // Todos los números del juego de las criaturas, en un solo sitio para poder
 // ajustarlos sin tocar la lógica (ver CLAUDE.md, "Reglas del juego").
 
@@ -94,8 +92,4 @@ export function trainerLevel(xp: number): number {
   let n = 1;
   while (100 * (n + 1) * n <= xp) n++;
   return n;
-}
-
-export function unlockedSpecies(level: number): SpeciesId[] {
-  return SPECIES.filter((s) => s.unlockLevel <= level).map((s) => s.id);
 }

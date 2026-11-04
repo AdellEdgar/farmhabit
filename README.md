@@ -50,7 +50,7 @@ Tus datos se guardan en tu dispositivo, sin cuentas propias ni servidores. Si qu
 - Cada especie **habla a su manera**: frases propias según su ánimo, al hacer el hábito y al evolucionar.
 - **Misiones semanales**: 3 objetivos cada semana, elegidos según tus hábitos, con premio en XP. Las de hábitos dan además un **comodín**, que protege solo un día malo.
 - **Resumen semanal**: cómo te fue la semana anterior y qué criatura fue la estrella, con todas las semanas pasadas en su pestaña.
-- **Nivel de entrenador** con la XP de hábitos, tareas, misiones y logros: desbloquea especies.
+- **Nivel de entrenador** con la XP de hábitos, tareas, misiones y logros.
 - **Fondos** y **auras** gratis para personalizar cada criatura.
 - **Colección** con las 64 etapas por descubrir, **logros** y **modo vacaciones**.
 - Reglas contra trampas: solo se puede apuntar hoy y ayer, las tareas creadas y completadas el mismo día no dan XP, y borrar un hábito no borra lo pasado.

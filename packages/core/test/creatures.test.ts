@@ -1,14 +1,10 @@
 import fc from 'fast-check';
 import { describe, expect, it } from 'vitest';
-import {
-  DEFAULT_CREATURE_RULES,
-  nextStage,
-  trainerLevel,
-  unlockedSpecies,
-} from '../src/game/creature-rules';
+import { DEFAULT_CREATURE_RULES, nextStage, trainerLevel } from '../src/game/creature-rules';
 import { computeGame, habitXpGain, type GameInput, type GameState } from '../src/game/creatures';
 import { defaultSpecies, SPECIES, speciesById, suggestSpecies } from '../src/game/species';
 import type { Habit, HabitLog, Purchase, TaskCompletion } from '../src/model/types';
+import { fnv1a } from '../src/util/hash';
 import { deterministicId, newId } from '../src/util/ids';
 import { eachDay } from '../src/util/dates';
 import { makeHabit, makeLog, makeTask, makeVacation, noon } from './helpers/fixtures';
@@ -21,14 +17,19 @@ describe('catálogo y reglas', () => {
     expect(speciesById('pikachu')).toBeUndefined();
   });
 
-  it('6 especies de inicio y 2 más por nivel hasta el 6', () => {
-    expect(SPECIES.filter((s) => s.unlockLevel === 1)).toHaveLength(6);
-    for (let level = 2; level <= 6; level++)
-      expect(SPECIES.filter((s) => s.unlockLevel === level)).toHaveLength(2);
-    expect(unlockedSpecies(1)).toHaveLength(6);
-    expect(unlockedSpecies(3)).toHaveLength(10);
-    expect(unlockedSpecies(6)).toHaveLength(16);
-    expect(unlockedSpecies(20)).toHaveLength(16);
+  it('todas las especies están disponibles desde el principio', () => {
+    expect(SPECIES[0]).not.toHaveProperty('unlockLevel');
+    expect(
+      computeGame({
+        habits: [],
+        logs: [],
+        tasks: [],
+        taskCompletions: [],
+        purchases: [],
+        vacations: [],
+        today: START,
+      }),
+    ).not.toHaveProperty('unlockedSpecies');
   });
 
   it('sube de etapa al alcanzar el umbral', () => {
@@ -53,18 +54,14 @@ describe('catálogo y reglas', () => {
   });
 
   it('sugiere una especie según el nombre del hábito, sin tildes ni mayúsculas', () => {
-    expect(suggestSpecies('Leer 20 páginas', unlockedSpecies(1))).toBe('tortuga');
-    expect(suggestSpecies('BEBER AGUA', unlockedSpecies(6))).toBe('poseidon');
-    // Poseidón no está desbloqueado aún: cae en una de nivel 1.
-    const fallback = suggestSpecies('Beber agua', unlockedSpecies(1));
-    expect(unlockedSpecies(1)).toContain(fallback);
+    expect(suggestSpecies('Leer 20 páginas')).toBe('tortuga');
+    expect(suggestSpecies('BEBER AGUA')).toBe('poseidon');
   });
 
-  it('la especie por defecto es estable y de nivel 1', () => {
-    for (const id of ['a', 'b', 'c', 'habito-123', 'zzz']) {
-      expect(defaultSpecies(id)).toBe(defaultSpecies(id));
-      expect(speciesById(defaultSpecies(id))?.unlockLevel).toBe(1);
-    }
+  it('la especie por defecto no cambia: los hábitos sin especie conservan su criatura', () => {
+    const starters = ['panda', 'tortuga', 'rottweiler', 'yorkshire', 'napoleon', 'cervantes'];
+    for (const id of ['a', 'b', 'c', 'habito-123', 'zzz'])
+      expect(defaultSpecies(id)).toBe(starters[fnv1a(id) % 6]);
   });
 });
 
@@ -244,7 +241,6 @@ describe('motor de criaturas: entrenador y reglas contra trampas', () => {
     expect(creatureOf(s, h).xp).toBe(15);
     expect(s.trainerXp).toBe(30);
     expect(s.level).toBe(1);
-    expect(s.unlockedSpecies).toHaveLength(6);
   });
 
   it('borrar o archivar un hábito no baja la XP de entrenador', () => {

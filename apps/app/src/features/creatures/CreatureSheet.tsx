@@ -145,19 +145,17 @@ export function CreatureSheet({ habitId, onClose }: { habitId: string; onClose: 
       <Field label="Especie">
         <div className="grid grid-cols-4 gap-2 sm:grid-cols-8">
           {SPECIES.map((s) => {
-            const locked = !game.unlockedSpecies.includes(s.id);
             return (
               <button
                 key={s.id}
                 type="button"
-                disabled={locked}
-                title={locked ? `${s.name} (nivel ${s.unlockLevel})` : s.name}
+                title={s.name}
                 onClick={() =>
                   void mutate((db) => changeCreatureSpecies(db, habitId, s.id, c.maxStageEver))
                 }
                 aria-pressed={s.id === c.species}
                 className={cx(
-                  'grid place-items-center rounded-xl border p-1 transition disabled:opacity-30',
+                  'grid place-items-center rounded-xl border p-1 transition',
                   s.id === c.species
                     ? 'border-acento bg-acento-suave'
                     : 'border-borde hover:border-texto-suave',

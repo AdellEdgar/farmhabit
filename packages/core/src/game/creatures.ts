@@ -22,7 +22,6 @@ import {
   DEFAULT_CREATURE_RULES,
   nextStage,
   trainerLevel,
-  unlockedSpecies,
   type CreatureRules,
   type Mood,
   type Stage,
@@ -87,7 +86,6 @@ export interface GameState {
   creatures: Creature[];
   trainerXp: number;
   level: number;
-  unlockedSpecies: SpeciesId[];
   /** Comodines guardados. */
   freezes: number;
   frozenDays: LocalDate[];
@@ -540,7 +538,6 @@ export function computeGame(input: GameInput): GameState {
     creatures,
     trainerXp,
     level,
-    unlockedSpecies: unlockedSpecies(level),
     freezes,
     frozenDays,
     achievements: ACHIEVEMENTS.map((a) => ({

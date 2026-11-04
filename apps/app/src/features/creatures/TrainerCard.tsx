@@ -1,5 +1,5 @@
 import { Shield } from 'lucide-react';
-import { DEFAULT_CREATURE_RULES } from '@farmhabit/core';
+import { DEFAULT_CREATURE_RULES, SPECIES } from '@farmhabit/core';
 import { useApp } from '../../lib/use-app';
 import { Card, ProgressBar } from '../../components/ui';
 import { levelXp } from './creature-meta';
@@ -21,9 +21,8 @@ export function TrainerCard() {
         </div>
         <ProgressBar value={((game.trainerXp - from) / (to - from)) * 100} className="mt-2" />
         <p className="mt-1.5 text-xs text-texto-suave">
-          {game.unlockedSpecies.length < 16
-            ? `${game.unlockedSpecies.length} de 16 especies desbloqueadas`
-            : 'Tienes todas las especies'}
+          {SPECIES.filter((s) => game.seenStages[s.id].length > 0).length} de 16 especies
+          descubiertas
         </p>
       </div>
       <div className="flex gap-3 text-sm">

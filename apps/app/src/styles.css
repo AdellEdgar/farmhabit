@@ -225,6 +225,22 @@ select {
   }
 }
 
+/* Círculo de completar: al pasar el cursor se tiñe del color de su hábito. */
+.check-circle[aria-checked='false']:hover,
+.check-circle[aria-checked='false']:focus-visible {
+  border-color: var(--check-color) !important;
+  background: color-mix(in srgb, var(--check-color) 18%, transparent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--check-color) 20%, transparent);
+}
+.check-pop {
+  animation: check-pop 0.25s cubic-bezier(0.2, 1.6, 0.4, 1);
+}
+@keyframes check-pop {
+  from {
+    transform: scale(0.3);
+  }
+}
+
 /* Auras: detrás de la criatura. */
 .aura::before {
   content: '';

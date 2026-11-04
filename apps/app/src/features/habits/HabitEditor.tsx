@@ -45,7 +45,7 @@ export function HabitEditor({ habit, onClose }: { habit: Habit | null; onClose: 
     (speciesById(habit?.creatureSpecies ?? '')?.id as SpeciesId | undefined) ?? null,
   );
   const [creatureName, setCreatureName] = useState(habit?.creatureName ?? '');
-  const species = picked ?? suggestSpecies(name, game.unlockedSpecies);
+  const species = picked ?? suggestSpecies(name);
   const [color, setColor] = useState(habit?.color || HABIT_COLORS[0]!);
   const [effort, setEffort] = useState(cfg?.effort ?? 3);
   const [type, setType] = useState<ScheduleType>(cfg?.schedule.type ?? 'daily');
@@ -198,18 +198,16 @@ export function HabitEditor({ habit, onClose }: { habit: Habit | null; onClose: 
         )}
         <div className="grid grid-cols-4 gap-2 sm:grid-cols-8">
           {SPECIES.map((sp) => {
-            const locked = !game.unlockedSpecies.includes(sp.id);
             return (
               <button
                 key={sp.id}
                 type="button"
-                disabled={locked}
                 onClick={() => setPicked(sp.id)}
-                title={locked ? `${sp.name} (nivel ${sp.unlockLevel})` : sp.name}
+                title={sp.name}
                 aria-label={sp.name}
                 aria-pressed={species === sp.id}
                 className={cx(
-                  'grid place-items-center rounded-xl border p-1 transition disabled:opacity-30',
+                  'grid place-items-center rounded-xl border p-1 transition',
                   species === sp.id
                     ? 'border-acento bg-acento-suave'
                     : 'border-borde hover:border-texto-suave',

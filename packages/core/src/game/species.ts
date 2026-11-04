@@ -24,8 +24,6 @@ export type SpeciesId =
 export interface SpeciesInfo {
   id: SpeciesId;
   name: string;
-  /** Nivel de entrenador con el que se desbloquea. */
-  unlockLevel: number;
   /** Título de cada etapa: bebé, joven, adulto, leyenda. */
   stageNames: [string, string, string, string];
   /** Marcador mientras no hay imagen. */
@@ -38,7 +36,6 @@ export const SPECIES: readonly SpeciesInfo[] = [
   {
     id: 'panda',
     name: 'Panda luchador',
-    unlockLevel: 1,
     stageNames: ['Pandita', 'Luchador', 'Campeón', 'Leyenda del ring'],
     emoji: '🐼',
     keywords: ['entren', 'boxeo', 'lucha', 'pesas', 'flexion', 'abdominal'],
@@ -46,7 +43,6 @@ export const SPECIES: readonly SpeciesInfo[] = [
   {
     id: 'tortuga',
     name: 'Tortuga lectora',
-    unlockLevel: 1,
     stageNames: ['Tortuguita', 'Lectora con flow', 'Sabia', 'Reina de los libros'],
     emoji: '🐢',
     keywords: ['leer', 'libro', 'lectura', 'pagina'],
@@ -54,7 +50,6 @@ export const SPECIES: readonly SpeciesInfo[] = [
   {
     id: 'rottweiler',
     name: 'Rottweiler atlético',
-    unlockLevel: 1,
     stageNames: ['Cachorro', 'Corredor', 'Atleta', 'Campeón'],
     emoji: '🐕',
     keywords: ['correr', 'running', 'cardio', 'caminar', 'pasos', 'bici'],
@@ -62,7 +57,6 @@ export const SPECIES: readonly SpeciesInfo[] = [
   {
     id: 'yorkshire',
     name: 'Yorkshire con cara de malo',
-    unlockLevel: 1,
     stageNames: ['Cachorro gruñón', 'Rebelde', 'El que manda', 'El jefe'],
     emoji: '🐶',
     keywords: ['casa', 'limpi', 'orden', 'cocina', 'cocinar', 'fregar', 'cama'],
@@ -70,7 +64,6 @@ export const SPECIES: readonly SpeciesInfo[] = [
   {
     id: 'napoleon',
     name: 'Napoleón',
-    unlockLevel: 1,
     stageNames: ['Napoleoncito', 'Cadete', 'General', 'Emperador'],
     emoji: '🎖️',
     keywords: ['estudi', 'trabaj', 'proyecto', 'productiv', 'tarea'],
@@ -78,7 +71,6 @@ export const SPECIES: readonly SpeciesInfo[] = [
   {
     id: 'cervantes',
     name: 'Cervantes',
-    unlockLevel: 1,
     stageNames: ['Miguelito', 'Soldado', 'Escritor', 'Príncipe de los ingenios'],
     emoji: '🪶',
     keywords: ['escrib', 'diario', 'journal', 'redact'],
@@ -86,7 +78,6 @@ export const SPECIES: readonly SpeciesInfo[] = [
   {
     id: 'leonidas',
     name: 'Leónidas',
-    unlockLevel: 2,
     stageNames: ['Espartanito', 'Hoplita', 'Rey', 'Leyenda de Esparta'],
     emoji: '🛡️',
     keywords: ['gimnasio', 'gym', 'fuerza', 'muscul'],
@@ -94,7 +85,6 @@ export const SPECIES: readonly SpeciesInfo[] = [
   {
     id: 'cesar',
     name: 'Julio César',
-    unlockLevel: 2,
     stageNames: ['Cesarín', 'Legionario', 'General', 'Dictador perpetuo'],
     emoji: '🏛️',
     keywords: ['organiz', 'planific', 'agenda', 'disciplina', 'madrug'],
@@ -102,7 +92,6 @@ export const SPECIES: readonly SpeciesInfo[] = [
   {
     id: 'medusa',
     name: 'Medusa',
-    unlockLevel: 3,
     stageNames: ['Gorgonita', 'Gorgona', 'Dama de las serpientes', 'Reina gorgona'],
     emoji: '🐍',
     keywords: ['piel', 'cuidado', 'skincare', 'belleza', 'dientes', 'ducha'],
@@ -110,7 +99,6 @@ export const SPECIES: readonly SpeciesInfo[] = [
   {
     id: 'poseidon',
     name: 'Poseidón',
-    unlockLevel: 3,
     stageNames: ['Poseidoncito', 'Surfero', 'Dios del mar', 'Señor de los océanos'],
     emoji: '🔱',
     keywords: ['agua', 'beber', 'hidrat', 'nadar', 'piscina'],
@@ -118,7 +106,6 @@ export const SPECIES: readonly SpeciesInfo[] = [
   {
     id: 'blas',
     name: 'Blas de Lezo',
-    unlockLevel: 4,
     stageNames: ['Marinerito', 'Guardiamarina', 'Almirante', 'Medio hombre, leyenda entera'],
     emoji: '⚓',
     keywords: ['dejar', 'sin ', 'no fumar', 'constan', 'reto'],
@@ -126,7 +113,6 @@ export const SPECIES: readonly SpeciesInfo[] = [
   {
     id: 'rana',
     name: 'Rana ninja',
-    unlockLevel: 4,
     stageNames: ['Renacuajo', 'Ninja callejera', 'Ninja', 'Gran maestra'],
     emoji: '🐸',
     keywords: ['medit', 'respir', 'yoga', 'concentr', 'mindful'],
@@ -134,7 +120,6 @@ export const SPECIES: readonly SpeciesInfo[] = [
   {
     id: 'pulpo',
     name: 'Pulpo pirata',
-    unlockLevel: 5,
     stageNames: ['Pulpito', 'Grumete', 'Capitán', 'Rey de los mares'],
     emoji: '🐙',
     keywords: ['ahorr', 'gasto', 'dinero', 'finanz', 'invert'],
@@ -142,7 +127,6 @@ export const SPECIES: readonly SpeciesInfo[] = [
   {
     id: 'balon',
     name: 'Monstruo-balón',
-    unlockLevel: 5,
     stageNames: ['Balón con ojitos', 'Promesa', 'Capitán', 'Balón de oro'],
     emoji: '⚽',
     keywords: ['futbol', 'baloncesto', 'padel', 'tenis', 'partido', 'deporte'],
@@ -150,7 +134,6 @@ export const SPECIES: readonly SpeciesInfo[] = [
   {
     id: 'perezoso',
     name: 'Perezoso dormilón',
-    unlockLevel: 6,
     stageNames: ['Perezosito', 'Dormilón', 'Maestro de la siesta', 'Rey del descanso'],
     emoji: '🦥',
     keywords: ['dormir', 'sueño', 'acostar', 'descans', 'siesta'],
@@ -158,7 +141,6 @@ export const SPECIES: readonly SpeciesInfo[] = [
   {
     id: 'mimo',
     name: 'Mimo de cine mudo',
-    unlockLevel: 6,
     stageNames: ['Mimito', 'Aprendiz', 'Artista', 'Estrella del cine mudo'],
     emoji: '🎭',
     keywords: ['movil', 'pantalla', 'redes', 'desconect', 'reir'],
@@ -176,17 +158,28 @@ function normalize(text: string): string {
   return text.normalize('NFD').replace(/\p{M}/gu, '').toLowerCase();
 }
 
-/** Especie de nivel 1 elegida de forma estable a partir de un texto (id del hábito). */
+/**
+ * Las que puede recibir un hábito sin especie. No cambiar la lista ni su orden:
+ * esos hábitos cambiarían de criatura.
+ */
+const DEFAULT_SPECIES: readonly SpeciesId[] = [
+  'panda',
+  'tortuga',
+  'rottweiler',
+  'yorkshire',
+  'napoleon',
+  'cervantes',
+];
+
+/** Especie elegida de forma estable a partir de un texto (id del hábito). */
 export function defaultSpecies(seed: string): SpeciesId {
-  const starters = SPECIES.filter((s) => s.unlockLevel === 1);
-  return starters[fnv1a(seed) % starters.length]!.id;
+  return DEFAULT_SPECIES[fnv1a(seed) % DEFAULT_SPECIES.length]!;
 }
 
-/** Primera especie desbloqueada cuyas palabras clave aparecen en el nombre del hábito. */
-export function suggestSpecies(habitName: string, unlocked: SpeciesId[]): SpeciesId {
+/** Primera especie cuyas palabras clave aparecen en el nombre del hábito. */
+export function suggestSpecies(habitName: string): SpeciesId {
   const name = normalize(habitName);
   for (const s of SPECIES) {
-    if (!unlocked.includes(s.id)) continue;
     if (s.keywords.some((k) => name.includes(normalize(k)))) return s.id;
   }
   return defaultSpecies(name);

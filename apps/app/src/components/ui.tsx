@@ -1,7 +1,7 @@
 import * as RadixDialog from '@radix-ui/react-dialog';
 import { X } from 'lucide-react';
 import { cx } from '../lib/cx';
-import type { ButtonHTMLAttributes, ComponentProps, ReactNode } from 'react';
+import type { ButtonHTMLAttributes, ComponentProps, CSSProperties, ReactNode } from 'react';
 
 // Componentes base de la interfaz. Estilo con Tailwind y los colores del tema.
 
@@ -334,24 +334,39 @@ export function CheckCircle({
       aria-label={label}
       onClick={onChange}
       className={cx(
-        'grid shrink-0 place-items-center rounded-full border-2 transition',
+        'check-circle group/check grid shrink-0 cursor-pointer place-items-center rounded-full border-2 transition duration-150 hover:scale-110 focus-visible:scale-110 active:scale-90',
         small ? 'size-[18px]' : 'size-6',
-        checked ? 'border-acento bg-acento text-acento-texto' : 'hover:bg-elevado',
+        checked && 'border-acento bg-acento text-acento-texto hover:brightness-110',
       )}
-      style={!checked && color ? { borderColor: color } : undefined}
+      style={
+        !checked
+          ? ({
+              '--check-color': color ?? 'var(--fh-acento)',
+              ...(color ? { borderColor: color } : {}),
+            } as CSSProperties)
+          : undefined
+      }
     >
-      {checked && (
-        <svg viewBox="0 0 16 16" className={small ? 'size-2.5' : 'size-3.5'} aria-hidden="true">
-          <path
-            d="M3.5 8.5l3 3 6-7"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2.2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-        </svg>
-      )}
+      {/* Sin marcar, se insinúa el tic al pasar el cursor. */}
+      <svg
+        viewBox="0 0 16 16"
+        className={cx(
+          small ? 'size-2.5' : 'size-3.5',
+          checked
+            ? 'check-pop'
+            : 'text-[var(--check-color)] opacity-0 transition-opacity group-hover/check:opacity-70 group-focus-visible/check:opacity-70',
+        )}
+        aria-hidden="true"
+      >
+        <path
+          d="M3.5 8.5l3 3 6-7"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2.2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      </svg>
     </button>
   );
 }
