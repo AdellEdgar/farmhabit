@@ -1,15 +1,18 @@
 import { useEffect, useState, useSyncExternalStore } from 'react';
 import { fetch as tauriFetch } from '@tauri-apps/plugin-http';
 import {
+  eventsInRange,
   expandEvents,
   getCachedIcs,
   parseIcs,
   setCachedIcs,
   sourceIcs,
+  type CalendarEvent,
   type CalendarOccurrence,
   type CalendarSource,
   type Database,
   type IcsEvent,
+  type LocalDate,
 } from '@farmhabit/core';
 import { isDesktopApp } from './drivers';
 
@@ -24,6 +27,23 @@ export interface SourceEvent extends CalendarOccurrence {
   sourceId: string;
   sourceName: string;
   color: string;
+  /** Solo en los eventos propios: se abren para editarlos. */
+  ownEventId?: string;
+}
+
+/** Los eventos propios, con la misma forma que los de un calendario suscrito. */
+export function ownEventsAsSource(
+  events: CalendarEvent[],
+  from: LocalDate,
+  to: LocalDate,
+): SourceEvent[] {
+  return eventsInRange(events, from, to).map((o) => ({
+    ...o,
+    sourceId: 'own',
+    sourceName: 'Mis eventos',
+    color: 'var(--fh-info)',
+    ownEventId: o.eventId,
+  }));
 }
 
 // Versión de los calendarios: sube cuando cambia una caché, para repintar.

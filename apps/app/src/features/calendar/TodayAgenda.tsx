@@ -1,17 +1,20 @@
 import { localDateTimeToEpoch } from '@farmhabit/core';
-import { useCalendarEvents } from '../../lib/calendars';
+import { ownEventsAsSource, useCalendarEvents } from '../../lib/calendars';
 import { useApp } from '../../lib/use-app';
 import { Card } from '../../components/ui';
 import { formatEventTime } from './calendar-format';
 
-/** Eventos de hoy de los calendarios externos (no se muestra si no hay ninguno). */
+/** Eventos de hoy, propios y de los calendarios externos (no se muestra si no hay ninguno). */
 export function TodayAgenda({ onMore }: { onMore: () => void }) {
   const { db, data, today, now } = useApp();
-  const events = useCalendarEvents(
+  const external = useCalendarEvents(
     db,
     data.calendarSources,
     localDateTimeToEpoch(today, '00:00'),
     localDateTimeToEpoch(today, '23:59'),
+  );
+  const events = [...ownEventsAsSource(data.events, today, today), ...external].sort(
+    (a, b) => a.start - b.start,
   );
   if (events.length === 0) return null;
 

@@ -10,6 +10,7 @@ import {
   withConfigChange,
 } from '../src/domain/habits';
 import {
+  changeCreatureSpecies,
   changeHabitConfig,
   ClosedDayError,
   createHabit,
@@ -314,5 +315,55 @@ describe('archivar y reactivar', () => {
     });
     // 3 días hechos (+25) y solo el 10 fallado (−15): del 4 al 9 estaba archivado.
     expect(game.creatures[0]!.xp).toBe(3 * 25 - 15);
+  });
+});
+
+describe('cambiar la especie de una criatura', () => {
+  const habit = async () => {
+    const { db } = await openTestDb();
+    const h = await createHabit(db, {
+      name: 'Leer',
+      description: '',
+      icon: '',
+      color: '',
+      startDate: '2026-10-01',
+      config: { effort: 3, schedule: { type: 'daily' }, target: null },
+      creatureSpecies: 'medusa',
+    });
+    return { db, h };
+  };
+
+  it('guarda la anterior con la etapa alcanzada', async () => {
+    const { db, h } = await habit();
+    const next = await changeCreatureSpecies(db, h.id, 'tortuga', 2);
+    expect(next.creatureSpecies).toBe('tortuga');
+    expect(next.creaturePast).toEqual([{ species: 'medusa', maxStage: 2 }]);
+  });
+
+  it('volver a una especie conserva la mayor etapa', async () => {
+    const { db, h } = await habit();
+    await changeCreatureSpecies(db, h.id, 'tortuga', 3);
+    await changeCreatureSpecies(db, h.id, 'medusa', 3);
+    const again = await changeCreatureSpecies(db, h.id, 'tortuga', 1);
+    expect(again.creaturePast).toEqual(
+      expect.arrayContaining([
+        { species: 'medusa', maxStage: 3 },
+        { species: 'tortuga', maxStage: 3 },
+      ]),
+    );
+    expect(again.creaturePast).toHaveLength(2);
+  });
+
+  it('elegir la misma no cambia nada', async () => {
+    const { db, h } = await habit();
+    const same = await changeCreatureSpecies(db, h.id, 'medusa', 2);
+    expect(same.updatedAt).toBe(h.updatedAt);
+    expect(same.creaturePast).toEqual([]);
+  });
+
+  it('un huevo no deja rastro en la colección', async () => {
+    const { db, h } = await habit();
+    const next = await changeCreatureSpecies(db, h.id, 'tortuga', 0);
+    expect(next.creaturePast).toEqual([]);
   });
 });

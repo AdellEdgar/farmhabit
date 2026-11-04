@@ -1,5 +1,6 @@
 import { createContext, useContext } from 'react';
 import type {
+  CalendarEvent,
   CalendarSource,
   Database,
   GameState,
@@ -33,6 +34,7 @@ export interface AppData {
   notes: Note[];
   noteFolders: NoteFolder[];
   purchases: Purchase[];
+  events: CalendarEvent[];
   calendarSources: CalendarSource[];
   vacations: Vacation[];
 }

@@ -11,8 +11,10 @@ import {
 import { formatQuantity } from '../features/habits/habit-meta';
 import { formatDue } from './format';
 
-/** Hora del aviso diario cuando alguna criatura está triste y su hábito sigue pendiente. */
+/** Hora del aviso diario cuando alguna criatura retrocedería si hoy no se hace su hábito. */
 export const CREATURE_ALERT_TIME = '20:00';
+
+const hhmm = new Intl.DateTimeFormat('es-ES', { hour: '2-digit', minute: '2-digit' });
 
 export interface NotificationText {
   title: string;
@@ -32,6 +34,14 @@ export function reminderText(event: ReminderEvent, logs: HabitLog[]): Notificati
           : `Vence ${due.charAt(0).toLowerCase()}${due.slice(1)}`,
     };
   }
+  if (event.kind === 'event') {
+    const o = event.occurrence;
+    const when =
+      event.offsetMin === 0 && !o.allDay
+        ? 'Empieza ahora'
+        : formatDue(o.startDate, o.allDay ? null : hhmm.format(o.start), day);
+    return { title: `📅 ${o.title}`, body: o.location ? `${when} · ${o.location}` : when };
+  }
   const h = event.habit;
   const cfg = configOn(h, event.date);
   const log = logs.find((l) => l.id === habitLogId(h.id, event.date) && l.deletedAt === null);
@@ -48,8 +58,8 @@ export function creatureAlertText(game: GameState): NotificationText | null {
     title: '😢 Tus criaturas te necesitan',
     body:
       rest.length === 0
-        ? `${first.name} está triste: si hoy no haces su hábito, puede retroceder.`
-        : `${first.name} y ${rest.length} más están tristes: haz sus hábitos hoy para que no retrocedan.`,
+        ? `${first.name} retrocederá si hoy no haces su hábito.`
+        : `${first.name} y ${rest.length} más retrocederán si hoy no haces sus hábitos.`,
   };
 }
 

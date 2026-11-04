@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { BarChart3 } from 'lucide-react';
 import {
   addDays,
+  changeCreatureSpecies,
   habitCalendar,
   SPECIES,
   speciesById,
@@ -17,9 +18,11 @@ import { cx } from '../../lib/cx';
 import { Button, Chip, Dialog, Field, Input, ProgressBar } from '../../components/ui';
 import { backgroundUrl } from './assets';
 import { CreatureImage } from './CreatureImage';
+import { SpeechBubble } from './SpeechBubble';
 import {
   AURA_NAMES,
   BACKGROUND_NAMES,
+  creaturePhrase,
   MOOD_LABEL,
   stageName,
   stageProgress,
@@ -55,9 +58,7 @@ export function CreatureSheet({ habitId, onClose }: { habitId: string; onClose: 
   if (!c || !habit) return null;
 
   const update = (
-    patch: Partial<
-      Pick<Habit, 'creatureName' | 'creatureSpecies' | 'creatureBackground' | 'creatureAura'>
-    >,
+    patch: Partial<Pick<Habit, 'creatureName' | 'creatureBackground' | 'creatureAura'>>,
   ) => mutate((db) => db.repo('habits').update(habitId, patch));
   const saveName = () => {
     const clean = name.trim().slice(0, 50);
@@ -65,6 +66,7 @@ export function CreatureSheet({ habitId, onClose }: { habitId: string; onClose: 
   };
 
   const progress = stageProgress(c);
+  const phrase = creaturePhrase(c, today);
   const week = habitCalendar(habit, data.habitLogs, addDays(today, -6), today, today);
   const bg = c.background ? backgroundUrl(c.background) : null;
   const ownedBackgrounds = game.owned
@@ -86,6 +88,8 @@ export function CreatureSheet({ habitId, onClose }: { habitId: string; onClose: 
           aura={c.aura}
         />
       </div>
+
+      {phrase && <SpeechBubble text={phrase} className="mx-auto w-fit max-w-full text-sm" />}
 
       <div className="grid gap-4 sm:grid-cols-2">
         <div className="space-y-1">
@@ -150,7 +154,9 @@ export function CreatureSheet({ habitId, onClose }: { habitId: string; onClose: 
                 type="button"
                 disabled={locked}
                 title={locked ? `${s.name} (nivel ${s.unlockLevel})` : s.name}
-                onClick={() => void update({ creatureSpecies: s.id })}
+                onClick={() =>
+                  void mutate((db) => changeCreatureSpecies(db, habitId, s.id, c.maxStageEver))
+                }
                 aria-pressed={s.id === c.species}
                 className={cx(
                   'grid place-items-center rounded-xl border p-1 transition disabled:opacity-30',

@@ -6,7 +6,7 @@ import {
   trainerLevel,
   unlockedSpecies,
 } from '../src/game/creature-rules';
-import { computeGame, type GameInput, type GameState } from '../src/game/creatures';
+import { computeGame, habitXpGain, type GameInput, type GameState } from '../src/game/creatures';
 import { defaultSpecies, SPECIES, speciesById, suggestSpecies } from '../src/game/species';
 import type { Habit, HabitLog, Purchase, TaskCompletion } from '../src/model/types';
 import { deterministicId, newId } from '../src/util/ids';
@@ -451,5 +451,143 @@ describe('logros', () => {
       '2026-09-02',
     );
     expect(Object.values(s.seenStages).every((stages) => stages.includes(1))).toBe(true);
+  });
+});
+
+// ---------- Arreglos de la revisión ----------
+
+describe('deuda de pesetas', () => {
+  it('lo comprado sin saldo se paga con lo que se gane después', () => {
+    const h = makeHabit({ startDate: '2026-09-02', config: { effort: 5 } });
+    const logs = logsFor(h, '2026-09-02', '2026-09-30');
+    const without = game({ habits: [h], logs, today: '2026-10-01' });
+    const withDebt = game({
+      habits: [h],
+      logs,
+      purchases: [purchase('background:playa', '2026-09-01', 150)],
+      today: '2026-10-01',
+    });
+    expect(without.pesetas - withDebt.pesetas).toBe(150);
+  });
+
+  it('mientras hay deuda se ven 0 pesetas', () => {
+    const s = game({
+      purchases: [purchase('aura:dorada', '2026-09-01', 200)],
+      today: '2026-09-02',
+    });
+    expect(s.pesetas).toBe(0);
+  });
+});
+
+describe('tope de comodines', () => {
+  it('nunca se guardan más del máximo, aunque se compren desde dos dispositivos', () => {
+    const s = game({
+      purchases: [1, 2, 3].map(() => purchase('freeze', '2026-09-01', 50)),
+      today: '2026-09-02',
+    });
+    expect(s.freezes).toBe(DEFAULT_CREATURE_RULES.freezeMax);
+  });
+});
+
+describe('XP que da hacer un hábito', () => {
+  it('incluye el bonus de racha', () => {
+    const daily = makeHabit().configHistory[0]!;
+    expect(habitXpGain(daily, 0)).toBe(25);
+    expect(habitXpGain(daily, 7)).toBe(26);
+    const weekly = makeHabit({ config: { schedule: { type: 'timesPerWeek', times: 3 } } })
+      .configHistory[0]!;
+    expect(habitXpGain(weekly, 2)).toBe(Math.round(25 * 1.1));
+  });
+});
+
+describe('avisos de retroceso', () => {
+  const easy = () => makeHabit({ startDate: START, config: { effort: 1 } });
+
+  it('avisa si fallar hoy la haría retroceder', () => {
+    const h = easy();
+    // 60 XP (bebé): fallar hoy deja 35, por debajo del 80 % de 50.
+    const s = game({ habits: [h], logs: logsFor(h, START, '2026-09-04'), today: '2026-09-05' });
+    expect(s.alerts.map((a) => a.habitId)).toEqual([h.id]);
+  });
+
+  it('no avisa si ya lo ha hecho hoy', () => {
+    const h = easy();
+    const s = game({ habits: [h], logs: logsFor(h, START, '2026-09-05'), today: '2026-09-05' });
+    expect(s.alerts).toEqual([]);
+  });
+
+  it('no avisa con huevos', () => {
+    const h = easy();
+    expect(game({ habits: [h], today: '2026-09-10' }).alerts).toEqual([]);
+  });
+
+  it('no avisa si va sobrada de XP', () => {
+    const h = makeHabit({ startDate: START });
+    // 75 XP y fallar quita 15: se queda en 60, sigue siendo bebé.
+    const s = game({ habits: [h], logs: logsFor(h, START, '2026-09-03'), today: '2026-09-04' });
+    expect(s.alerts).toEqual([]);
+  });
+
+  it('no avisa si hay un comodín guardado o está de vacaciones', () => {
+    const h = easy();
+    const logs = logsFor(h, START, '2026-09-04');
+    const freeze = game({
+      habits: [h],
+      logs,
+      purchases: [purchase('freeze', '2026-09-03', 50)],
+      today: '2026-09-05',
+    });
+    expect(freeze.alerts).toEqual([]);
+    const vacation = makeVacation({
+      startDate: '2026-09-05',
+      endDate: '2026-09-06',
+      createdAt: noon(START),
+    });
+    expect(game({ habits: [h], logs, vacations: [vacation], today: '2026-09-05' }).alerts).toEqual(
+      [],
+    );
+  });
+
+  it('en los flexibles solo avisa el día que se cierra el periodo', () => {
+    const h = makeHabit({
+      startDate: '2026-08-31',
+      config: { effort: 1, schedule: { type: 'timesPerWeek', times: 3 } },
+    });
+    // Primera semana: 4 veces (60 XP). Segunda: solo el lunes.
+    const logs = [...logsFor(h, '2026-08-31', '2026-09-03'), makeLog(h, '2026-09-07')];
+    expect(game({ habits: [h], logs, today: '2026-09-09' }).alerts).toEqual([]);
+    expect(game({ habits: [h], logs, today: '2026-09-13' }).alerts.map((a) => a.habitId)).toEqual([
+      h.id,
+    ]);
+  });
+});
+
+describe('la colección no olvida especies', () => {
+  const game = (h: Habit) =>
+    computeGame({
+      habits: [h],
+      logs: [],
+      tasks: [],
+      taskCompletions: [],
+      purchases: [],
+      vacations: [],
+      today: '2026-11-04',
+    });
+
+  it('una especie abandonada sigue vista con las etapas que alcanzó', () => {
+    const g = game(makeHabit({ creaturePast: [{ species: 'medusa', maxStage: 2 }] }));
+    expect(g.seenStages.medusa).toEqual([1, 2]);
+  });
+
+  it('pasar por las especies no paga el logro de la colección, aunque se vean en ella', () => {
+    const past = SPECIES.map((s) => ({ species: s.id, maxStage: 1 }));
+    const g = game(makeHabit({ creaturePast: past }));
+    expect(g.achievements.find((a) => a.id === 'coleccion-completa')?.unlockedOn).toBeNull();
+    expect(g.seenStages.medusa).toEqual([1]);
+  });
+
+  it('una especie desconocida se ignora', () => {
+    const g = game(makeHabit({ creaturePast: [{ species: 'pikachu', maxStage: 4 }] }));
+    expect(Object.keys(g.seenStages)).toHaveLength(16);
   });
 });

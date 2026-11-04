@@ -13,7 +13,8 @@ Tus datos se guardan en tu dispositivo, sin cuentas propias ni servidores. Si qu
 </p>
 
 <p align="center">
-  <img src="docs/screenshots/calendario.png" alt="Calendario del mes con clases de la universidad y tareas" width="404">
+  <img src="docs/screenshots/calendario.png" alt="Calendario del mes con clases, eventos y tareas" width="404">
+  <img src="docs/screenshots/criaturas.png" alt="Criaturas: misiones de la semana y tarjetas del equipo con sus frases" width="404">
 </p>
 
 <p align="center">
@@ -45,6 +46,9 @@ Tus datos se guardan en tu dispositivo, sin cuentas propias ni servidores. Si qu
 - Cada hábito tiene una **criatura** que eliges entre 16 especies, cada una con 4 etapas: bebé, joven, adulta y leyenda (y el huevo).
 - Hacer el hábito le da **XP** (`10 + 5 × esfuerzo`); fallarlo se la quita (`5 × (6 − esfuerzo)`): **fallar lo fácil castiga más**. Con suficiente XP **evoluciona**; si la descuidas, **retrocede**, pero nunca muere.
 - Su **ánimo** (feliz, normal, cansada, triste) refleja tus últimos días con ese hábito.
+- Cada especie **habla a su manera**: frases propias según su ánimo, al hacer el hábito y al evolucionar.
+- **Misiones semanales**: 3 objetivos cada semana, elegidos según tus hábitos, con premio en pesetas.
+- **Resumen semanal**: cómo te fue la semana anterior y qué criatura fue la estrella, con todas las semanas pasadas en su pestaña.
 - **Nivel de entrenador** con toda la XP ganada: desbloquea especies.
 - **Pesetas** por hábitos, tareas y logros, para la **tienda**: **comodines** que protegen solos un día malo, **fondos** y **auras**.
 - **Colección** con las 64 etapas por descubrir, **logros** y **modo vacaciones**.
@@ -57,7 +61,8 @@ Tus datos se guardan en tu dispositivo, sin cuentas propias ni servidores. Si qu
 
 ### 🗓️ Calendario
 
-- Vista de **mes** con tus tareas (también las repeticiones futuras) y el detalle de cada día.
+- Vistas de **mes**, **semana**, **día** y **agenda** con tus tareas (también las repeticiones futuras).
+- **Eventos propios** para citas y planes: día completo o con hora, lugar, avisos y repetición. Una tarea con fecha se puede **convertir en evento**.
 - Muestra junto a tus tareas el calendario de la **universidad**, **Google**, **Outlook** o **iCloud**: puedes suscribirte con su enlace iCal (se actualiza solo) o importar un archivo `.ics`. Solo se leen, nunca se modifican. Cómo conseguir el enlace: [docs/calendarios.md](docs/calendarios.md).
 - La pantalla **Hoy** muestra la agenda del día.
 
@@ -67,7 +72,7 @@ Tus datos se guardan en tu dispositivo, sin cuentas propias ni servidores. Si qu
 
 ### 🔔 Avisos
 
-- Notificaciones del sistema para tareas, hábitos y criaturas tristes.
+- Notificaciones del sistema para tareas, eventos, hábitos y criaturas tristes.
 - En escritorio, la app puede quedarse en la **bandeja del sistema** y **arrancar con el ordenador**. En Android, los avisos se programan con antelación.
 
 ### ☁️ Sincronización y copias
@@ -144,6 +149,7 @@ Para publicar una versión nueva: sube la versión en `apps/app/package.json` (y
 | 7    | Calendario y suscripción a calendarios `.ics`                |
 | 8    | Publicación: versión 1.0.0, Releases y demo web              |
 | 9    | 2.0: criaturas en lugar de la granja y nombre ¡Chambea!      |
+| 10   | Eventos propios, misiones, resumen semanal y frases          |
 
 ## Licencia
 

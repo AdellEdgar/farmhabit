@@ -1,4 +1,4 @@
-import type { SimpleRecurrence } from '@farmhabit/core';
+import { toRRule, type SimpleRecurrence } from '@farmhabit/core';
 import { WEEKDAYS } from './format';
 
 // Traducción entre las reglas RRULE guardadas y las opciones del formulario.
@@ -58,4 +58,60 @@ export function describeRecurrence(r: SimpleRecurrence | 'custom' | null): strin
     case 'yearly':
       return every(r.interval, 'Cada año', 'años');
   }
+}
+
+// Borrador de los controles de repetición de tareas y eventos.
+
+export type RepeatKind = 'none' | 'daily' | 'weekly' | 'monthly' | 'yearly' | 'custom';
+
+export interface RecurrenceDraft {
+  repeat: RepeatKind;
+  interval: number;
+  weekdays: number[];
+  monthDay: number;
+  /** Regla que no se puede editar con estos controles: se conserva tal cual. */
+  customRule: string | null;
+}
+
+/** `date`: la fecha que da el día del mes por defecto, si la hay. */
+export function recurrenceDraft(rrule: string | null, date?: string): RecurrenceDraft {
+  const rec = parseRRule(rrule);
+  return {
+    repeat: rec === null ? 'none' : rec === 'custom' ? 'custom' : rec.freq,
+    interval: rec && rec !== 'custom' ? (rec.interval ?? 1) : 1,
+    weekdays: rec && rec !== 'custom' && rec.freq === 'weekly' ? rec.weekdays : [],
+    monthDay:
+      rec && rec !== 'custom' && rec.freq === 'monthly'
+        ? rec.monthDay
+        : date
+          ? Number(date.slice(8))
+          : 1,
+    customRule: rec === 'custom' ? rrule : null,
+  };
+}
+
+function toRecurrence(d: RecurrenceDraft, date: string): SimpleRecurrence | null {
+  const interval = Math.max(1, d.interval || 1);
+  switch (d.repeat) {
+    case 'daily':
+      return { freq: 'daily', interval };
+    case 'weekly': {
+      // Sin días elegidos: el mismo día de la semana que la fecha.
+      const day = new Date(`${date}T12:00:00Z`).getUTCDay() || 7;
+      return { freq: 'weekly', interval, weekdays: d.weekdays.length ? d.weekdays : [day] };
+    }
+    case 'monthly':
+      return { freq: 'monthly', interval, monthDay: d.monthDay };
+    case 'yearly':
+      return { freq: 'yearly', interval };
+    default:
+      return null;
+  }
+}
+
+/** Regla RRULE del borrador (null si no se repite). `date` es la fecha de la tarea o el evento. */
+export function recurrenceRule(d: RecurrenceDraft, date: string): string | null {
+  if (d.repeat === 'custom') return d.customRule;
+  const rec = toRecurrence(d, date);
+  return rec ? toRRule(rec) : null;
 }

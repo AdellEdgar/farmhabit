@@ -154,7 +154,64 @@ describe('datos de una versión anterior (sin criaturas)', () => {
   it('desde la versión actual, quitar el aura sí se respeta', async () => {
     const { db, habit, payload } = await setup();
     const edited = { ...habit, creatureAura: null, updatedAt: habit.updatedAt + 1000 };
-    await mergeIntoDatabase(db, payload(edited, 4));
+    await mergeIntoDatabase(db, payload(edited, 5));
     expect((await db.repo('habits').get(habit.id))?.creatureAura).toBeNull();
+  });
+});
+
+describe('especies pasadas en archivos de otras versiones', () => {
+  async function setup() {
+    const { db } = await openTestDb(noon('2026-10-24'));
+    const h = await createHabit(db, {
+      name: 'Leer',
+      startDate: '2026-10-01',
+      config: { effort: 3, schedule: { type: 'daily' }, target: null },
+      creatureSpecies: 'medusa',
+    });
+    const past = [{ species: 'panda', maxStage: 2 }];
+    const habit = await db.repo('habits').update(h.id, { creaturePast: past });
+    const merge = (remote: Habit, schemaVersion: number) =>
+      mergeIntoDatabase(db, {
+        formatVersion: 1,
+        schemaVersion,
+        exportedAt: noon('2026-10-24'),
+        sourceDeviceId: 'otro-dispositivo',
+        collections: { ...emptyDataset(), habits: [remote] },
+        privateVault: null,
+      });
+    const newer = {
+      ...habit,
+      creatureSpecies: 'poseidon',
+      creaturePast: [],
+      updatedAt: habit.updatedAt + 1000,
+    };
+    return { db, habit, past, merge, newer };
+  }
+
+  it('esquema 4: aplica la especie remota y conserva el pasado local', async () => {
+    const { db, habit, past, merge, newer } = await setup();
+    await merge(newer, 4);
+    expect(await db.repo('habits').get(habit.id)).toMatchObject({
+      creatureSpecies: 'poseidon',
+      creaturePast: past,
+    });
+  });
+
+  it('esquema 3: conserva la especie y el pasado locales', async () => {
+    const { db, habit, past, merge, newer } = await setup();
+    await merge(newer, 3);
+    expect(await db.repo('habits').get(habit.id)).toMatchObject({
+      creatureSpecies: 'medusa',
+      creaturePast: past,
+    });
+  });
+
+  it('esquema 5: aplica los dos', async () => {
+    const { db, habit, merge, newer } = await setup();
+    await merge(newer, 5);
+    expect(await db.repo('habits').get(habit.id)).toMatchObject({
+      creatureSpecies: 'poseidon',
+      creaturePast: [],
+    });
   });
 });

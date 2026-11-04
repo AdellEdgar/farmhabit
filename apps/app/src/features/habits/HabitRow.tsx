@@ -3,8 +3,10 @@ import { Flame, SkipForward } from 'lucide-react';
 import {
   configOn,
   habitLogId,
+  habitXpGain,
   habitStreak,
   logRatio,
+  pickPhrase,
   setHabitLog,
   type Habit,
   type LocalDate,
@@ -14,7 +16,10 @@ import { cx } from '../../lib/cx';
 import { CheckCircle, IconButton } from '../../components/ui';
 import { CreatureImage } from '../creatures/CreatureImage';
 import { CreatureSheet } from '../creatures/CreatureSheet';
+import { SpeechBubble } from '../creatures/SpeechBubble';
 import { formatQuantity, penaltyFor, rewardFor, streakUnit } from './habit-meta';
+
+const SPOKEN_MS = 3500;
 
 export function HabitRow({
   habit,
@@ -33,7 +38,16 @@ export function HabitRow({
   // "+N XP" flotante y saltito de la criatura al marcarlo como hecho.
   const [burst, setBurst] = useState<{ xp: number; key: number } | null>(null);
   const burstTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
-  useEffect(() => () => clearTimeout(burstTimer.current), []);
+  // La frase dura más que el "+N XP": hay que tener tiempo de leerla.
+  const [spoken, setSpoken] = useState<string | null>(null);
+  const spokenTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
+  useEffect(
+    () => () => {
+      clearTimeout(burstTimer.current);
+      clearTimeout(spokenTimer.current);
+    },
+    [],
+  );
   const cfg = configOn(habit, date)!;
   const log = data.habitLogs.find((l) => l.id === habitLogId(habit.id, date));
   const ratio = logRatio(log, cfg);
@@ -52,8 +66,13 @@ export function HabitRow({
 
   const celebrate = () => {
     clearTimeout(burstTimer.current);
-    setBurst({ xp: rewardFor(cfg.effort), key: (burst?.key ?? 0) + 1 });
+    setBurst({ xp: habitXpGain(cfg, creature?.streak ?? 0), key: (burst?.key ?? 0) + 1 });
     burstTimer.current = setTimeout(() => setBurst(null), 1200);
+    if (creature && creature.stage > 0) {
+      clearTimeout(spokenTimer.current);
+      setSpoken(pickPhrase(creature.species, 'hecho', `${habit.id}|${today}|hecho`));
+      spokenTimer.current = setTimeout(() => setSpoken(null), SPOKEN_MS);
+    }
   };
 
   const toggleDone = async () => {
@@ -141,6 +160,7 @@ export function HabitRow({
           )}
           {skipped && <span>Saltado</span>}
         </div>
+        {spoken && <SpeechBubble text={spoken} className="mt-1.5 w-fit max-w-full" />}
       </button>
 
       {cfg.target && !compact && (

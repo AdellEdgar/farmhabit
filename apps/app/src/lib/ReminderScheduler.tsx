@@ -51,6 +51,7 @@ export function ReminderScheduler() {
           tasks: d.tasks,
           habits: d.habits,
           logs: d.habitLogs,
+          events: d.events,
           from,
           to: now,
         }).map((e) => reminderText(e, d.habitLogs));

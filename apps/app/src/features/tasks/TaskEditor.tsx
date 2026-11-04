@@ -1,33 +1,22 @@
 import { useState } from 'react';
-import { Plus, Trash2 } from 'lucide-react';
+import { CalendarPlus, Plus, Trash2 } from 'lucide-react';
 import {
   addDays,
   addSubtask,
   deleteTask,
-  toRRule,
+  taskToEvent,
   type LocalDate,
   type Priority,
-  type SimpleRecurrence,
   type Task,
 } from '@farmhabit/core';
+import { recurrenceDraft, recurrenceRule, type RecurrenceDraft } from '../../lib/recurrence-ui';
 import { useApp } from '../../lib/use-app';
-import { formatOffset, WEEKDAYS } from '../../lib/format';
-import { describeRecurrence, parseRRule } from '../../lib/recurrence-ui';
-import {
-  Button,
-  Chip,
-  Dialog,
-  Field,
-  Input,
-  Segmented,
-  Select,
-  Textarea,
-} from '../../components/ui';
+import { Button, Chip, Dialog, Field, Input, Segmented, Textarea } from '../../components/ui';
 import { PriorityBars } from './PriorityBars';
+import { RecurrenceFields } from './RecurrenceFields';
+import { ReminderFields } from './ReminderFields';
 import { SubtaskEditor } from './SubtaskEditor';
-import { PRIORITIES, REMINDER_PRESETS, TAG_COLORS } from './task-meta';
-
-type RepeatKind = 'none' | 'daily' | 'weekly' | 'monthly' | 'yearly' | 'custom';
+import { PRIORITIES, TAG_COLORS, toReminders } from './task-meta';
 
 interface Draft {
   title: string;
@@ -35,11 +24,7 @@ interface Draft {
   priority: Priority;
   dueDate: string;
   dueTime: string;
-  repeat: RepeatKind;
-  interval: number;
-  weekdays: number[];
-  monthDay: number;
-  customRule: string | null;
+  recurrence: RecurrenceDraft;
   reminders: number[];
   tagIds: string[];
   /** Subtareas de una tarea nueva: se crean al guardarla. */
@@ -47,41 +32,17 @@ interface Draft {
 }
 
 function toDraft(task: Task | null, defaultDate: LocalDate | null): Draft {
-  const rec = parseRRule(task?.rrule ?? null);
   return {
     title: task?.title ?? '',
     notes: task?.notes ?? '',
     priority: task?.priority ?? 2,
     dueDate: task?.dueDate ?? defaultDate ?? '',
     dueTime: task?.dueTime ?? '',
-    repeat: rec === null ? 'none' : rec === 'custom' ? 'custom' : rec.freq,
-    interval: rec && rec !== 'custom' ? (rec.interval ?? 1) : 1,
-    weekdays: rec && rec !== 'custom' && rec.freq === 'weekly' ? rec.weekdays : [],
-    monthDay: rec && rec !== 'custom' && rec.freq === 'monthly' ? rec.monthDay : 1,
-    customRule: rec === 'custom' ? (task?.rrule ?? null) : null,
+    recurrence: recurrenceDraft(task?.rrule ?? null),
     reminders: task?.reminders.map((r) => r.offsetMin) ?? [],
     tagIds: task?.tagIds ?? [],
     newSubtasks: [],
   };
-}
-
-function draftRecurrence(d: Draft, dueDate: string): SimpleRecurrence | null {
-  const interval = Math.max(1, d.interval || 1);
-  switch (d.repeat) {
-    case 'daily':
-      return { freq: 'daily', interval };
-    case 'weekly': {
-      // Sin días elegidos: el mismo día de la semana que la fecha límite.
-      const day = new Date(`${dueDate}T12:00:00Z`).getUTCDay() || 7;
-      return { freq: 'weekly', interval, weekdays: d.weekdays.length ? d.weekdays : [day] };
-    }
-    case 'monthly':
-      return { freq: 'monthly', interval, monthDay: d.monthDay };
-    case 'yearly':
-      return { freq: 'yearly', interval };
-    default:
-      return null;
-  }
 }
 
 export function TaskEditor({
@@ -95,30 +56,33 @@ export function TaskEditor({
   defaultDate?: LocalDate | null;
   onClose: () => void;
 }) {
-  const { data, mutate, today } = useApp();
+  const { data, mutate, today, toast } = useApp();
   const [draft, setDraft] = useState<Draft>(() => toDraft(task, defaultDate));
   const [newTag, setNewTag] = useState('');
   const set = <K extends keyof Draft>(k: K, v: Draft[K]) => setDraft((d) => ({ ...d, [k]: v }));
-  const toggleIn = (list: number[], v: number) =>
-    list.includes(v) ? list.filter((x) => x !== v) : [...list, v];
+  const [confirmConvert, setConfirmConvert] = useState(false);
+  const subtaskCount = task
+    ? data.subtasks.filter((s) => s.taskId === task.id && s.deletedAt === null).length
+    : 0;
 
-  const needsDate = draft.repeat !== 'none' || draft.reminders.length > 0;
+  const needsDate = draft.recurrence.repeat !== 'none' || draft.reminders.length > 0;
 
-  const save = async () => {
+  const fieldsOf = () => {
     const dueDate = draft.dueDate || (needsDate ? today : '');
-    const rec = draftRecurrence(draft, dueDate);
-    const fields = {
+    return {
       title: draft.title.trim(),
       notes: draft.notes,
       priority: draft.priority,
       dueDate: dueDate || null,
       dueTime: dueDate && draft.dueTime ? draft.dueTime : null,
-      rrule: draft.repeat === 'custom' ? draft.customRule : rec ? toRRule(rec) : null,
-      reminders: dueDate
-        ? [...new Set(draft.reminders)].sort((a, b) => b - a).map((offsetMin) => ({ offsetMin }))
-        : [],
+      rrule: recurrenceRule(draft.recurrence, dueDate),
+      reminders: dueDate ? toReminders(draft.reminders) : [],
       tagIds: draft.tagIds,
     };
+  };
+
+  const save = async () => {
+    const fields = fieldsOf();
     if (!fields.title) return;
     const ok = await mutate(async (db) => {
       if (task) return db.repo('tasks').update(task.id, fields);
@@ -134,6 +98,22 @@ export function TaskEditor({
   const remove = async () => {
     if (!task) return;
     await mutate((db) => deleteTask(db, task.id));
+    onClose();
+  };
+
+  const convert = async () => {
+    if (!task) return;
+    if (subtaskCount > 0 && !confirmConvert) {
+      setConfirmConvert(true);
+      return;
+    }
+    // Primero lo que se haya cambiado en el editor, para no perderlo.
+    const ok = await mutate(async (db) => {
+      await db.repo('tasks').update(task.id, fieldsOf());
+      return taskToEvent(db, task.id);
+    });
+    if (!ok) return;
+    toast('Tarea convertida en evento');
     onClose();
   };
 
@@ -245,67 +225,14 @@ export function TaskEditor({
         )}
       </div>
 
-      <Field label="Repetir">
-        <Select value={draft.repeat} onChange={(e) => set('repeat', e.target.value as RepeatKind)}>
-          <option value="none">No se repite</option>
-          <option value="daily">Cada día / cada N días</option>
-          <option value="weekly">Cada semana</option>
-          <option value="monthly">Cada mes</option>
-          <option value="yearly">Cada año</option>
-          {draft.customRule && <option value="custom">{describeRecurrence('custom')}</option>}
-        </Select>
-      </Field>
-      {draft.repeat !== 'none' && draft.repeat !== 'custom' && (
-        <div className="space-y-3 rounded-xl bg-fondo p-3">
-          <label className="flex items-center gap-2 text-sm">
-            Cada
-            <Input
-              type="number"
-              min={1}
-              max={99}
-              value={draft.interval}
-              onChange={(e) => set('interval', Number(e.target.value))}
-              className="w-20"
-            />
-            {
-              { daily: 'día(s)', weekly: 'semana(s)', monthly: 'mes(es)', yearly: 'año(s)' }[
-                draft.repeat
-              ]
-            }
-          </label>
-          {draft.repeat === 'weekly' && (
-            <div className="flex gap-1.5">
-              {WEEKDAYS.map((w) => (
-                <Chip
-                  key={w.iso}
-                  active={draft.weekdays.includes(w.iso)}
-                  onClick={() => set('weekdays', toggleIn(draft.weekdays, w.iso))}
-                  title={w.name}
-                  className="size-9 justify-center px-0"
-                >
-                  {w.short}
-                </Chip>
-              ))}
-            </div>
-          )}
-          {draft.repeat === 'monthly' && (
-            <Select
-              value={draft.monthDay}
-              onChange={(e) => set('monthDay', Number(e.target.value))}
-            >
-              {Array.from({ length: 31 }, (_, i) => (
-                <option key={i + 1} value={i + 1}>
-                  El día {i + 1}
-                </option>
-              ))}
-              <option value={-1}>El último día del mes</option>
-            </Select>
-          )}
-        </div>
-      )}
+      <RecurrenceFields
+        value={draft.recurrence}
+        onChange={(patch) => set('recurrence', { ...draft.recurrence, ...patch })}
+      />
 
-      <Field
-        label="Avisos"
+      <ReminderFields
+        value={draft.reminders}
+        onChange={(v) => set('reminders', v)}
         hint={
           !draft.dueDate
             ? 'Sin fecha se usará la de hoy.'
@@ -313,19 +240,7 @@ export function TaskEditor({
               ? 'Sin hora, los avisos toman como referencia las 9:00.'
               : undefined
         }
-      >
-        <div className="flex flex-wrap gap-2">
-          {REMINDER_PRESETS.map((m) => (
-            <Chip
-              key={m}
-              active={draft.reminders.includes(m)}
-              onClick={() => set('reminders', toggleIn(draft.reminders, m))}
-            >
-              {formatOffset(m)}
-            </Chip>
-          ))}
-        </div>
-      </Field>
+      />
 
       <Field label="Etiquetas">
         <div className="flex flex-wrap gap-2">
@@ -364,6 +279,19 @@ export function TaskEditor({
           </Button>
         </div>
       </Field>
+      {task && draft.dueDate && (
+        <Button
+          variant="ghost"
+          onClick={() => void convert()}
+          disabled={!draft.title.trim()}
+          className="self-start"
+        >
+          <CalendarPlus size={16} />
+          {confirmConvert
+            ? 'Se perderán sus ' + subtaskCount + ' subtareas. ¿Convertir?'
+            : 'Convertir en evento'}
+        </Button>
+      )}
     </Dialog>
   );
 }

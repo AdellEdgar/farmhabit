@@ -25,6 +25,7 @@ import { MobileReminderScheduler } from './lib/MobileReminderScheduler';
 import { SyncProvider } from './lib/SyncProvider';
 import { CalendarRefresher } from './lib/CalendarRefresher';
 import { Celebration } from './features/creatures/Celebration';
+import { WeekSummaryOverlay } from './features/creatures/WeekSummary';
 import { isDemo } from './lib/demo-data';
 import { DemoBanner } from './components/DemoBanner';
 import { UpdateBanner } from './components/UpdateBanner';
@@ -121,6 +122,7 @@ function Shell() {
     <NavigationContext.Provider value={{ section, go: setSection }}>
       {isMobileApp ? <MobileReminderScheduler /> : <ReminderScheduler />}
       <CalendarRefresher />
+      <WeekSummaryOverlay />
       <Celebration />
       {/* Móvil: barra de navegación abajo. Escritorio (md+): barra lateral. */}
       <div className="flex h-full flex-col md:flex-row">

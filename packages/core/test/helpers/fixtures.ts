@@ -2,6 +2,7 @@ import type { KdfParams } from '../../src/crypto/sodium';
 import { Database } from '../../src/db/database';
 import type {
   Animal,
+  CalendarEvent,
   Habit,
   HabitConfig,
   HabitLog,
@@ -69,6 +70,7 @@ export function makeHabit(
     creatureName: '',
     creatureBackground: null,
     creatureAura: null,
+    creaturePast: [],
     ...rest,
   };
 }
@@ -118,4 +120,21 @@ export function makeAnimal(over: Partial<Animal> = {}): Animal {
 
 export function makeVacation(over: Partial<Vacation> = {}): Vacation {
   return { ...base(), startDate: '2026-01-01', endDate: '2026-01-07', ...over };
+}
+
+export function makeEvent(over: Partial<CalendarEvent> = {}): CalendarEvent {
+  return {
+    ...base(),
+    title: 'Evento',
+    location: '',
+    description: '',
+    allDay: false,
+    startDate: '2026-09-01',
+    startTime: '10:00',
+    endDate: '2026-09-01',
+    endTime: '11:00',
+    rrule: null,
+    reminders: [],
+    ...over,
+  };
 }

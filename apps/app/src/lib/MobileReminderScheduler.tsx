@@ -45,6 +45,7 @@ export function MobileReminderScheduler() {
             tasks: data.tasks,
             habits: data.habits,
             logs: data.habitLogs,
+            events: data.events,
             from: now,
             to: now + HORIZON_MS,
           }).map((e) => ({

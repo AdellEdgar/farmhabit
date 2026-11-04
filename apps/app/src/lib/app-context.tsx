@@ -23,6 +23,7 @@ const FIELDS = {
   notes: 'notes',
   noteFolders: 'noteFolders',
   purchases: 'purchases',
+  events: 'events',
   vacations: 'vacations',
   settings: 'settings',
   calendarSources: 'calendarSources',

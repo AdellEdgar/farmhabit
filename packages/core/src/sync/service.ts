@@ -40,8 +40,9 @@ export async function exportDatabase(
   );
 }
 
-/** Esquema en el que los hábitos ganaron sus campos de criatura. */
+/** Esquemas en los que los hábitos ganaron sus campos de criatura y sus especies pasadas. */
 const CREATURE_SCHEMA_VERSION = 4;
+const CREATURE_PAST_SCHEMA_VERSION = 5;
 
 /**
  * Un archivo de una versión anterior a las criaturas trae los hábitos sin sus
@@ -50,15 +51,18 @@ const CREATURE_SCHEMA_VERSION = 4;
  * conservan los locales.
  */
 function keepCreatureFields(local: Dataset, payload: ExportPayload): Dataset {
-  if (payload.schemaVersion >= CREATURE_SCHEMA_VERSION) return payload.collections;
+  if (payload.schemaVersion >= CREATURE_PAST_SCHEMA_VERSION) return payload.collections;
   const mine = new Map(local.habits.map((h) => [h.id, h]));
   return {
     ...payload.collections,
     habits: payload.collections.habits.map((h) => {
       const m = mine.get(h.id);
       if (!m) return h;
+      if (payload.schemaVersion >= CREATURE_SCHEMA_VERSION)
+        return { ...h, creaturePast: m.creaturePast };
       return {
         ...h,
+        creaturePast: m.creaturePast,
         creatureSpecies: m.creatureSpecies,
         creatureName: m.creatureName,
         creatureBackground: m.creatureBackground,

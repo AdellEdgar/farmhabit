@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Shield } from 'lucide-react';
 import {
   AURAS,
@@ -26,14 +27,20 @@ export function ShopTab() {
     if (game.pesetas < price) return `Te faltan ${price - game.pesetas}`;
     return null;
   };
-  const buy = (item: string) => mutate((db) => buyItem(db, item, game, today));
+  // Sin doble clic: el saldo no se actualiza hasta que termina la compra.
+  const [buying, setBuying] = useState(false);
+  const buy = async (item: string) => {
+    setBuying(true);
+    await mutate((db) => buyItem(db, item, game, today));
+    setBuying(false);
+  };
 
   const buyButton = (item: string) => {
     const reason = blocked(item);
     return (
       <Button
         variant={reason ? 'secondary' : 'primary'}
-        disabled={reason !== null}
+        disabled={reason !== null || buying}
         onClick={() => void buy(item)}
         className="w-full"
       >

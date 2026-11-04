@@ -368,3 +368,15 @@ select {
   height: 0;
   pointer-events: none;
 }
+
+/* Bocadillo de las criaturas */
+.speech-bubble::before {
+  content: '';
+  position: absolute;
+  top: -5px;
+  left: 14px;
+  width: 10px;
+  height: 10px;
+  background: inherit;
+  transform: rotate(45deg);
+}

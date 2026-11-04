@@ -220,6 +220,7 @@ export async function seedDemo(db: Database): Promise<void> {
       creatureName: h.creature,
       creatureBackground: null,
       creatureAura: null,
+      creaturePast: [],
     });
     for (let d = start; d < today; d = addDays(d, 1)) {
       // Más constancia en las últimas semanas: las criaturas van a mejor.
@@ -257,6 +258,43 @@ export async function seedDemo(db: Database): Promise<void> {
   await db
     .repo('purchases')
     .create({ item: 'background:biblioteca', date: addDays(start, 40), price: 150 });
+
+  // Eventos propios: uno con lugar, uno semanal y otro de todo el día.
+  const demoEvent = {
+    description: '',
+    location: '',
+    allDay: false,
+    rrule: null,
+    reminders: [],
+  };
+  await db.repo('events').create({
+    ...demoEvent,
+    title: 'Cena con la familia',
+    location: 'Casa de los abuelos',
+    startDate: today,
+    startTime: '21:00',
+    endDate: today,
+    endTime: '22:30',
+    reminders: [{ offsetMin: 60 }],
+  });
+  await db.repo('events').create({
+    ...demoEvent,
+    title: 'Clase de inglés',
+    startDate: addDays(today, 1),
+    startTime: '17:00',
+    endDate: addDays(today, 1),
+    endTime: '18:00',
+    rrule: 'FREQ=WEEKLY',
+  });
+  await db.repo('events').create({
+    ...demoEvent,
+    title: 'Viaje a Valencia',
+    allDay: true,
+    startDate: addDays(today, 4),
+    startTime: null,
+    endDate: addDays(today, 5),
+    endTime: null,
+  });
 
   // Notas
   const folder = await db

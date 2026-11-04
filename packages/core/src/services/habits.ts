@@ -2,7 +2,7 @@ import type { Database } from '../db/database';
 import { NotFoundError } from '../db/database';
 import { withConfigChange } from '../domain/habits';
 import type { Habit, HabitConfig, HabitLog } from '../model/types';
-import type { SpeciesId } from '../game/species';
+import { defaultSpecies, speciesById, type SpeciesId } from '../game/species';
 import type { LocalDate } from '../util/dates';
 import { addDays, localDateOf } from '../util/dates';
 import { compareSortKey, keyBetween } from '../util/fractional-index';
@@ -82,6 +82,7 @@ export async function createHabit(db: Database, input: NewHabitInput): Promise<H
     creatureName: input.creatureName ?? '',
     creatureBackground: null,
     creatureAura: null,
+    creaturePast: [],
   });
 }
 
@@ -96,6 +97,30 @@ export async function changeHabitConfig(
   const habit = await repo.get(habitId);
   if (!habit) throw new NotFoundError('habits', habitId);
   return repo.update(habitId, { configHistory: withConfigChange(habit, change, today) });
+}
+
+/**
+ * Cambia la especie de una criatura. La anterior queda en `creaturePast` con la
+ * mayor etapa que alcanzó, para que la colección no la olvide.
+ */
+export async function changeCreatureSpecies(
+  db: Database,
+  habitId: string,
+  species: SpeciesId,
+  maxStageEver: number,
+): Promise<Habit> {
+  const repo = db.repo('habits');
+  const habit = await repo.get(habitId);
+  if (!habit) throw new NotFoundError('habits', habitId);
+  const previous = speciesById(habit.creatureSpecies ?? '')?.id ?? defaultSpecies(habitId);
+  if (previous === species && habit.creatureSpecies === species) return habit;
+  const known = habit.creaturePast.find((p) => p.species === previous);
+  const others = habit.creaturePast.filter((p) => p.species !== previous);
+  const maxStage = Math.max(known?.maxStage ?? 0, maxStageEver);
+  return repo.update(habitId, {
+    creatureSpecies: species,
+    creaturePast: maxStage > 0 ? [...others, { species: previous, maxStage }] : others,
+  });
 }
 
 /** Mueve un hábito entre otros dos (null = al principio / al final). */

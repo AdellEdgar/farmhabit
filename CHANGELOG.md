@@ -20,6 +20,25 @@ FarmHabit pasa a llamarse **¡Chambea!** y la granja se sustituye por criaturas.
 - La sección Granja pasa a ser Criaturas; los datos de la granja se conservan pero ya no se usan.
 - El instalador, el acceso directo y los archivos de descarga siguen llamándose FarmHabit, para que la versión nueva se instale encima de la anterior.
 
+### Eventos
+
+- Crea **eventos** en el calendario: día completo o con hora, lugar, descripción, avisos y repetición. Se ven en todas las vistas y en la agenda de Hoy. Editar o borrar uno que se repite afecta a toda la serie.
+- **Convertir en evento** desde el editor de una tarea con fecha, para lo que tenías apuntado como tarea.
+
+### Misiones, resumen y frases
+
+- **3 misiones por semana** con premio en pesetas: hacer un hábito, completar tareas, días perfectos o ganar XP. Cuentan desde la semana del 2 de noviembre de 2026.
+- **Resumen semanal** al empezar la semana, una vez por dispositivo, y pestaña **Semana** en Criaturas para ver las anteriores.
+- **400 frases** escritas para cada especie, en su tarjeta, en su ficha, al hacer el hábito, al evolucionar y en Hoy.
+- Cambiar de especie ya no quita la anterior de la colección.
+
+### Arreglos del juego
+
+- El aviso de las 20:00 avisa solo de las criaturas que retrocederían de verdad, no de las que simplemente están tristes.
+- El "+XP" al marcar un hábito coincide con lo que se gana, racha incluida.
+- Comprar y deshacer lo marcado ya no deja regalado lo comprado: la deuda se paga con lo que se gane.
+- Comodines limitados a 2 también al comprarlos desde dos dispositivos.
+
 ### Tareas
 
 - Subtareas: se añaden, renombran, marcan y borran desde la tarea, y se ven en la lista con su progreso. Al completarlas todas, la tarea se completa sola; en las que se repiten, pasa a la siguiente fecha con las subtareas por hacer.

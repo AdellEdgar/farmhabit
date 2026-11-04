@@ -28,6 +28,7 @@ export type { NewEntity, EntityPatch } from './db/database';
 export * from './domain/tasks';
 export * from './domain/recurrence';
 export * from './domain/habits';
+export * from './domain/events';
 export * from './domain/reminders';
 export * from './domain/stats';
 export * from './domain/ics';
@@ -37,6 +38,7 @@ export * from './domain/calendar';
 export * from './services/tasks';
 export * from './services/habits';
 export * from './services/shop';
+export * from './services/events';
 export * from './services/private-notes';
 export * from './services/calendar';
 
@@ -47,6 +49,9 @@ export * from './game/creatures';
 export * from './game/vacations';
 export * from './game/creature-achievements';
 export * from './game/celebrations';
+export * from './game/missions';
+export * from './game/phrases';
+export * from './game/week-summary';
 
 // Cifrado, formato y sincronización
 export { DecryptionError, PRODUCTION_KDF } from './crypto/sodium';

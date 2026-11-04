@@ -33,6 +33,15 @@ export interface CreatureRules {
   freezeMax: number;
   backgroundPrice: number;
   auraPrice: number;
+  /** Primer lunes con misiones: el historial anterior no da premios. */
+  missionsStart: string;
+  missionRewards: { habit: number; tasks: number; perfect: number; xp: number };
+  missionTasksMin: number;
+  missionTasksMax: number;
+  missionPerfectDays: number;
+  missionXpMin: number;
+  /** La misión de XP pide esto por lo ganado la semana anterior: repetir la semana basta. */
+  missionXpFactor: number;
 }
 
 export const DEFAULT_CREATURE_RULES: CreatureRules = {
@@ -54,6 +63,13 @@ export const DEFAULT_CREATURE_RULES: CreatureRules = {
   freezeMax: 2,
   backgroundPrice: 150,
   auraPrice: 200,
+  missionsStart: '2026-11-02',
+  missionRewards: { habit: 30, tasks: 40, perfect: 50, xp: 40 },
+  missionTasksMin: 5,
+  missionTasksMax: 10,
+  missionPerfectDays: 3,
+  missionXpMin: 100,
+  missionXpFactor: 0.9,
 };
 
 export const BACKGROUNDS = [

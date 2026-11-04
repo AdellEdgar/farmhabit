@@ -128,6 +128,11 @@ export const habitSchema = z.object({
   creatureName: z.string().max(50).default(''),
   creatureBackground: z.string().max(30).nullable().default(null),
   creatureAura: z.string().max(30).nullable().default(null),
+  /** Especies que tuvo antes, con la etapa máxima que alcanzó con cada una (colección). */
+  creaturePast: z
+    .array(z.object({ species: z.string().max(30), maxStage: z.number().int().min(0).max(4) }))
+    .max(32)
+    .default([]),
 });
 
 export const habitLogSchema = z.object({
@@ -208,6 +213,24 @@ export const calendarSourceSchema = z.object({
 });
 
 // ---------- Ajustes ----------
+
+/**
+ * Evento propio del calendario. No se completa ni da XP. El título puede estar
+ * vacío solo en los borrados (al borrar se vacía el contenido).
+ */
+export const calendarEventSchema = z.object({
+  ...syncFields,
+  title: z.string().max(200),
+  location: z.string().max(200),
+  description: z.string().max(5_000),
+  allDay: z.boolean(),
+  startDate: localDate,
+  startTime: localTime.nullable(),
+  endDate: localDate,
+  endTime: localTime.nullable(),
+  rrule: z.string().max(500).nullable(),
+  reminders: z.array(taskReminderSchema).max(10),
+});
 
 /** Compra en la tienda de criaturas: comodín, fondo o aura. */
 export const purchaseSchema = z.object({

@@ -60,6 +60,7 @@ export const TABLES: Record<CollectionName, TableSpec> = {
       creatureName: 'text',
       creatureBackground: 'text',
       creatureAura: 'text',
+      creaturePast: 'json',
     },
   },
   habitLogs: {
@@ -113,6 +114,23 @@ export const TABLES: Record<CollectionName, TableSpec> = {
       visible: 'bool',
     },
     purgeOnDelete: { url: null, ics: null },
+  },
+  events: {
+    table: 'events',
+    columns: {
+      ...sync,
+      title: 'text',
+      location: 'text',
+      description: 'text',
+      allDay: 'bool',
+      startDate: 'text',
+      startTime: 'text',
+      endDate: 'text',
+      endTime: 'text',
+      rrule: 'text',
+      reminders: 'json',
+    },
+    purgeOnDelete: { title: '', location: '', description: '', reminders: [] },
   },
   purchases: {
     table: 'purchases',

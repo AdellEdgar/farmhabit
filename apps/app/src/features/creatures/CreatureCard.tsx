@@ -1,8 +1,10 @@
 import { speciesById, type Creature } from '@farmhabit/core';
+import { useApp } from '../../lib/use-app';
 import { cx } from '../../lib/cx';
 import { ProgressBar } from '../../components/ui';
 import { CreatureImage } from './CreatureImage';
-import { MOOD_LABEL, stageName, stageProgress } from './creature-meta';
+import { creaturePhrase, MOOD_LABEL, stageName, stageProgress } from './creature-meta';
+import { SpeechBubble } from './SpeechBubble';
 
 /** Tarjeta de una criatura en el equipo. */
 export function CreatureCard({
@@ -14,7 +16,9 @@ export function CreatureCard({
   habitName: string;
   onOpen: () => void;
 }) {
+  const { today } = useApp();
   const progress = stageProgress(c);
+  const phrase = creaturePhrase(c, today);
   return (
     <button
       type="button"
@@ -42,6 +46,7 @@ export function CreatureCard({
           <p className="mt-2 text-xs font-semibold text-grano">★ Leyenda · {c.xp} XP</p>
         )}
         {!c.archived && <p className="mt-1 text-xs">{MOOD_LABEL[c.mood]}</p>}
+        {phrase && <SpeechBubble text={phrase} className="mt-2" />}
       </div>
     </button>
   );

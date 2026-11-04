@@ -1,8 +1,9 @@
 import { useEffect, useRef, useState } from 'react';
-import { celebrationsFor, type Creature, type SeenState } from '@farmhabit/core';
+import { celebrationsFor, pickPhrase, type Creature, type SeenState } from '@farmhabit/core';
 import { useApp } from '../../lib/use-app';
 import { Button } from '../../components/ui';
 import { CreatureImage } from './CreatureImage';
+import { SpeechBubble } from './SpeechBubble';
 import { stageName } from './creature-meta';
 
 /** Lo ya celebrado en este dispositivo (meta local, no se sincroniza). */
@@ -73,6 +74,7 @@ export function Celebration() {
             {hatched ? 'Ha salido del huevo' : `Ahora es ${stageName(c)}`}. Sigue así.
           </p>
         </div>
+        <SpeechBubble text={pickPhrase(c.species, 'evolucion', `${c.habitId}|${c.stage}`)} />
         <Button variant="primary" autoFocus onClick={() => setQueue((q) => q.slice(1))}>
           ¡Genial!
         </Button>

@@ -25,3 +25,8 @@ export const TAG_COLORS = [
 
 /** Avisos predefinidos (minutos antes). */
 export const REMINDER_PRESETS = [0, 10, 30, 60, 120, 1440, 2880, 10080];
+
+/** Minutos del borrador en el formato en que se guardan. */
+export function toReminders(minutes: number[]): { offsetMin: number }[] {
+  return [...new Set(minutes)].sort((a, b) => b - a).map((offsetMin) => ({ offsetMin }));
+}

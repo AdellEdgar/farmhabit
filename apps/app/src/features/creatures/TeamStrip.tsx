@@ -1,16 +1,23 @@
 import { ChevronRight } from 'lucide-react';
+import { stableRandom } from '@farmhabit/core';
 import { useApp } from '../../lib/use-app';
 import { Card, ProgressBar } from '../../components/ui';
 import { CreatureImage } from './CreatureImage';
-import { levelXp } from './creature-meta';
+import { creaturePhrase, levelXp } from './creature-meta';
+import { MissionsCard } from './MissionsCard';
+import { SpeechBubble } from './SpeechBubble';
 
 /** "Tu equipo" en Hoy: las criaturas con su ánimo, el nivel y las pesetas. */
 export function TeamStrip({ onOpen }: { onOpen: () => void }) {
-  const { game } = useApp();
+  const { game, today } = useApp();
   const team = game.creatures.filter((c) => !c.archived);
   const from = levelXp(game.level);
   const to = levelXp(game.level + 1);
   const [sad] = game.alerts;
+  // Una sola frase al día, de una criatura distinta cada día.
+  const talkers = team.filter((c) => c.stage > 0);
+  const talker = talkers[Math.floor(stableRandom(today) * talkers.length)];
+  const phrase = talker ? creaturePhrase(talker, today) : null;
 
   return (
     <Card className="p-4">
@@ -50,13 +57,16 @@ export function TeamStrip({ onOpen }: { onOpen: () => void }) {
           </ul>
         )}
 
+        {talker && phrase && <SpeechBubble text={`${talker.name}: ${phrase}`} className="mt-3" />}
+
         {sad && (
           <p className="mt-2 rounded-lg bg-aviso/10 px-2 py-1.5 text-xs text-aviso">
             {game.alerts.length === 1
-              ? `${sad.name} está triste: haz su hábito hoy.`
-              : `${sad.name} y ${game.alerts.length - 1} más están tristes.`}
+              ? `${sad.name} retrocederá si hoy no haces su hábito.`
+              : `${sad.name} y ${game.alerts.length - 1} más retrocederán si hoy no haces sus hábitos.`}
           </p>
         )}
+        <MissionsCard compact />
       </button>
     </Card>
   );

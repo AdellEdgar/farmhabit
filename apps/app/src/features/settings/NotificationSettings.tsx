@@ -74,7 +74,7 @@ export function NotificationSettings() {
         <h2 className="font-semibold">Avisos</h2>
         <p className="mt-1 text-sm text-texto-suave">
           Recordatorios de tareas y hábitos, y un aviso a las {CREATURE_ALERT_TIME} si alguna
-          criatura está triste y su hábito sigue pendiente.
+          criatura va a retroceder por no haber hecho su hábito.
         </p>
       </div>
 

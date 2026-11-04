@@ -6,11 +6,13 @@ import { CollectionTab } from './CollectionTab';
 import { CreatureSheet } from './CreatureSheet';
 import { ShopTab } from './ShopTab';
 import { TeamTab } from './TeamTab';
+import { WeekTab } from './WeekTab';
 
-type Tab = 'equipo' | 'coleccion' | 'tienda' | 'logros';
+type Tab = 'equipo' | 'semana' | 'coleccion' | 'tienda' | 'logros';
 
 const TABS: { value: Tab; label: string }[] = [
   { value: 'equipo', label: 'Equipo' },
+  { value: 'semana', label: 'Semana' },
   { value: 'coleccion', label: 'Colección' },
   { value: 'tienda', label: 'Tienda' },
   { value: 'logros', label: 'Logros' },
@@ -35,6 +37,7 @@ export function CreaturesView() {
       />
 
       {tab === 'equipo' && <TeamTab onOpen={setOpen} />}
+      {tab === 'semana' && <WeekTab />}
       {tab === 'coleccion' && <CollectionTab />}
       {tab === 'tienda' && <ShopTab />}
       {tab === 'logros' && <AchievementsTab />}

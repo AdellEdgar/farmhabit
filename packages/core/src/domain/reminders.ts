@@ -1,6 +1,7 @@
-import type { Habit, HabitLog, Task } from '../model/types';
+import type { CalendarEvent, Habit, HabitLog, Task } from '../model/types';
 import type { LocalDate } from '../util/dates';
-import { addDays, localDateOf } from '../util/dates';
+import { addDays, localDateOf, localDateTimeToEpoch } from '../util/dates';
+import { eventsInRange, type EventOccurrence } from './events';
 import { configOn, habitReminderInstants, isFlexible, logRatio, periodOf } from './habits';
 import { taskReminderInstants } from './tasks';
 
@@ -9,12 +10,14 @@ import { taskReminderInstants } from './tasks';
 
 export type ReminderEvent =
   | { kind: 'task'; key: string; at: number; task: Task; offsetMin: number }
-  | { kind: 'habit'; key: string; at: number; habit: Habit; date: LocalDate };
+  | { kind: 'habit'; key: string; at: number; habit: Habit; date: LocalDate }
+  | { kind: 'event'; key: string; at: number; occurrence: EventOccurrence; offsetMin: number };
 
 export interface ReminderInput {
   tasks: Task[];
   habits: Habit[];
   logs: HabitLog[];
+  events?: CalendarEvent[];
   /** Excluido: (from, to]. */
   from: number;
   to: number;
@@ -66,6 +69,26 @@ export function remindersBetween(input: ReminderInput): ReminderEvent[] {
       if (instants.length === 0 || habitSettled(habit, input.logs, date)) continue;
       for (const at of instants) {
         out.push({ kind: 'habit', key: `habit:${habit.id}:${at}`, at, habit, date });
+      }
+    }
+  }
+
+  for (const event of input.events ?? []) {
+    if (event.deletedAt !== null || event.reminders.length === 0) continue;
+    // Un aviso puede sonar días antes de su ocurrencia: mirar hasta el aviso más largo.
+    const maxOffset = Math.max(...event.reminders.map((r) => r.offsetMin));
+    const horizon = addDays(lastDay, Math.ceil(maxOffset / 1440));
+    for (const occurrence of eventsInRange([event], firstDay, horizon)) {
+      // Como las tareas sin hora, el de día completo cuenta desde la hora por defecto.
+      const base = event.allDay
+        ? localDateTimeToEpoch(occurrence.startDate, input.defaultTaskTime ?? '09:00')
+        : occurrence.start;
+      for (const { offsetMin } of event.reminders) {
+        const at = base - offsetMin * 60_000;
+        if (at > from && at <= to) {
+          const key = `event|${occurrence.key}|${offsetMin}`;
+          out.push({ kind: 'event', key, at, occurrence, offsetMin });
+        }
       }
     }
   }

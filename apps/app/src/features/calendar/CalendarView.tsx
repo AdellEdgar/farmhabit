@@ -7,10 +7,11 @@ import {
   shiftMonth,
   startOfWeek,
   toUtcMidnight,
+  type CalendarEvent,
   type LocalDate,
   type Task,
 } from '@farmhabit/core';
-import { useCalendarEvents, type SourceEvent } from '../../lib/calendars';
+import { ownEventsAsSource, useCalendarEvents, type SourceEvent } from '../../lib/calendars';
 import { formatLongDate } from '../../lib/format';
 import { useApp } from '../../lib/use-app';
 import { Button, Card, Dialog, EmptyState, PageHeader, Segmented } from '../../components/ui';
@@ -20,6 +21,7 @@ import { AgendaView } from './AgendaView';
 import { CalendarSources } from './CalendarSources';
 import { itemsByDay, type CalendarItem, type CalendarView as View } from './calendar-items';
 import { formatEventTime } from './calendar-format';
+import { EventEditor } from './EventEditor';
 import { MonthView } from './MonthView';
 import { TimeGrid } from './TimeGrid';
 
@@ -74,6 +76,7 @@ export function CalendarView() {
   const [anchor, setAnchor] = useState<LocalDate>(today);
   const [editing, setEditing] = useState<Task | 'new' | null>(null);
   const [eventOpen, setEventOpen] = useState<{ event: SourceEvent; day: LocalDate } | null>(null);
+  const [ownEvent, setOwnEvent] = useState<CalendarEvent | 'new' | null>(null);
   const [sourcesOpen, setSourcesOpen] = useState(false);
 
   useEffect(() => {
@@ -87,15 +90,16 @@ export function CalendarView() {
   };
 
   const { from, to } = rangeOf(view, anchor);
-  const events = useCalendarEvents(
+  const external = useCalendarEvents(
     db,
     data.calendarSources,
     localDateTimeToEpoch(from, '00:00'),
     localDateTimeToEpoch(to, '23:59'),
   );
   const byDay = useMemo(
-    () => itemsByDay(events, data.tasks, from, to),
-    [events, data.tasks, from, to],
+    () =>
+      itemsByDay([...ownEventsAsSource(data.events, from, to), ...external], data.tasks, from, to),
+    [data.events, external, data.tasks, from, to],
   );
 
   const move = (dir: -1 | 1) => {
@@ -110,8 +114,13 @@ export function CalendarView() {
     setAnchor(d);
     changeView('dia');
   };
+  const openEvent = (event: SourceEvent, day: LocalDate) => {
+    const own = event.ownEventId && data.events.find((e) => e.id === event.ownEventId);
+    if (own) setOwnEvent(own);
+    else setEventOpen({ event, day });
+  };
   const openItem = (item: CalendarItem, day: LocalDate) => {
-    if (item.event) setEventOpen({ event: item.event, day });
+    if (item.event) openEvent(item.event, day);
     else if (item.task) setEditing(item.task.task);
   };
   const dayOf = (item: CalendarItem) => item.key.slice(item.key.lastIndexOf('|') + 1);
@@ -124,6 +133,9 @@ export function CalendarView() {
           <>
             <Button variant="ghost" onClick={() => setSourcesOpen(true)}>
               <CalendarCog size={16} /> Calendarios
+            </Button>
+            <Button onClick={() => setOwnEvent('new')}>
+              <Plus size={16} /> Evento
             </Button>
             <Button variant="primary" onClick={() => setEditing('new')}>
               <Plus size={16} /> Tarea
@@ -172,8 +184,9 @@ export function CalendarView() {
             date={anchor}
             items={byDay.get(anchor) ?? []}
             onOpenTask={setEditing}
-            onOpenEvent={(e) => setEventOpen({ event: e, day: anchor })}
+            onOpenEvent={(e) => openEvent(e, anchor)}
             onNewTask={() => setEditing('new')}
+            onNewEvent={() => setOwnEvent('new')}
             onOpenDay={() => changeView('dia')}
           />
         </div>
@@ -207,6 +220,14 @@ export function CalendarView() {
           task={editing === 'new' ? null : editing}
           defaultDate={anchor}
           onClose={() => setEditing(null)}
+        />
+      )}
+      {ownEvent !== null && (
+        <EventEditor
+          key={ownEvent === 'new' ? `new-${anchor}` : ownEvent.id}
+          event={ownEvent === 'new' ? null : ownEvent}
+          defaultDate={anchor}
+          onClose={() => setOwnEvent(null)}
         />
       )}
       {eventOpen && (
@@ -260,6 +281,7 @@ function DayPanel({
   onOpenTask,
   onOpenEvent,
   onNewTask,
+  onNewEvent,
   onOpenDay,
 }: {
   date: LocalDate;
@@ -267,6 +289,7 @@ function DayPanel({
   onOpenTask: (t: Task) => void;
   onOpenEvent: (e: SourceEvent) => void;
   onNewTask: () => void;
+  onNewEvent: () => void;
   onOpenDay: () => void;
 }) {
   const { data } = useApp();
@@ -280,9 +303,14 @@ function DayPanel({
         <button type="button" onClick={onOpenDay} className="font-semibold hover:text-acento">
           {formatLongDate(date)}
         </button>
-        <Button variant="ghost" onClick={onNewTask} aria-label="Nueva tarea este día">
-          <Plus size={16} /> Tarea
-        </Button>
+        <div className="flex shrink-0">
+          <Button variant="ghost" onClick={onNewEvent} aria-label="Nuevo evento este día">
+            <Plus size={16} /> Evento
+          </Button>
+          <Button variant="ghost" onClick={onNewTask} aria-label="Nueva tarea este día">
+            <Plus size={16} /> Tarea
+          </Button>
+        </div>
       </div>
 
       {items.length === 0 && <EmptyState icon="🗓️" title="Nada este día" />}

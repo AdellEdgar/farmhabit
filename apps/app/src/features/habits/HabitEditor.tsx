@@ -5,6 +5,7 @@ import {
   createHabit,
   currentConfig,
   setHabitArchived,
+  changeCreatureSpecies,
   SPECIES,
   speciesById,
   suggestSpecies,
@@ -96,12 +97,13 @@ export function HabitEditor({ habit, onClose }: { habit: Habit | null; onClose: 
       icon: speciesById(species)!.emoji,
       color,
       reminders,
-      creatureSpecies: species,
       creatureName: creatureName.trim().slice(0, 50),
     };
     const ok = await mutate(async (db) => {
-      if (!habit) return createHabit(db, { ...base, startDate, config });
-      const updated = await db.repo('habits').update(habit.id, base);
+      if (!habit) return createHabit(db, { ...base, creatureSpecies: species, startDate, config });
+      await db.repo('habits').update(habit.id, base);
+      const maxStage = game.creatures.find((c) => c.habitId === habit.id)?.maxStageEver ?? 0;
+      const updated = await changeCreatureSpecies(db, habit.id, species, maxStage);
       return sameConfig(currentConfig(habit), config)
         ? updated
         : changeHabitConfig(db, habit.id, config, today);

@@ -127,6 +127,24 @@ export const MIGRATIONS: Migration[] = [
         price INTEGER NOT NULL)`,
     ],
   },
+  {
+    version: 5,
+    name: 'eventos',
+    statements: [
+      `CREATE TABLE events (${SYNC_COLUMNS},
+        title TEXT NOT NULL,
+        location TEXT NOT NULL DEFAULT '',
+        description TEXT NOT NULL DEFAULT '',
+        all_day INTEGER NOT NULL DEFAULT 0,
+        start_date TEXT NOT NULL,
+        start_time TEXT,
+        end_date TEXT NOT NULL,
+        end_time TEXT,
+        rrule TEXT,
+        reminders TEXT NOT NULL DEFAULT '[]')`,
+      `ALTER TABLE habits ADD COLUMN creature_past TEXT NOT NULL DEFAULT '[]'`,
+    ],
+  },
 ];
 
 export const LATEST_SCHEMA_VERSION = MIGRATIONS[MIGRATIONS.length - 1]!.version;

@@ -2,6 +2,7 @@ import { useApp } from '../../lib/use-app';
 import { useNavigation } from '../../lib/navigation';
 import { Button, EmptyState } from '../../components/ui';
 import { CreatureCard } from './CreatureCard';
+import { MissionsCard } from './MissionsCard';
 import { TrainerCard } from './TrainerCard';
 
 /** Pestaña Equipo: entrenador y una tarjeta por criatura. */
@@ -15,6 +16,7 @@ export function TeamTab({ onOpen }: { onOpen: (habitId: string) => void }) {
   return (
     <div className="space-y-5">
       <TrainerCard />
+      <MissionsCard />
 
       {active.length === 0 ? (
         <EmptyState icon="🥚" title="Aún no tienes criaturas">

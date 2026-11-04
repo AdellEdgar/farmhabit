@@ -3,7 +3,7 @@ import { Database, NotFoundError } from '../src/db/database';
 import { getSchemaVersion, LATEST_SCHEMA_VERSION, migrate, MIGRATIONS } from '../src/db/migrations';
 import type { Migration } from '../src/db/migrations';
 import { NodeSqliteDriver } from './helpers/node-sqlite-driver';
-import { noon, openTestDb } from './helpers/fixtures';
+import { makeEvent, noon, openTestDb } from './helpers/fixtures';
 
 describe('migraciones', () => {
   it('crean el esquema desde cero y guardan la versión', async () => {
@@ -200,5 +200,44 @@ describe('migración 4: criaturas', () => {
     await expect(
       db.repo('purchases').create({ item: 'sombrero', date: '2026-10-24', price: 1 }),
     ).rejects.toThrow();
+  });
+});
+
+describe('migración 5: eventos', () => {
+  it('sube desde el esquema 4 conservando la criatura', async () => {
+    const driver = new NodeSqliteDriver();
+    await migrate(driver, MIGRATIONS.slice(0, 4));
+    await driver.execute(
+      `INSERT INTO habits (id, created_at, updated_at, deleted_at, name, description, icon, color,
+         sort_key, start_date, config_history, reminders, archived_at, creature_species)
+       VALUES ('h1', 1, 1, NULL, 'Leer', '', '', '', 'V', '2026-01-01',
+         '[{"since":"2026-01-01","effort":3,"schedule":{"type":"daily"},"target":null}]', '[]', NULL, 'medusa')`,
+    );
+    const db = await Database.open(driver);
+    expect(await db.repo('habits').get('h1')).toMatchObject({
+      creatureSpecies: 'medusa',
+      creaturePast: [],
+    });
+    expect(await db.repo('events').list()).toEqual([]);
+  });
+
+  it('guarda los eventos y al borrarlos vacía su contenido', async () => {
+    const { db } = await openTestDb();
+    const { id, createdAt, updatedAt, deletedAt, ...fields } = makeEvent({
+      location: 'Aula 1',
+      description: 'Traer DNI',
+      rrule: 'FREQ=WEEKLY',
+      reminders: [{ offsetMin: 60 }],
+    });
+    void [id, createdAt, updatedAt, deletedAt];
+    const e = await db.repo('events').create(fields);
+    expect(await db.repo('events').get(e.id)).toMatchObject(fields);
+    await db.repo('events').remove(e.id);
+    expect(await db.repo('events').get(e.id, { includeDeleted: true })).toMatchObject({
+      title: '',
+      location: '',
+      description: '',
+      reminders: [],
+    });
   });
 });

@@ -124,12 +124,17 @@ const files = new Map(
 await mkdir(out, { recursive: true });
 
 let done = 0;
+const failed = [];
 for (const name of EXPECTED) {
   const file = files.get(name);
   if (!file || name === 'icono') continue;
-  if (name.startsWith('fondo-')) await background(file, name);
-  else await creature(file, name);
-  done++;
+  try {
+    if (name.startsWith('fondo-')) await background(file, name);
+    else await creature(file, name);
+    done++;
+  } catch (e) {
+    failed.push(`${file} (${e.message})`);
+  }
 }
 
 if (files.has('icono')) {
@@ -144,5 +149,6 @@ if (files.has('icono')) {
 const missing = EXPECTED.filter((n) => !files.has(n));
 const unknown = [...files.keys()].filter((n) => !EXPECTED.includes(n));
 console.log(`Convertidas ${done} imágenes en ${resolve(out)}`);
+if (failed.length > 0) console.log(`No se han podido convertir: ${failed.join(', ')}`);
 if (missing.length > 0) console.log(`Faltan ${missing.length}: ${missing.join(', ')}`);
 if (unknown.length > 0) console.log(`Nombres que no se usan (¿errata?): ${unknown.join(', ')}`);
