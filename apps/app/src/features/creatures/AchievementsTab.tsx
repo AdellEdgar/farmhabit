@@ -32,7 +32,7 @@ export function AchievementsTab() {
                   <p className="mt-0.5 text-[11px] text-texto-suave">
                     {a.unlockedOn
                       ? `Conseguido ${formatRelativeDate(a.unlockedOn, today).toLowerCase()}`
-                      : `Premio: ${a.reward} pesetas`}
+                      : `Premio: ${a.reward} XP de entrenador`}
                   </p>
                 </div>
               </Card>

@@ -25,7 +25,6 @@ export interface Mission {
 export interface WeekStats {
   week: LocalDate;
   xp: number;
-  pesetas: number;
   /** Veces programadas y veces hechas de todos los hábitos. */
   scheduled: number;
   done: number;
@@ -122,7 +121,6 @@ export function emptyWeek(week: LocalDate): WeekStats {
   return {
     week,
     xp: 0,
-    pesetas: 0,
     scheduled: 0,
     done: 0,
     tasksDone: 0,
@@ -138,5 +136,5 @@ export function emptyWeek(week: LocalDate): WeekStats {
 
 /** ¿Pasó algo esa semana? Si no, no se guarda. */
 export function weekHasData(w: WeekStats): boolean {
-  return w.scheduled > 0 || w.xp > 0 || w.tasksDone > 0 || w.pesetas > 0;
+  return w.scheduled > 0 || w.xp > 0 || w.tasksDone > 0;
 }

@@ -2,6 +2,8 @@ import { useState } from 'react';
 import { BarChart3 } from 'lucide-react';
 import {
   addDays,
+  AURAS,
+  BACKGROUNDS,
   changeCreatureSpecies,
   habitCalendar,
   SPECIES,
@@ -69,10 +71,6 @@ export function CreatureSheet({ habitId, onClose }: { habitId: string; onClose: 
   const phrase = creaturePhrase(c, today);
   const week = habitCalendar(habit, data.habitLogs, addDays(today, -6), today, today);
   const bg = c.background ? backgroundUrl(c.background) : null;
-  const ownedBackgrounds = game.owned
-    .filter((i) => i.startsWith('background:'))
-    .map((i) => i.slice(11));
-  const ownedAuras = game.owned.filter((i) => i.startsWith('aura:')).map((i) => i.slice(5));
 
   return (
     <Dialog open onOpenChange={(o) => !o && onClose()} title={c.name} wide>
@@ -181,7 +179,7 @@ export function CreatureSheet({ habitId, onClose }: { habitId: string; onClose: 
             >
               Ninguno
             </Chip>
-            {ownedBackgrounds.map((id) => (
+            {BACKGROUNDS.map((id) => (
               <Chip
                 key={id}
                 active={c.background === id}
@@ -197,7 +195,7 @@ export function CreatureSheet({ habitId, onClose }: { habitId: string; onClose: 
             <Chip active={c.aura === null} onClick={() => void update({ creatureAura: null })}>
               Ninguna
             </Chip>
-            {ownedAuras.map((id) => (
+            {AURAS.map((id) => (
               <Chip
                 key={id}
                 active={c.aura === id}
@@ -209,12 +207,6 @@ export function CreatureSheet({ habitId, onClose }: { habitId: string; onClose: 
           </div>
         </Field>
       </div>
-      {ownedBackgrounds.length + ownedAuras.length === 0 && (
-        <p className="text-xs text-texto-suave">
-          Compra fondos y auras en la tienda para personalizarla.
-        </p>
-      )}
-
       {c.history.length > 0 && (
         <section>
           <p className="mb-1.5 text-xs font-medium tracking-wide text-texto-suave uppercase">

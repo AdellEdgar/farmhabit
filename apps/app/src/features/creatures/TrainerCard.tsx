@@ -4,7 +4,7 @@ import { useApp } from '../../lib/use-app';
 import { Card, ProgressBar } from '../../components/ui';
 import { levelXp } from './creature-meta';
 
-/** Nivel de entrenador, pesetas y comodines. */
+/** Nivel de entrenador y comodines. */
 export function TrainerCard() {
   const { game } = useApp();
   const from = levelXp(game.level);
@@ -27,12 +27,9 @@ export function TrainerCard() {
         </p>
       </div>
       <div className="flex gap-3 text-sm">
-        <span className="rounded-xl bg-elevado px-3 py-2">
-          <b className="text-grano tabular-nums">{game.pesetas}</b> pesetas
-        </span>
         <span
           className="inline-flex items-center gap-1.5 rounded-xl bg-elevado px-3 py-2"
-          title="Los comodines protegen solos un día con fallos"
+          title="Protegen solos un día con fallos. Se ganan cumpliendo las misiones de hábitos de la semana."
         >
           <Shield size={15} className="text-info" />
           <b className="tabular-nums">

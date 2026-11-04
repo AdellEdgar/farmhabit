@@ -20,7 +20,11 @@ import type {
   taskSchema,
   vacationSchema,
   purchaseSchema,
+  bookQuoteSchema,
+  bookSchema,
+  bookStatusSchema,
   calendarEventSchema,
+  readingLogSchema,
 } from './schemas';
 
 export type Tag = z.infer<typeof tagSchema>;
@@ -42,6 +46,10 @@ export type Animal = z.infer<typeof animalSchema>;
 export type Vacation = z.infer<typeof vacationSchema>;
 export type Purchase = z.infer<typeof purchaseSchema>;
 export type CalendarEvent = z.infer<typeof calendarEventSchema>;
+export type Book = z.infer<typeof bookSchema>;
+export type BookStatus = z.infer<typeof bookStatusSchema>;
+export type BookQuote = z.infer<typeof bookQuoteSchema>;
+export type ReadingLog = z.infer<typeof readingLogSchema>;
 export type Setting = z.infer<typeof settingSchema>;
 export type CalendarSource = z.infer<typeof calendarSourceSchema>;
 

@@ -88,12 +88,9 @@ export interface GameState {
   trainerXp: number;
   level: number;
   unlockedSpecies: SpeciesId[];
-  pesetas: number;
   /** Comodines guardados. */
   freezes: number;
   frozenDays: LocalDate[];
-  /** Fondos y auras comprados ("background:playa", "aura:dorada"). */
-  owned: string[];
   achievements: GameAchievement[];
   /** Etapas (1–4) que se han visto de cada especie. */
   seenStages: Record<SpeciesId, Stage[]>;
@@ -130,7 +127,6 @@ interface Track {
 interface Outcome {
   track: Track;
   gain: number;
-  pesetas: number;
   penalty: number;
   /** Racha si el día cuenta como fallado y si no. */
   streakIfMissed: number;
@@ -233,7 +229,6 @@ function outcomeOf(
     return {
       track: t,
       gain: habitXpGain(cfg, t.streak, ratio, rules),
-      pesetas: Math.round(ratio * cfg.effort * rules.pesetasPerEffort),
       penalty: closed ? missedXp(rules, cfg, 1 - ratio) : 0,
       streakIfMissed: done ? t.streak + 1 : closed ? 0 : t.streak,
       streakIfKept: done ? t.streak + 1 : t.streak,
@@ -251,8 +246,6 @@ function outcomeOf(
   const out: Outcome = {
     track: t,
     gain: ratio !== null && ratio > 0 ? habitXpGain(cfg, t.streak, ratio, rules) : 0,
-    pesetas:
-      ratio !== null && ratio > 0 ? Math.round(ratio * cfg.effort * rules.pesetasPerEffort) : 0,
     penalty: 0,
     streakIfMissed: t.streak,
     streakIfKept: t.streak,
@@ -285,7 +278,7 @@ function outcomeOf(
 }
 
 /**
- * Prioridades de las tareas completadas cada día que dan pesetas: creadas un día
+ * Prioridades de las tareas completadas cada día que cuentan: creadas un día
  * antes o más y no borradas ese mismo día (borrar después, p. ej. "vaciar
  * completadas", no quita lo ganado).
  */
@@ -352,18 +345,15 @@ export function computeGame(input: GameInput): GameState {
   const firstDay = starts.length > 0 ? starts.reduce((a, b) => (b < a ? b : a)) : null;
 
   let trainerXp = 0;
-  // Saldo interno: puede ser negativo (compras sin saldo real, por deshacer lo
-  // marcado hoy o por comprar desde dos dispositivos): se paga con lo que se gane.
-  let pesetas = 0;
   let freezes = 0;
   let tasksDone = 0;
   const frozenDays: LocalDate[] = [];
-  const owned = new Set<string>();
   const dailyXp: Record<LocalDate, number> = {};
   const unlockedOn = new Map<string, LocalDate>();
   const weeks: Record<LocalDate, WeekStats> = {};
   let week = emptyWeek('');
   let missions: Mission[] = [];
+  let freezeEarnedFor: LocalDate | null = null;
   const startWeek = (monday: LocalDate): Mission[] => {
     if (monday < rules.missionsStart) return [];
     const prev = weeks[addDays(monday, -7)];
@@ -384,7 +374,6 @@ export function computeGame(input: GameInput): GameState {
       missions = startWeek(monday);
       for (const t of tracks) t.weekXp = 0;
     }
-    const pesetasBefore = pesetas;
     let dayExpected = 0;
     let dayDone = 0;
     const vacation = isVacationDay(vacations, d);
@@ -410,7 +399,6 @@ export function computeGame(input: GameInput): GameState {
       if (!neutral) t.samples.push(...o.samples);
       t.xp = Math.max(0, t.xp + o.gain - penalty);
       gained += o.gain;
-      pesetas += o.pesetas;
       if (!closed) t.xpToday = o.gain;
       t.weekXp += o.gain;
       week.bestStreak = Math.max(week.bestStreak, t.streakDays);
@@ -447,8 +435,8 @@ export function computeGame(input: GameInput): GameState {
     // Tareas completadas ese día, con tope diario.
     const tasks = taskDays.get(d) ?? [];
     tasksDone += tasks.length;
-    const taskPesetas = tasks.reduce((sum, priority) => sum + rules.taskPesetas[priority], 0);
-    pesetas += Math.min(rules.taskPesetasDailyCap, taskPesetas);
+    const taskXp = tasks.reduce((sum, priority) => sum + rules.taskXp[priority], 0);
+    trainerXp += Math.min(rules.taskXpDailyCap, taskXp);
     week.tasksDone += tasks.length;
 
     // Misiones: el premio se abona el día que se cumplen, antes de los logros.
@@ -458,9 +446,18 @@ export function computeGame(input: GameInput): GameState {
       else if (m.kind === 'xp') m.progress = week.xp;
       if (m.doneOn === null && m.progress >= m.target) {
         m.doneOn = d;
-        pesetas += m.reward;
+        trainerXp += m.reward;
         week.missionsDone++;
       }
+    }
+    // Las misiones de hábitos dan un comodín, que sirve desde el día siguiente. Las
+    // de tareas no: una tarea se puede reabrir meses después, y eso reescribiría
+    // días ya cerrados de las criaturas.
+    const earning = missions.filter((m) => m.kind !== 'tasks');
+    const earned = earning.length > 0 && earning.every((m) => m.doneOn !== null);
+    if (earned && freezeEarnedFor !== monday) {
+      freezeEarnedFor = monday;
+      freezes = Math.min(rules.freezeMax, freezes + 1);
     }
 
     // Logros que se cumplen hoy por primera vez.
@@ -470,27 +467,22 @@ export function computeGame(input: GameInput): GameState {
       bestStreakDays: Math.max(0, ...tracks.map((t) => t.streakDays)),
       tasksDone,
       speciesSeen: seen.size,
-      pesetas,
     };
     for (const a of ACHIEVEMENTS) {
       if (unlockedOn.has(a.id) || !a.check(context)) continue;
       unlockedOn.set(a.id, d);
-      pesetas += a.reward;
+      trainerXp += a.reward;
     }
 
-    week.pesetas += pesetas - pesetasBefore;
     let top: Track | null = null;
     for (const t of tracks) if (t.weekXp > 0 && (!top || t.weekXp > top.weekXp)) top = t;
     week.topHabitId = top?.habit.id ?? null;
     if (weekHasData(week)) weeks[monday] = week;
 
-    // Compras del día: restan después de lo ganado ese día; un comodín sirve
-    // desde el día siguiente.
+    // Comodines comprados cuando había tienda: siguen contando, para no cambiar
+    // los días que ya protegieron. Sirven desde el día siguiente.
     for (const p of purchases) {
-      if (p.date !== d) continue;
-      pesetas -= p.price;
-      if (p.item === 'freeze') freezes = Math.min(rules.freezeMax, freezes + 1);
-      else owned.add(p.item);
+      if (p.date === d && p.item === 'freeze') freezes = Math.min(rules.freezeMax, freezes + 1);
     }
   }
 
@@ -549,10 +541,8 @@ export function computeGame(input: GameInput): GameState {
     trainerXp,
     level,
     unlockedSpecies: unlockedSpecies(level),
-    pesetas: Math.max(0, pesetas),
     freezes,
     frozenDays,
-    owned: [...owned].sort(),
     achievements: ACHIEVEMENTS.map((a) => ({
       id: a.id,
       title: a.title,

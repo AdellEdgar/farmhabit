@@ -6,6 +6,7 @@ import { formatLongDate, greeting } from '../../lib/format';
 import { useNavigation } from '../../lib/navigation';
 import { useShortcut } from '../../lib/shortcuts';
 import { Card, EmptyState } from '../../components/ui';
+import { ReadingNow } from '../books/ReadingNow';
 import { TeamStrip } from '../creatures/TeamStrip';
 import { HabitRow } from '../habits/HabitRow';
 import { dayProgress } from '../habits/habit-meta';
@@ -83,8 +84,9 @@ export function TodayView() {
           </section>
         </div>
 
-        <aside className="order-first lg:order-last">
+        <aside className="order-first space-y-5 lg:order-last">
           <TeamStrip onOpen={() => go('criaturas')} />
+          <ReadingNow onOpen={() => go('libros')} />
         </aside>
       </div>
 

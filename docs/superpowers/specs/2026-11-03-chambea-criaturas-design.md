@@ -1,3 +1,5 @@
+> Las pesetas y la tienda de esta spec se quitaron después: las recompensas van en XP de entrenador (ver CLAUDE.md).
+
 # ¡Chambea!: criaturas en lugar de la granja
 
 Fecha: 2026-11-03 · Estado: pendiente de aprobación

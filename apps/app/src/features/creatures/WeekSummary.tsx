@@ -45,7 +45,7 @@ export function WeekSummaryContent({ week: w }: { week: WeekStats }) {
       )}
       <div className="grid grid-cols-3 gap-2">
         <Stat label="XP" value={w.xp} />
-        <Stat label="Pesetas" value={w.pesetas} />
+        <Stat label="Días perfectos" value={w.perfectDays} />
         <Stat label="Hábitos" value={`${percent} %`} />
         <Stat label="Tareas" value={w.tasksDone} />
         <Stat label="Mejor racha" value={w.bestStreak} />

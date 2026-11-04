@@ -232,6 +232,42 @@ export const calendarEventSchema = z.object({
   reminders: z.array(taskReminderSchema).max(10),
 });
 
+export const bookStatusSchema = z.enum(['want', 'reading', 'read', 'abandoned']);
+
+/** Un libro de la lista personal. No interviene en el juego. */
+export const bookSchema = z.object({
+  ...syncFields,
+  /** Vacío solo en los tombstones. */
+  title: z.string().max(500),
+  author: z.string().max(300),
+  pages: z.number().int().positive().nullable(),
+  coverUrl: z.string().max(500).nullable(),
+  isbn: z.string().max(20).nullable(),
+  status: bookStatusSchema,
+  currentPage: z.number().int().nonnegative(),
+  startedOn: localDate.nullable(),
+  finishedOn: localDate.nullable(),
+  rating: z.number().min(0.5).max(5).nullable(),
+  review: z.string().max(20_000),
+  tagIds: z.array(id),
+});
+
+export const bookQuoteSchema = z.object({
+  ...syncFields,
+  bookId: id,
+  text: z.string().max(5_000),
+  page: z.number().int().nonnegative().nullable(),
+});
+
+/** Lectura de un libro en un día: de `fromPage` a `page`. Una fila por libro y día. */
+export const readingLogSchema = z.object({
+  ...syncFields,
+  bookId: id,
+  date: localDate,
+  fromPage: z.number().int().nonnegative(),
+  page: z.number().int().nonnegative(),
+});
+
 /** Compra en la tienda de criaturas: comodín, fondo o aura. */
 export const purchaseSchema = z.object({
   ...syncFields,

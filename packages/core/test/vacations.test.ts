@@ -1,9 +1,9 @@
 import { describe, expect, it } from 'vitest';
 import { computeGame } from '../src/game/creatures';
 import { createHabit } from '../src/services/habits';
-import { buyItem, endVacation, scheduleVacation, ShopError } from '../src/services/shop';
+import { endVacation, scheduleVacation } from '../src/services/vacations';
 import { eachDay } from '../src/util/dates';
-import { makeHabit, makeLog, noon, openTestDb } from './helpers/fixtures';
+import { makeLog, noon, openTestDb } from './helpers/fixtures';
 
 const TODAY = '2026-10-24';
 type Db = Awaited<ReturnType<typeof openTestDb>>['db'];
@@ -19,46 +19,6 @@ async function gameOf(db: Db, today = TODAY) {
   ]);
   return computeGame({ habits, logs, tasks, taskCompletions, purchases, vacations, today });
 }
-
-/** BD con un hábito de esfuerzo 5 hecho 30 días: unas cuantas pesetas. */
-async function richDb() {
-  const { db } = await openTestDb(noon(TODAY));
-  const h = makeHabit({ startDate: '2026-09-20', config: { effort: 5 } });
-  await db.applyEntities({
-    habits: [h],
-    habitLogs: [...eachDay('2026-09-20', '2026-10-23')].map((d) => makeLog(h, d)),
-  });
-  return db;
-}
-
-describe('tienda', () => {
-  it('comprar un fondo descuenta su precio y queda comprado', async () => {
-    const db = await richDb();
-    const before = await gameOf(db);
-    await buyItem(db, 'background:playa', before, TODAY);
-    const after = await gameOf(db);
-    expect(before.pesetas - after.pesetas).toBe(150);
-    expect(after.owned).toEqual(['background:playa']);
-  });
-
-  it('no deja comprar sin pesetas, con 2 comodines guardados ni lo ya comprado', async () => {
-    const { db } = await openTestDb(noon(TODAY));
-    const poor = await gameOf(db);
-    await expect(buyItem(db, 'freeze', poor, TODAY)).rejects.toThrow(/pesetas/);
-    const rich = { ...poor, pesetas: 10_000 };
-    await expect(buyItem(db, 'freeze', { ...rich, freezes: 2 }, TODAY)).rejects.toThrow(
-      /comodines/,
-    );
-    await expect(
-      buyItem(db, 'aura:dorada', { ...rich, owned: ['aura:dorada'] }, TODAY),
-    ).rejects.toThrow(/Ya/);
-    await expect(buyItem(db, 'sombrero', rich, TODAY)).rejects.toBeInstanceOf(ShopError);
-    await buyItem(db, 'freeze', rich, TODAY);
-    expect(await db.repo('purchases').list()).toEqual([
-      expect.objectContaining({ item: 'freeze', price: 50, date: TODAY }),
-    ]);
-  });
-});
 
 describe('vacaciones', () => {
   it('solo se pueden programar desde mañana y sin solaparse', async () => {

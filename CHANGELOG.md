@@ -10,15 +10,24 @@ FarmHabit pasa a llamarse **¡Chambea!** y la granja se sustituye por criaturas.
 
 - Cada hábito tiene su criatura: 16 especies (figuras históricas caricaturizadas y monstruitos propios) con 4 etapas cada una, más el huevo.
 - Gana XP al hacer su hábito y la pierde al fallarlo (fallar lo fácil castiga más); evoluciona con la XP y retrocede si la descuidas, pero nunca muere.
-- Ánimo según los últimos días, celebración al nacer o evolucionar y aviso a las 20:00 si alguna está triste.
+- Ánimo según los últimos días, celebración al nacer o evolucionar y aviso a las 20:00 si alguna va a retroceder.
 - Nivel de entrenador que desbloquea especies, colección con las 64 etapas y logros nuevos.
-- Pesetas por hábitos, tareas y logros, y tienda con comodines (protegen solos un día malo), fondos y auras.
+- Fondos y auras gratis para cada criatura, y comodines que protegen solos un día malo: se ganan cumpliendo las misiones de hábitos de la semana.
 - Selector de criatura al crear o editar un hábito, con sugerencia según el nombre.
 
 ### Cambios
 
 - La sección Granja pasa a ser Criaturas; los datos de la granja se conservan pero ya no se usan.
 - El instalador, el acceso directo y los archivos de descarga siguen llamándose FarmHabit, para que la versión nueva se instale encima de la anterior.
+
+### Libros
+
+- Sección **Libros** con estanterías, búsqueda en Open Library por título, autor o ISBN, ficha con progreso, nota, reseña y citas, reto anual, estadísticas y "Leyendo ahora" en Hoy. No intervienen en el juego.
+
+### Sin pesetas
+
+- Se quitan las pesetas y la tienda: todos los fondos y auras son gratis.
+- Las recompensas pasan a XP de entrenador: tareas (5, 3 o 2 según prioridad, hasta 25 al día), misiones y logros. Se conservan lo ya conseguido y los comodines comprados.
 
 ### Eventos
 
@@ -27,7 +36,7 @@ FarmHabit pasa a llamarse **¡Chambea!** y la granja se sustituye por criaturas.
 
 ### Misiones, resumen y frases
 
-- **3 misiones por semana** con premio en pesetas: hacer un hábito, completar tareas, días perfectos o ganar XP. Cuentan desde la semana del 2 de noviembre de 2026.
+- **3 misiones por semana** con premio en XP de entrenador: hacer un hábito, completar tareas, días perfectos o ganar XP. Cuentan desde la semana del 2 de noviembre de 2026.
 - **Resumen semanal** al empezar la semana, una vez por dispositivo, y pestaña **Semana** en Criaturas para ver las anteriores.
 - **400 frases** escritas para cada especie, en su tarjeta, en su ficha, al hacer el hábito, al evolucionar y en Hoy.
 - Cambiar de especie ya no quita la anterior de la colección.
@@ -36,8 +45,7 @@ FarmHabit pasa a llamarse **¡Chambea!** y la granja se sustituye por criaturas.
 
 - El aviso de las 20:00 avisa solo de las criaturas que retrocederían de verdad, no de las que simplemente están tristes.
 - El "+XP" al marcar un hábito coincide con lo que se gana, racha incluida.
-- Comprar y deshacer lo marcado ya no deja regalado lo comprado: la deuda se paga con lo que se gane.
-- Comodines limitados a 2 también al comprarlos desde dos dispositivos.
+- Comodines limitados a 2.
 
 ### Tareas
 

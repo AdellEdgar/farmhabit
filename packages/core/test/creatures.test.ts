@@ -293,7 +293,7 @@ describe('motor de criaturas: entrenador y reglas contra trampas', () => {
   });
 });
 
-// ---------- Economía ----------
+// ---------- Recompensas ----------
 
 const purchase = (item: string, date: string, price: number): Purchase => ({
   id: newId(),
@@ -305,70 +305,61 @@ const purchase = (item: string, date: string, price: number): Purchase => ({
   price,
 });
 
-describe('pesetas', () => {
-  it('hacer un hábito da tantas pesetas como su esfuerzo', () => {
-    const h = makeHabit({ startDate: START, config: { effort: 4 } });
-    expect(game({ habits: [h], logs: [makeLog(h, START)], today: '2026-09-02' }).pesetas).toBe(4);
+describe('sin monedas', () => {
+  it('el estado del juego ya no tiene pesetas ni compras', () => {
+    const s = game({ today: '2026-09-02' });
+    expect(s).not.toHaveProperty('pesetas');
+    expect(s).not.toHaveProperty('owned');
   });
 
-  it('los logros dan su premio el día que se consiguen', () => {
+  it('una compra antigua de un fondo o un aura ya no afecta a nada', () => {
+    const h = makeHabit({ startDate: START });
+    const logs = logsFor(h, START, '2026-09-05');
+    const without = game({ habits: [h], logs, today: '2026-09-06' });
+    const withOld = game({
+      habits: [h],
+      logs,
+      purchases: [purchase('background:playa', START, 150), purchase('aura:dorada', START, 200)],
+      today: '2026-09-06',
+    });
+    expect(withOld).toEqual(without);
+  });
+});
+
+describe('XP de entrenador', () => {
+  it('los logros la dan el día que se consiguen, sin tocar a la criatura', () => {
     const h = makeHabit({ startDate: START });
     const s = game({ habits: [h], logs: logsFor(h, START, '2026-09-02'), today: '2026-09-03' });
     const hatch = s.achievements.find((a) => a.id === 'primera-eclosion')!;
     expect(hatch.unlockedOn).toBe('2026-09-02');
-    expect(s.pesetas).toBe(3 + 3 + hatch.reward);
+    expect(s.trainerXp).toBe(50 + hatch.reward);
+    expect(creatureOf(s, h).xp).toBe(50);
     expect(s.achievements.find((a) => a.id === 'primera-leyenda')!.unlockedOn).toBeNull();
-  });
-
-  it('una compra resta su precio desde su fecha', () => {
-    const h = makeHabit({ startDate: START, config: { effort: 5 } });
-    const logs = logsFor(h, START, '2026-09-20');
-    const without = game({ habits: [h], logs, today: '2026-09-21' });
-    const withBuy = game({
-      habits: [h],
-      logs,
-      purchases: [purchase('background:playa', '2026-09-20', 150)],
-      today: '2026-09-21',
-    });
-    expect(without.pesetas - withBuy.pesetas).toBe(150);
-    expect(withBuy.owned).toEqual(['background:playa']);
-  });
-
-  it('compras que dejarían el saldo en negativo: 0 pesetas y lo comprado se queda', () => {
-    const s = game({
-      purchases: [
-        purchase('background:playa', '2026-09-01', 150),
-        purchase('background:dojo', '2026-09-01', 150),
-      ],
-      today: '2026-09-02',
-    });
-    expect(s.pesetas).toBe(0);
-    expect([...s.owned].sort()).toEqual(['background:dojo', 'background:playa']);
   });
 });
 
-describe('pesetas por tareas', () => {
+describe('XP de entrenador por tareas', () => {
   const created = noon('2026-09-01');
   const done = (over: Parameters<typeof makeTask>[0]) =>
     makeTask({ createdAt: created, status: 'done', completedAt: noon('2026-09-02'), ...over });
 
-  it('alta 3, media 2, baja 1, si se crearon un día antes o más', () => {
+  it('alta 5, media 3, baja 2, si se crearon un día antes o más', () => {
     const s = game({
       tasks: [done({ priority: 1 }), done({ priority: 2 }), done({ priority: 3 })],
       today: '2026-09-03',
     });
-    expect(s.pesetas).toBe(6);
+    expect(s.trainerXp).toBe(10);
   });
 
   it('una tarea creada y completada el mismo día no da nada', () => {
     const s = game({ tasks: [done({ createdAt: noon('2026-09-02') })], today: '2026-09-03' });
-    expect(s.pesetas).toBe(0);
+    expect(s.trainerXp).toBe(0);
   });
 
-  it('como mucho 15 pesetas al día por tareas', () => {
-    // 6 tareas de prioridad alta (18) superan el tope sin llegar al logro de 10 tareas.
+  it('como mucho 25 XP al día por tareas', () => {
+    // 6 tareas de prioridad alta (30) superan el tope sin llegar al logro de 10 tareas.
     const tasks = Array.from({ length: 6 }, () => done({ priority: 1 }));
-    expect(game({ tasks, today: '2026-09-03' }).pesetas).toBe(15);
+    expect(game({ tasks, today: '2026-09-03' }).trainerXp).toBe(25);
   });
 
   it('cada repetición completada de una tarea recurrente cuenta', () => {
@@ -383,14 +374,14 @@ describe('pesetas por tareas', () => {
       completedAt: noon('2026-09-02'),
     };
     expect(
-      game({ tasks: [task], taskCompletions: [completion], today: '2026-09-03' }).pesetas,
-    ).toBe(3);
+      game({ tasks: [task], taskCompletions: [completion], today: '2026-09-03' }).trainerXp,
+    ).toBe(5);
   });
 
-  it('una tarea reabierta, o borrada el mismo día, deja de dar pesetas', () => {
+  it('una tarea reabierta, o borrada el mismo día, deja de dar XP', () => {
     const reopened = done({ status: 'pending', completedAt: null });
     const deleted = done({ deletedAt: noon('2026-09-02') });
-    expect(game({ tasks: [reopened, deleted], today: '2026-09-03' }).pesetas).toBe(0);
+    expect(game({ tasks: [reopened, deleted], today: '2026-09-03' }).trainerXp).toBe(0);
   });
 
   it('borrar días después una tarea ya completada (vaciar completadas) no quita lo ganado', () => {
@@ -406,12 +397,12 @@ describe('pesetas por tareas', () => {
       completedAt: noon('2026-09-02'),
     };
     const s = game({ tasks: [cleaned, task], taskCompletions: [completion], today: '2026-09-06' });
-    expect(s.pesetas).toBe(3 + 2);
+    expect(s.trainerXp).toBe(5 + 3);
   });
 });
 
 describe('comodines', () => {
-  it('se gastan solos el primer día cerrado con fallos posterior a la compra', () => {
+  it('los comprados en versiones anteriores siguen sirviendo y se gastan solos', () => {
     const h = makeHabit({ startDate: START });
     const logs = logsFor(h, START, '2026-09-08').filter((l) => l.date !== '2026-09-07');
     const s = game({
@@ -455,29 +446,6 @@ describe('logros', () => {
 });
 
 // ---------- Arreglos de la revisión ----------
-
-describe('deuda de pesetas', () => {
-  it('lo comprado sin saldo se paga con lo que se gane después', () => {
-    const h = makeHabit({ startDate: '2026-09-02', config: { effort: 5 } });
-    const logs = logsFor(h, '2026-09-02', '2026-09-30');
-    const without = game({ habits: [h], logs, today: '2026-10-01' });
-    const withDebt = game({
-      habits: [h],
-      logs,
-      purchases: [purchase('background:playa', '2026-09-01', 150)],
-      today: '2026-10-01',
-    });
-    expect(without.pesetas - withDebt.pesetas).toBe(150);
-  });
-
-  it('mientras hay deuda se ven 0 pesetas', () => {
-    const s = game({
-      purchases: [purchase('aura:dorada', '2026-09-01', 200)],
-      today: '2026-09-02',
-    });
-    expect(s.pesetas).toBe(0);
-  });
-});
 
 describe('tope de comodines', () => {
   it('nunca se guardan más del máximo, aunque se compren desde dos dispositivos', () => {

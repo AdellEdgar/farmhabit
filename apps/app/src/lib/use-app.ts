@@ -1,5 +1,8 @@
 import { createContext, useContext } from 'react';
 import type {
+  Book,
+  BookQuote,
+  ReadingLog,
   CalendarEvent,
   CalendarSource,
   Database,
@@ -20,7 +23,7 @@ import type {
 
 export interface AppData {
   tasks: Task[];
-  /** Incluye borradas: las tareas ya completadas siguen contando pesetas. */
+  /** Incluye borradas: las tareas ya completadas siguen dando XP. */
   allTasks: Task[];
   subtasks: Subtask[];
   taskCompletions: TaskCompletion[];
@@ -35,6 +38,9 @@ export interface AppData {
   noteFolders: NoteFolder[];
   purchases: Purchase[];
   events: CalendarEvent[];
+  books: Book[];
+  bookQuotes: BookQuote[];
+  readingLogs: ReadingLog[];
   calendarSources: CalendarSource[];
   vacations: Vacation[];
 }

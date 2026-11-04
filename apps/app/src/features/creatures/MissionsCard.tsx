@@ -24,7 +24,7 @@ function MissionRow({ mission: m, compact }: { mission: Mission; compact?: boole
         ) : (
           <span className="shrink-0 text-xs text-texto-suave tabular-nums">
             {m.progress}/{m.target}
-            {!compact && <span className="text-grano"> · +{m.reward} pesetas</span>}
+            {!compact && <span className="text-grano"> · +{m.reward} XP</span>}
           </span>
         )}
       </div>
@@ -56,7 +56,14 @@ export function MissionsCard({ compact }: { compact?: boolean }) {
   }
   return (
     <Card className="p-4">
-      <p className="mb-3 font-semibold">Misiones de la semana</p>
+      <p className="font-semibold">Misiones de la semana</p>
+      {game.missions.some((m) => m.kind === 'habit') ? (
+        <p className="mb-3 text-xs text-texto-suave">
+          Cumple todas menos la de tareas y ganarás un comodín.
+        </p>
+      ) : (
+        <div className="mb-3" />
+      )}
       {list}
     </Card>
   );

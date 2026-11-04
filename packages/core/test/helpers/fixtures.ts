@@ -1,6 +1,8 @@
 import type { KdfParams } from '../../src/crypto/sodium';
 import { Database } from '../../src/db/database';
 import type {
+  Book,
+  ReadingLog,
   Animal,
   CalendarEvent,
   Habit,
@@ -120,6 +122,41 @@ export function makeAnimal(over: Partial<Animal> = {}): Animal {
 
 export function makeVacation(over: Partial<Vacation> = {}): Vacation {
   return { ...base(), startDate: '2026-01-01', endDate: '2026-01-07', ...over };
+}
+
+export function makeBook(over: Partial<Book> = {}): Book {
+  return {
+    ...base(),
+    title: 'Libro',
+    author: '',
+    pages: null,
+    coverUrl: null,
+    isbn: null,
+    status: 'want',
+    currentPage: 0,
+    startedOn: null,
+    finishedOn: null,
+    rating: null,
+    review: '',
+    tagIds: [],
+    ...over,
+  };
+}
+
+export function makeReadingLog(
+  book: Book,
+  date: LocalDate,
+  fromPage: number,
+  page: number,
+): ReadingLog {
+  return {
+    ...base(),
+    id: deterministicId('readingLog', book.id, date),
+    bookId: book.id,
+    date,
+    fromPage,
+    page,
+  };
 }
 
 export function makeEvent(over: Partial<CalendarEvent> = {}): CalendarEvent {

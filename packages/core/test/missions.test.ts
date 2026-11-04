@@ -91,13 +91,13 @@ describe('elegir las misiones de la semana', () => {
 describe('progreso y premio', () => {
   const weekly = () =>
     makeHabit({ startDate: OLD, config: { schedule: { type: 'timesPerWeek', times: 3 } } });
-  /** Pesetas que aporta la misión del hábito: compara con un premio de 0. */
+  /** XP de entrenador que aporta la misión del hábito: compara con un premio de 0. */
   const reward = (input: Partial<GameInput> & { today: string }) =>
-    game(input).pesetas -
+    game(input).trainerXp -
     game({
       ...input,
       rules: { ...RULES, missionRewards: { ...RULES.missionRewards, habit: 0 } },
-    }).pesetas;
+    }).trainerXp;
 
   it('cumplir un hábito de objetivo 3 se apunta ese día y paga una sola vez', () => {
     const h = weekly();
@@ -143,7 +143,7 @@ describe('progreso y premio', () => {
       today: '2026-11-01',
       rules: { ...RULES, missionRewards: { habit: 0, tasks: 0, perfect: 0, xp: 0 } },
     });
-    expect(before.pesetas).toBe(free.pesetas);
+    expect(before.trainerXp).toBe(free.trainerXp);
   });
 
   it('sin ningún dato también hay misiones de tareas', () => {
@@ -258,7 +258,6 @@ describe('estadísticas de cada semana', () => {
       topHabitId: fuerte.id,
       perfectDays: 1,
     });
-    expect(w!.pesetas).toBeGreaterThanOrEqual(5 + 5 + 1 + 2);
   });
 
   it('una semana sin datos no existe', () => {
@@ -314,5 +313,65 @@ describe('qué resumen semanal enseñar', () => {
   it('una semana sin actividad no se enseña', () => {
     const idle = game({ habits: [h], today: '2026-11-09' });
     expect(summaryToShow(idle, '2026-10-26')).toBeNull();
+  });
+});
+
+describe('comodines por completar las misiones', () => {
+  // Lunes a viernes de un hábito de 3 veces: cumple su misión y, con 125 XP o 5 días, la tercera.
+  const weekly = () =>
+    makeHabit({ startDate: OLD, config: { schedule: { type: 'timesPerWeek', times: 3 } } });
+  const fiveDays = (h: Habit, monday: string) =>
+    [0, 1, 2, 3, 4].map((n) => makeLog(h, addDays(monday, n)));
+  const tasksOn = (date: string, n: number) =>
+    Array.from({ length: n }, () =>
+      makeTask({ createdAt: noon(OLD), status: 'done', completedAt: noon(date) }),
+    );
+
+  it('cumplir las de hábitos da uno, una sola vez, aunque falte la de tareas', () => {
+    const h = weekly();
+    const s = game({ habits: [h], logs: fiveDays(h, WEEK), today: '2026-11-08' });
+    expect(s.missions.find((m) => m.kind === 'tasks')?.doneOn).toBeNull();
+    expect(s.missions.filter((m) => m.kind !== 'tasks').every((m) => m.doneOn !== null)).toBe(true);
+    expect(s.freezes).toBe(1);
+  });
+
+  it('con una sin cumplir no da ninguno', () => {
+    const h = weekly();
+    const logs = fiveDays(h, WEEK).slice(0, 2);
+    expect(game({ habits: [h], logs, today: '2026-11-08' }).freezes).toBe(0);
+  });
+
+  it('las misiones de tareas no dan comodines', () => {
+    expect(game({ tasks: tasksOn('2026-11-02', 20), today: '2026-11-03' }).freezes).toBe(0);
+  });
+
+  it('sirve después, para un día con fallos', () => {
+    const h = makeHabit({
+      startDate: OLD,
+      config: { effort: 5, schedule: { type: 'weekdays', days: [1, 2, 3] } },
+    });
+    const logs = ['2026-11-02', '2026-11-03', '2026-11-04'].map((d) => makeLog(h, d));
+    const s = game({ habits: [h], logs, today: '2026-11-10' });
+    expect(s.frozenDays).toEqual(['2026-11-09']);
+    expect(s.freezes).toBe(0);
+  });
+
+  it('reabrir una tarea antigua no cambia los días cerrados', () => {
+    const h = makeHabit({
+      startDate: OLD,
+      config: { effort: 5, schedule: { type: 'weekdays', days: [1, 2, 3] } },
+    });
+    const logs = ['2026-11-02', '2026-11-03', '2026-11-04'].map((d) => makeLog(h, d));
+    const input = { habits: [h], logs, today: '2026-11-17' };
+    const withTasks = game({ ...input, tasks: tasksOn('2026-11-02', 25) });
+    const reopened = game(input);
+    expect(withTasks.frozenDays).toEqual(reopened.frozenDays);
+    expect(withTasks.creatures).toEqual(reopened.creatures);
+  });
+
+  it('no se guardan más de 2', () => {
+    const h = weekly();
+    const logs = ['2026-11-02', '2026-11-09', '2026-11-16'].flatMap((w) => fiveDays(h, w));
+    expect(game({ habits: [h], logs, today: '2026-11-22' }).freezes).toBe(2);
   });
 });

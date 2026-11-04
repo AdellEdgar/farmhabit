@@ -1,7 +1,7 @@
 import { createContext, useContext } from 'react';
 
 export type Section =
-  'hoy' | 'tareas' | 'calendario' | 'habitos' | 'notas' | 'criaturas' | 'ajustes';
+  'hoy' | 'tareas' | 'calendario' | 'habitos' | 'notas' | 'libros' | 'criaturas' | 'ajustes';
 
 export interface NavigationValue {
   section: Section;

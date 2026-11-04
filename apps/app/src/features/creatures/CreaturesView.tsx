@@ -4,17 +4,15 @@ import { PageHeader, Segmented } from '../../components/ui';
 import { AchievementsTab } from './AchievementsTab';
 import { CollectionTab } from './CollectionTab';
 import { CreatureSheet } from './CreatureSheet';
-import { ShopTab } from './ShopTab';
 import { TeamTab } from './TeamTab';
 import { WeekTab } from './WeekTab';
 
-type Tab = 'equipo' | 'semana' | 'coleccion' | 'tienda' | 'logros';
+type Tab = 'equipo' | 'semana' | 'coleccion' | 'logros';
 
 const TABS: { value: Tab; label: string }[] = [
   { value: 'equipo', label: 'Equipo' },
   { value: 'semana', label: 'Semana' },
   { value: 'coleccion', label: 'Colección' },
-  { value: 'tienda', label: 'Tienda' },
   { value: 'logros', label: 'Logros' },
 ];
 
@@ -27,19 +25,18 @@ export function CreaturesView() {
     <>
       <PageHeader
         title="Criaturas"
-        subtitle={`Entrenador nivel ${game.level} · ${game.pesetas} pesetas`}
+        subtitle={`Entrenador nivel ${game.level} · ${game.trainerXp} XP`}
       />
       <Segmented
         value={tab}
         options={TABS}
         onChange={setTab}
-        className="mb-5 max-w-full overflow-x-auto"
+        className="mb-5 max-w-full overflow-x-auto [scrollbar-width:none]"
       />
 
       {tab === 'equipo' && <TeamTab onOpen={setOpen} />}
       {tab === 'semana' && <WeekTab />}
       {tab === 'coleccion' && <CollectionTab />}
-      {tab === 'tienda' && <ShopTab />}
       {tab === 'logros' && <AchievementsTab />}
 
       {open && <CreatureSheet key={open} habitId={open} onClose={() => setOpen(null)} />}

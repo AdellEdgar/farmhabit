@@ -25,16 +25,13 @@ export interface CreatureRules {
   moodMinDays: number;
   /** Mínimo de cumplimiento para cada ánimo (por debajo de "cansada", triste). */
   moodBands: { feliz: number; normal: number; cansada: number };
-  pesetasPerEffort: number;
-  /** Pesetas por tarea según prioridad (1 alta, 2 media, 3 baja). */
-  taskPesetas: Record<1 | 2 | 3, number>;
-  taskPesetasDailyCap: number;
-  freezePrice: number;
+  /** XP de entrenador por tarea según prioridad (1 alta, 2 media, 3 baja). */
+  taskXp: Record<1 | 2 | 3, number>;
+  taskXpDailyCap: number;
   freezeMax: number;
-  backgroundPrice: number;
-  auraPrice: number;
   /** Primer lunes con misiones: el historial anterior no da premios. */
   missionsStart: string;
+  /** XP de entrenador por cada misión. */
   missionRewards: { habit: number; tasks: number; perfect: number; xp: number };
   missionTasksMin: number;
   missionTasksMax: number;
@@ -56,13 +53,9 @@ export const DEFAULT_CREATURE_RULES: CreatureRules = {
   moodWindow: 7,
   moodMinDays: 3,
   moodBands: { feliz: 0.8, normal: 0.5, cansada: 0.2 },
-  pesetasPerEffort: 1,
-  taskPesetas: { 1: 3, 2: 2, 3: 1 },
-  taskPesetasDailyCap: 15,
-  freezePrice: 50,
+  taskXp: { 1: 5, 2: 3, 3: 2 },
+  taskXpDailyCap: 25,
   freezeMax: 2,
-  backgroundPrice: 150,
-  auraPrice: 200,
   missionsStart: '2026-11-02',
   missionRewards: { habit: 30, tasks: 40, perfect: 50, xp: 40 },
   missionTasksMin: 5,

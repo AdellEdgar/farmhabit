@@ -241,3 +241,37 @@ describe('migración 5: eventos', () => {
     });
   });
 });
+
+describe('migración 6: libros', () => {
+  it('sube de 5 a 6 sin tocar los hábitos', async () => {
+    const driver = new NodeSqliteDriver();
+    await migrate(driver, MIGRATIONS.slice(0, 5));
+    await driver.execute(
+      `INSERT INTO habits (id, created_at, updated_at, name, sort_key, start_date, config_history)
+       VALUES ('h', 1, 1, 'Leer', 'V', '2026-01-01', '[]')`,
+    );
+    expect(await migrate(driver)).toBe(6);
+    const rows = await driver.select<{ name: string }>('SELECT name FROM habits');
+    expect(rows[0]?.name).toBe('Leer');
+    expect(await driver.select('SELECT * FROM books')).toEqual([]);
+  });
+
+  it('un libro conserva sus campos', async () => {
+    const { db } = await openTestDb();
+    const b = await db.repo('books').create({
+      title: 'Uno',
+      author: 'Ana',
+      pages: 100,
+      coverUrl: 'https://covers.openlibrary.org/b/id/1-M.jpg',
+      isbn: '9788408043645',
+      status: 'reading',
+      currentPage: 10,
+      startedOn: '2026-01-01',
+      finishedOn: null,
+      rating: 3.5,
+      review: 'Bien',
+      tagIds: [],
+    });
+    expect(await db.repo('books').get(b.id)).toEqual(b);
+  });
+});

@@ -1,7 +1,7 @@
 import type { Stage } from './creature-rules';
 
 // Logros de las criaturas. Se calculan día a día en el motor (no se guardan):
-// el día que se cumple la condición quedan conseguidos y dan su premio.
+// el día que se cumple la condición quedan conseguidos y dan su premio en XP de entrenador.
 
 export interface AchievementContext {
   /** Etapa máxima alcanzada alguna vez por cada criatura. */
@@ -12,7 +12,6 @@ export interface AchievementContext {
   tasksDone: number;
   /** Especies que han eclosionado alguna vez. */
   speciesSeen: number;
-  pesetas: number;
 }
 
 export interface AchievementDef {
@@ -102,12 +101,5 @@ export const ACHIEVEMENTS: readonly AchievementDef[] = [
     description: 'Haz eclosionar las 16 especies',
     reward: 300,
     check: (c) => c.speciesSeen >= 16,
-  },
-  {
-    id: 'ahorrador',
-    title: 'Ahorrador',
-    description: 'Ten 500 pesetas a la vez',
-    reward: 50,
-    check: (c) => c.pesetas >= 500,
   },
 ];

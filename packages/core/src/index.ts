@@ -29,6 +29,8 @@ export * from './domain/tasks';
 export * from './domain/recurrence';
 export * from './domain/habits';
 export * from './domain/events';
+export * from './domain/books';
+export * from './domain/book-search';
 export * from './domain/reminders';
 export * from './domain/stats';
 export * from './domain/ics';
@@ -37,8 +39,9 @@ export * from './domain/calendar';
 // Servicios
 export * from './services/tasks';
 export * from './services/habits';
-export * from './services/shop';
+export * from './services/vacations';
 export * from './services/events';
+export * from './services/books';
 export * from './services/private-notes';
 export * from './services/calendar';
 

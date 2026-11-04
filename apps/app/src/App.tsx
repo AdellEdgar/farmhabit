@@ -1,5 +1,6 @@
 import { lazy, Suspense, useEffect, useState } from 'react';
 import {
+  BookOpen,
   CalendarCheck,
   CalendarDays,
   CheckSquare,
@@ -42,6 +43,9 @@ const CalendarView = lazy(() =>
 const NotesView = lazy(() =>
   import('./features/notes/NotesView').then((m) => ({ default: m.NotesView })),
 );
+const BooksView = lazy(() =>
+  import('./features/books/BooksView').then((m) => ({ default: m.BooksView })),
+);
 const CreaturesView = lazy(() =>
   import('./features/creatures/CreaturesView').then((m) => ({ default: m.CreaturesView })),
 );
@@ -56,6 +60,7 @@ const SECTIONS: { id: Section; name: string; short?: string; icon: typeof PawPri
   { id: 'calendario', name: 'Calendario', short: 'Agenda', icon: CalendarDays },
   { id: 'habitos', name: 'Hábitos', icon: Repeat },
   { id: 'notas', name: 'Notas', icon: NotebookPen },
+  { id: 'libros', name: 'Libros', icon: BookOpen },
   { id: 'criaturas', name: 'Criaturas', icon: PawPrint },
   { id: 'ajustes', name: 'Ajustes', icon: Settings },
 ];
@@ -71,6 +76,7 @@ const SECTION_WIDTH: Record<Section, string> = {
   calendario: 'max-w-[1800px]',
   habitos: 'max-w-6xl',
   notas: 'max-w-7xl',
+  libros: 'max-w-5xl',
   criaturas: 'max-w-6xl',
   ajustes: 'max-w-4xl',
 };
@@ -181,6 +187,7 @@ function Shell() {
               {section === 'calendario' && <CalendarView />}
               {section === 'habitos' && <HabitsView />}
               {section === 'notas' && <NotesView />}
+              {section === 'libros' && <BooksView />}
               {section === 'criaturas' && <CreaturesView />}
               {section === 'ajustes' && <SettingsView />}
             </Suspense>

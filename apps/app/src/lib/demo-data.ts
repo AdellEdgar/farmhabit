@@ -1,6 +1,10 @@
 import {
+  addBookQuote,
   addDays,
   addFileCalendar,
+  createBook,
+  setBookProgress,
+  setReadingGoal,
   habitLogId,
   keyBetween,
   localDateOf,
@@ -253,12 +257,6 @@ export async function seedDemo(db: Database): Promise<void> {
     }
   }
 
-  // Tienda: un comodín y un fondo comprados por el camino.
-  await db.repo('purchases').create({ item: 'freeze', date: addDays(start, 20), price: 50 });
-  await db
-    .repo('purchases')
-    .create({ item: 'background:biblioteca', date: addDays(start, 40), price: 150 });
-
   // Eventos propios: uno con lugar, uno semanal y otro de todo el día.
   const demoEvent = {
     description: '',
@@ -295,6 +293,48 @@ export async function seedDemo(db: Database): Promise<void> {
     endDate: addDays(today, 5),
     endTime: null,
   });
+
+  // Libros: clásicos de dominio público, sin portada.
+  const quijote = await createBook(
+    db,
+    {
+      title: 'Don Quijote de la Mancha',
+      author: 'Miguel de Cervantes',
+      pages: 1056,
+      status: 'reading',
+    },
+    addDays(today, -12),
+  );
+  await setBookProgress(db, quijote.id, 240, addDays(today, -3));
+  await setBookProgress(db, quijote.id, 312, today);
+  await addBookQuote(
+    db,
+    quijote.id,
+    'La libertad, Sancho, es uno de los más preciosos dones.',
+    980,
+  );
+  const finishedBook = async (
+    title: string,
+    author: string,
+    pages: number,
+    days: number,
+    rating: number,
+  ) => {
+    const b = await createBook(db, { title, author, pages }, today);
+    await db.repo('books').update(b.id, {
+      status: 'read',
+      currentPage: pages,
+      startedOn: addDays(today, -days - 14),
+      finishedOn: addDays(today, -days),
+      rating,
+    });
+  };
+  await finishedBook('La Regenta', 'Leopoldo Alas Clarín', 816, 20, 4.5);
+  await finishedBook('Fortunata y Jacinta', 'Benito Pérez Galdós', 1100, 60, 5);
+  await finishedBook('Lazarillo de Tormes', 'Anónimo', 112, 90, 4);
+  await createBook(db, { title: 'La Odisea', author: 'Homero', pages: 464 }, today);
+  await createBook(db, { title: 'Platero y yo', author: 'Juan Ramón Jiménez', pages: 208 }, today);
+  await setReadingGoal(db, Number(today.slice(0, 4)), 12);
 
   // Notas
   const folder = await db

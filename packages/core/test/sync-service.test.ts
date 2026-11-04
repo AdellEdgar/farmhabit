@@ -2,10 +2,11 @@ import { describe, expect, it } from 'vitest';
 import { DecryptionError } from '../src/crypto/sodium';
 import { createHabit, setHabitLog } from '../src/services/habits';
 import { emptyDataset } from '../src/model/collections';
+import { mergeDatasets } from '../src/sync/merge';
 import type { Habit } from '../src/model/types';
 import type { ExportPayload } from '../src/sync/format';
 import { exportDatabase, importIntoDatabase, mergeIntoDatabase } from '../src/sync/service';
-import { makeTask, noon, openTestDb, TEST_KDF } from './helpers/fixtures';
+import { makeBook, makeTask, noon, openTestDb, TEST_KDF } from './helpers/fixtures';
 
 const PASSWORD = 'contraseña maestra larga';
 const TODAY = '2026-10-24';
@@ -213,5 +214,14 @@ describe('especies pasadas en archivos de otras versiones', () => {
       creatureSpecies: 'poseidon',
       creaturePast: [],
     });
+  });
+});
+
+describe('libros en la sincronización', () => {
+  it('un archivo de una versión anterior, sin libros, no borra los locales', () => {
+    const local = makeBook({ title: 'Mío' });
+    const dataset = { ...emptyDataset(), books: [local] };
+    const merged = mergeDatasets(dataset, emptyDataset(), { now: noon(TODAY) });
+    expect(merged.changes.books).toEqual([]); // nada que sobrescribir ni borrar
   });
 });

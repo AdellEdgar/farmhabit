@@ -7,7 +7,7 @@ import { creaturePhrase, levelXp } from './creature-meta';
 import { MissionsCard } from './MissionsCard';
 import { SpeechBubble } from './SpeechBubble';
 
-/** "Tu equipo" en Hoy: las criaturas con su ánimo, el nivel y las pesetas. */
+/** "Tu equipo" en Hoy: las criaturas con su ánimo y el nivel. */
 export function TeamStrip({ onOpen }: { onOpen: () => void }) {
   const { game, today } = useApp();
   const team = game.creatures.filter((c) => !c.archived);
@@ -28,9 +28,7 @@ export function TeamStrip({ onOpen }: { onOpen: () => void }) {
         </div>
         <div className="mt-1 flex items-center justify-between gap-3 text-xs text-texto-suave">
           <span>Entrenador nivel {game.level}</span>
-          <span>
-            <b className="text-grano">{game.pesetas}</b> pesetas
-          </span>
+          <span className="tabular-nums">{game.trainerXp} XP</span>
         </div>
         <ProgressBar value={((game.trainerXp - from) / (to - from)) * 100} className="mt-1.5" />
 

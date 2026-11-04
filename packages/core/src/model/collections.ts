@@ -1,6 +1,9 @@
 import { z } from 'zod';
 import {
   animalSchema,
+  bookQuoteSchema,
+  bookSchema,
+  readingLogSchema,
   calendarEventSchema,
   calendarSourceSchema,
   purchaseSchema,
@@ -36,6 +39,9 @@ export const COLLECTIONS = {
   calendarSources: calendarSourceSchema,
   purchases: purchaseSchema,
   events: calendarEventSchema,
+  books: bookSchema,
+  bookQuotes: bookQuoteSchema,
+  readingLogs: readingLogSchema,
 } as const;
 
 export type CollectionName = keyof typeof COLLECTIONS;

@@ -14,6 +14,7 @@ Tus datos se guardan en tu dispositivo, sin cuentas propias ni servidores. Si qu
 
 <p align="center">
   <img src="docs/screenshots/calendario.png" alt="Calendario del mes con clases, eventos y tareas" width="404">
+  <img src="docs/screenshots/libros.png" alt="Libros: reto anual y estantería de lectura" width="404">
   <img src="docs/screenshots/criaturas.png" alt="Criaturas: misiones de la semana y tarjetas del equipo con sus frases" width="404">
 </p>
 
@@ -47,12 +48,20 @@ Tus datos se guardan en tu dispositivo, sin cuentas propias ni servidores. Si qu
 - Hacer el hábito le da **XP** (`10 + 5 × esfuerzo`); fallarlo se la quita (`5 × (6 − esfuerzo)`): **fallar lo fácil castiga más**. Con suficiente XP **evoluciona**; si la descuidas, **retrocede**, pero nunca muere.
 - Su **ánimo** (feliz, normal, cansada, triste) refleja tus últimos días con ese hábito.
 - Cada especie **habla a su manera**: frases propias según su ánimo, al hacer el hábito y al evolucionar.
-- **Misiones semanales**: 3 objetivos cada semana, elegidos según tus hábitos, con premio en pesetas.
+- **Misiones semanales**: 3 objetivos cada semana, elegidos según tus hábitos, con premio en XP. Las de hábitos dan además un **comodín**, que protege solo un día malo.
 - **Resumen semanal**: cómo te fue la semana anterior y qué criatura fue la estrella, con todas las semanas pasadas en su pestaña.
-- **Nivel de entrenador** con toda la XP ganada: desbloquea especies.
-- **Pesetas** por hábitos, tareas y logros, para la **tienda**: **comodines** que protegen solos un día malo, **fondos** y **auras**.
+- **Nivel de entrenador** con la XP de hábitos, tareas, misiones y logros: desbloquea especies.
+- **Fondos** y **auras** gratis para personalizar cada criatura.
 - **Colección** con las 64 etapas por descubrir, **logros** y **modo vacaciones**.
-- Reglas contra trampas: solo se puede apuntar hoy y ayer, las tareas creadas y completadas el mismo día no dan pesetas, y borrar un hábito no borra lo pasado.
+- Reglas contra trampas: solo se puede apuntar hoy y ayer, las tareas creadas y completadas el mismo día no dan XP, y borrar un hábito no borra lo pasado.
+
+### 📚 Libros
+
+- Estanterías **Leyendo**, **Por leer**, **Leídos** y **Abandonados**. Se añaden buscando por título, autor o ISBN en [Open Library], con portada y datos, o a mano.
+- Página por la que vas, también desde **Hoy**, fechas, nota de media en media estrella, reseña, etiquetas y **citas**.
+- **Reto anual** y **estadísticas**: libros y páginas por año, nota media, días por libro y autores más leídos.
+
+[Open Library]: https://openlibrary.org
 
 ### 📝 Notas
 
@@ -150,6 +159,7 @@ Para publicar una versión nueva: sube la versión en `apps/app/package.json` (y
 | 8    | Publicación: versión 1.0.0, Releases y demo web              |
 | 9    | 2.0: criaturas en lugar de la granja y nombre ¡Chambea!      |
 | 10   | Eventos propios, misiones, resumen semanal y frases          |
+| 11   | Libros y recompensas solo con XP                             |
 
 ## Licencia
 

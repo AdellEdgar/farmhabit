@@ -1,6 +1,6 @@
 # Eventos propios, resumen semanal, misiones y frases
 
-Fecha: 2026-11-04 · Estado: aprobada
+Fecha: 2026-11-04 · Estado: aprobada. Las pesetas de esta spec se sustituyeron después por XP de entrenador (ver CLAUDE.md).
 
 ## Objetivo
 
